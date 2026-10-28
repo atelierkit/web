@@ -20,7 +20,6 @@
     "prepare": "husky"
   },
   "private": true,
-  "packageManager": "npm@12.2.1",
   "dependencies": {
     "@angular/common": "^22.2.0",
     "@angular/compiler": "^22.2.0",

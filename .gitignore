@@ -11,6 +11,10 @@
 npm-debug.log
 yarn-error.log
 
+# Package registry (personal mirror, not to be shared)
+.npmrc
+.yarnrc
+
 # IDEs and editors
 .idea/
 .project
