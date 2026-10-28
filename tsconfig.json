@@ -12,7 +12,14 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@shared": ["./src/app/shared/index"],
+      "@core": ["./src/app/core/index"],
+      "@env/*": ["./src/environments/*"],
+      "@_mock": ["./_mock/index"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

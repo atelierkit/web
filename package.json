@@ -3,10 +3,21 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "ng s -o",
+    "build": "ng b",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "hmr": "ng s -o --hmr",
+    "analyze": "ng b --source-map",
+    "analyze:view": "source-map-explorer dist/**/*.js --no-border-checks",
+    "test-coverage": "ng test -c coverage --coverage --watch=false",
+    "color-less": "ng-alain-plugin-theme -t=colorLess",
+    "theme": "ng-alain-plugin-theme -t=themeCss",
+    "icon": "ng g ng-alain:plugin icon",
+    "lint": "npm run lint:ts && npm run lint:style",
+    "lint:ts": "ng lint",
+    "lint:style": "npx stylelint \\\"src/**/*.less\\\" --fix",
+    "prepare": "husky"
   },
   "private": true,
   "packageManager": "npm@12.2.1",
@@ -17,17 +28,62 @@
     "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "ng-alain": "^22.1.1",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "@delon/abc": "^22.1.1",
+    "@delon/acl": "^22.1.1",
+    "@delon/auth": "^22.1.1",
+    "@delon/cache": "^22.1.1",
+    "@delon/form": "^22.1.1",
+    "@delon/mock": "^22.1.1",
+    "@delon/theme": "^22.1.1",
+    "@delon/util": "^22.1.1",
+    "@delon/chart": "^22.1.1",
+    "ng-zorro-antd": "^22.1.1",
+    "screenfull": "^6.0.2"
   },
   "devDependencies": {
     "@angular/build": "^22.2.4",
     "@angular/cli": "^22.2.4",
     "@angular/compiler-cli": "^22.2.0",
-    "jsdom": "^30.0.0",
+    "jsdom": "^30.0.1",
     "less": "^4.2.0",
-    "prettier": "^3.8.1",
-    "typescript": "~6.0.2",
-    "vitest": "^5.0.0"
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.11",
+    "@eslint/js": "^10.0.1",
+    "@eslint/markdown": "^8.0.3",
+    "angular-eslint": "^22.5.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-import-x": "^4.17.1",
+    "eslint-plugin-jsdoc": "^64.5.4",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "typescript-eslint": "^8.70.1",
+    "husky": "^9.1.7",
+    "ng-alain": "^22.1.1",
+    "ng-alain-plugin-theme": "^18.0.0",
+    "source-map-explorer": "^2.5.3",
+    "ngx-tinymce": "^22.0.0",
+    "@ng-util/monaco-editor": "^22.0.0",
+    "@delon/testing": "^22.1.1",
+    "@playwright/test": "^1.62.1",
+    "@vitest/browser-playwright": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.11",
+    "lint-staged": "^17.6.0",
+    "stylelint": "^17.15.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-declaration-block-no-ignored-properties": "^3.0.0",
+    "stylelint-config-clean-order": "^10.0.0",
+    "stylelint-order": "^8.1.1"
+  },
+  "lint-staged": {
+    "(src)/**/*.{html,ts}": [
+      "eslint --fix"
+    ],
+    "(src)/**/*.less": [
+      "npm run lint:style"
+    ]
   }
 }
