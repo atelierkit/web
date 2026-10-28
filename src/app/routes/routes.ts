@@ -2,8 +2,8 @@ import { Routes } from '@angular/router';
 import { startPageGuard } from '@core';
 import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
 
-import { DashboardComponent } from './dashboard/dashboard.component';
 import { LayoutBasic } from '../layout';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 export const routes: Routes = [
   {

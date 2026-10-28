@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import {
   EnvironmentProviders,
   Injectable,
@@ -6,12 +7,11 @@ import {
   provideAppInitializer,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { DA_SERVICE_TOKEN } from '@delon/auth';
-import { ALAIN_I18N_TOKEN, MenuService, SettingsService, TitleService } from '@delon/theme';
 import { ACLService } from '@delon/acl';
-import { Observable, zip, of, catchError, map } from 'rxjs';
+import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { MenuService, SettingsService, TitleService } from '@delon/theme';
 import type { NzSafeAny } from 'ng-zorro-antd/core/types';
+import { Observable, of, catchError, map } from 'rxjs';
 
 /**
  * Used for application startup

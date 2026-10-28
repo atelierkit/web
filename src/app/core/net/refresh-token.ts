@@ -30,11 +30,9 @@ function reAttachToken(injector: Injector, req: HttpRequest<unknown>): HttpReque
 
 function refreshTokenRequest(injector: Injector): Observable<ITokenModel> {
   const model = injector.get(DA_SERVICE_TOKEN).get();
-  return injector
-    .get(HttpClient)
-    .post<ITokenModel>(`/api/auth/refresh`, {
-      headers: { refresh_token: model?.['refresh_token'] || '' },
-    });
+  return injector.get(HttpClient).post<ITokenModel>(`/api/auth/refresh`, {
+    headers: { refresh_token: model?.['refresh_token'] || '' },
+  });
 }
 
 /**

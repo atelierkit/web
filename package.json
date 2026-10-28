@@ -16,7 +16,7 @@
     "icon": "ng g ng-alain:plugin icon",
     "lint": "npm run lint:ts && npm run lint:style",
     "lint:ts": "ng lint",
-    "lint:style": "npx stylelint \\\"src/**/*.less\\\" --fix",
+    "lint:style": "npx stylelint \"src/**/*.less\" --fix",
     "prepare": "husky"
   },
   "private": true,

@@ -1,6 +1,6 @@
 <form nz-form [formGroup]="form" (ngSubmit)="submit()" role="form">
   <nz-tabs [nzAnimated]="false" class="tabs" (nzSelectChange)="switch($event)">
-    <nz-tab [nzTitle]="'账户密码登录'">
+    <nz-tab nzTitle="账户密码登录">
       @if (error) {
         <nz-alert nzType="error" [nzMessage]="error" [nzShowIcon]="true" class="mb-lg" />
       }
@@ -34,7 +34,7 @@
         </nz-form-control>
       </nz-form-item>
     </nz-tab>
-    <nz-tab [nzTitle]="'手机号登录'">
+    <nz-tab nzTitle="手机号登录">
       <nz-form-item>
         <nz-form-control [nzErrorTip]="mobileErrorTip">
           <nz-input-wrapper>
@@ -52,7 +52,7 @@
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
-        <nz-form-control [nzErrorTip]="'请输入验证码！'">
+        <nz-form-control nzErrorTip="请输入验证码！">
           <nz-row [nzGutter]="8">
             <nz-col [nzSpan]="16">
               <nz-input-wrapper>

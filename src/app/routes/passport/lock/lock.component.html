@@ -5,7 +5,7 @@
     </div>
     <form nz-form [formGroup]="f" (ngSubmit)="submit()" role="form" class="mt-md">
       <nz-form-item>
-        <nz-form-control [nzErrorTip]="'请输入密码！'">
+        <nz-form-control nzErrorTip="请输入密码！">
           <nz-input-password>
             <input
               type="password"
