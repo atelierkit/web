@@ -94,11 +94,12 @@ export function tryRefreshToken(
 
   return refreshTokenRequest(injector).pipe(
     switchMap((res) => {
+      // 先重新保存新 token，注：必须早于 refreshToken$.next —— 挂起中的请求会在收到
+      // 通知时立刻重新附加请求头，此时本地若还是旧令牌，重发的请求会再次 401
+      injector.get(DA_SERVICE_TOKEN).set(res);
       // 通知后续请求继续执行
       refreshToking = false;
       refreshToken$.next(res);
-      // 重新保存新 token
-      injector.get(DA_SERVICE_TOKEN).set(res);
       // 重新发起请求
       return next(reAttachToken(injector, req));
     }),
