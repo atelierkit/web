@@ -1,5 +1,5 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+# 注：husky 9 起钩子就是普通 shell 脚本，由 .husky/_/h 用 `sh -e` 执行，
+# 不再需要 shebang 与 source _/husky.sh（那两行在 husky 10 会被移除）。
 export NODE_OPTIONS="--max-old-space-size=4096"
 npx --no-install tsc -p tsconfig.app.json --noEmit
 npx --no-install lint-staged

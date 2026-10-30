@@ -37,6 +37,10 @@ jobs:
         env:
           HUSKY: 0
 
+      - name: 类型检查
+        # 与 pre-commit 钩子保持一致：CI 里显式跑一遍，避免有人跳过本地钩子
+        run: npx tsc -p tsconfig.app.json --noEmit
+
       - name: 代码检查
         # 只跑 TS 侧 lint；stylelint 带 --fix，不适合在 CI 里改文件
         run: yarn lint:ts
