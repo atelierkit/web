@@ -74,15 +74,20 @@ export class AuthUserEditComponent implements OnInit {
         maxLength: 64,
         pattern: PASSWORD_RE.source,
         // 注：编辑态不含改密，隐藏字段（隐藏项不参与校验）
-        ui: { widget: 'password', hidden: this.editable },
+        // 注：@delon/form 22 无独立 password widget，用 string widget 的 type 属性渲染密码框
+        ui: { type: 'password', hidden: this.editable },
       },
       name: { type: 'string', title: '昵称', maxLength: 30 },
       avatar: { type: 'string', title: '头像' },
       email: { type: 'string', title: '邮箱', format: 'email' },
       roles: {
-        type: 'array',
+        // 注：多选字符串数组。不能写 type:'array'——SF 会套用 ArrayProperty（数组对象模型），
+        // 它遍历每个元素用 schema.items 建子属性，基础类型数组没有 items 会抛
+        // `Cannot read properties of undefined (reading '$ref')`；带 items 又会触发
+        // resolveIfSchema 的 `Object.keys(undefined)`。故用 type:'string' + select multiple，
+        // SelectWidget 多选时直接把字符串数组写入值，选项由 ui.$roles.asyncData 提供。
+        type: 'string',
         title: '角色',
-        items: { type: 'string' },
         default: [],
       },
       status: { type: 'boolean', title: '状态' },

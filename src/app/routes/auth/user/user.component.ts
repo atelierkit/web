@@ -105,6 +105,7 @@ export class AuthUserComponent implements OnInit {
       .create<AuthUserEditComponent, { id?: number }, boolean>({
         nzContent: AuthUserEditComponent,
         nzData: { id: record?.id },
+        nzTitle: record ? '编辑用户' : '创建用户',
         nzFooter: null,
         nzWidth: 640,
       })

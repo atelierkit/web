@@ -102,6 +102,7 @@ export class AuthRoleComponent implements OnInit {
       .create<AuthRoleEditComponent, { id?: string }, boolean>({
         nzContent: AuthRoleEditComponent,
         nzData: { id: record?.id },
+        nzTitle: record ? '编辑角色' : '创建角色',
         nzFooter: null,
         nzWidth: 640,
       })
