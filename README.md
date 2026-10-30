@@ -143,6 +143,26 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
 
 > 顶栏的「清理本地缓存」会清掉本地令牌与本地设置，登录状态异常时可先用它再刷新。
 
+## 测试与提交门禁
+
+```bash
+# 单元测试（浏览器模式，Chromium 由 Playwright 驱动）
+yarn test
+
+# 覆盖率
+yarn test-coverage
+```
+
+仓库用 [husky](https://typicode.github.io/husky/) 挂了 `pre-commit` 钩子，**测试不通过就提交不了**，顺序为：
+
+1. `tsc -p tsconfig.app.json --noEmit`（类型检查）
+2. `lint-staged`（对暂存文件跑 eslint / stylelint）
+3. `ng test --watch=false`（单元测试）
+
+- 钩子由 `yarn install` 自动装好（`prepare: husky`，定义在 `.husky/pre-commit`），新克隆的仓库无需额外操作。
+- 单元测试跑在真实 Chromium 里：新机器若报找不到浏览器，先执行一次 `npx playwright install chromium`。
+- 应急绕过用 `git commit --no-verify`。
+
 ## 目录结构
 
 ```
