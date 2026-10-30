@@ -163,6 +163,16 @@ yarn test-coverage
 - 单元测试跑在真实 Chromium 里：新机器若报找不到浏览器，先执行一次 `npx playwright install chromium`。
 - 应急绕过用 `git commit --no-verify`。
 
+### 覆盖率
+
+`yarn test-coverage`（= `ng test -c coverage --coverage --watch=false`）会跑覆盖率并校验 `vitest.config.ts` 里的
+`coverage.thresholds`（当前 92/90/78/88：行/语句/分支/函数），不达标直接失败（CI 跑的就是这条）。
+
+当前承诺的是 **core 层**：`passport.service`、`refresh-token`、`helper`、`setup.guard`、`start-page.guard` 为 100%，
+`startup.service` 约 95%、`default.interceptor` 约 82%，整体约 **95% 行 / 98% 函数 / 85% 分支**。
+页面组件尚未补 TestBed 用例，`@angular/build:unit-test` 只统计被用例加载过的文件，所以它们在报告里不出现
+（注：在该配置里写 `coverage.include` 会与 builder 冲突、覆盖率被算成 0%，不要加）。
+
 ## 目录结构
 
 ```

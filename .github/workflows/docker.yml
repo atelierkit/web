@@ -49,9 +49,9 @@ jobs:
         # 单元测试跑在真实 Chromium 里（@angular/build:unit-test + Playwright）
         run: npx --no-install playwright install --with-deps chromium
 
-      - name: 单元测试
-        # 与 pre-commit 钩子保持一致：本地用 --no-verify 跳过钩子的提交在这里被拦下
-        run: npx --no-install ng test --watch=false
+      - name: 单元测试与覆盖率门槛
+        # 覆盖率门槛只在带 --coverage 时生效，所以 CI 跑 coverage 配置而不是裸 ng test
+        run: npx --no-install ng test -c coverage --coverage --watch=false
 
       - name: 编译源代码
         # 产物 dist/web/browser 会被 Dockerfile 拷进镜像
