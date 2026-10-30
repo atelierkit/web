@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HotkeyDirective } from '@delon/abc/hotkey';
-import { I18nPipe } from '@delon/theme';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -48,7 +47,7 @@ import { BehaviorSubject, debounceTime, delay, distinctUntilChanged, filter, tap
     '[class.alain-default__search-toggled]': 'searchToggled()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [I18nPipe, NzInputModule, NzIconModule, NzAutocompleteModule, HotkeyDirective],
+  imports: [NzInputModule, NzIconModule, NzAutocompleteModule, HotkeyDirective],
 })
 export class HeaderSearch {
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;

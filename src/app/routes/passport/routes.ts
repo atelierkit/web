@@ -1,11 +1,10 @@
 import { Routes } from '@angular/router';
 
 import { CallbackComponent } from './callback.component';
+import { LayoutPassport } from '../../layout';
 import { UserLockComponent } from './lock/lock.component';
 import { UserLoginComponent } from './login/login.component';
-import { UserRegisterComponent } from './register/register.component';
-import { UserRegisterResultComponent } from './register-result/register-result.component';
-import { LayoutPassport } from '../../layout';
+import { SetupComponent } from './setup/setup.component';
 
 export const routes: Routes = [
   // passport
@@ -16,22 +15,18 @@ export const routes: Routes = [
       {
         path: 'login',
         component: UserLoginComponent,
-        data: { title: '登录', titleI18n: 'app.login.login' },
+        data: { title: '登录' },
       },
       {
-        path: 'register',
-        component: UserRegisterComponent,
-        data: { title: '注册', titleI18n: 'app.register.register' },
-      },
-      {
-        path: 'register-result',
-        component: UserRegisterResultComponent,
-        data: { title: '注册结果', titleI18n: 'app.register.register' },
+        // 首次部署创建管理员，注：由 setupGuard 保证只在未初始化时可访问
+        path: 'setup',
+        component: SetupComponent,
+        data: { title: '创建管理员' },
       },
       {
         path: 'lock',
         component: UserLockComponent,
-        data: { title: '锁屏', titleI18n: 'app.lock' },
+        data: { title: '锁屏' },
       },
     ],
   },

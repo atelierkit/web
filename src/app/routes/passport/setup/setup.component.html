@@ -1,0 +1,112 @@
+<h3>创建管理员账号</h3>
+<p class="desc">系统尚未初始化，请先创建管理员账号。创建完成后将自动登录，此页面之后不再可用。</p>
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" role="form">
+  @if (error) {
+    <nz-alert nzType="error" [nzMessage]="error" [nzShowIcon]="true" class="mb-lg" />
+  }
+  <nz-form-item>
+    <nz-form-control [nzErrorTip]="usernameErrorTip">
+      <nz-input-wrapper>
+        <nz-icon nzInputPrefix nzType="user" />
+        <input
+          nz-input
+          nzSize="large"
+          formControlName="username"
+          autocomplete="username"
+          placeholder="登录用户名"
+        />
+      </nz-input-wrapper>
+      <ng-template #usernameErrorTip let-i>
+        @if (i.errors?.required) {
+          请输入用户名！
+        }
+        @if (i.errors?.pattern) {
+          用户名为 3-20 位字母、数字、下划线或短横线！
+        }
+      </ng-template>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-control [nzErrorTip]="passwordErrorTip">
+      <nz-input-wrapper>
+        <nz-icon nzInputPrefix nzType="lock" />
+        <input
+          nz-input
+          nzSize="large"
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+          placeholder="密码（8-64 位，含字母与数字）"
+        />
+      </nz-input-wrapper>
+      <ng-template #passwordErrorTip let-i>
+        @if (i.errors?.required) {
+          请输入密码！
+        }
+        @if (i.errors?.minlength || i.errors?.maxlength) {
+          密码长度为 8-64 位！
+        }
+        @if (i.errors?.password) {
+          密码必须同时包含字母和数字！
+        }
+      </ng-template>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-control [nzErrorTip]="confirmErrorTip">
+      <nz-input-wrapper>
+        <nz-icon nzInputPrefix nzType="lock" />
+        <input
+          nz-input
+          nzSize="large"
+          type="password"
+          formControlName="confirm"
+          autocomplete="new-password"
+          placeholder="确认密码"
+        />
+      </nz-input-wrapper>
+      <ng-template #confirmErrorTip let-i>
+        @if (i.errors?.required) {
+          请再次输入密码！
+        }
+        @if (i.errors?.matchControl) {
+          两次输入的密码不一致！
+        }
+      </ng-template>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-control [nzErrorTip]="emailErrorTip">
+      <nz-input-wrapper>
+        <nz-icon nzInputPrefix nzType="mail" />
+        <input
+          nz-input
+          nzSize="large"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="电子邮箱（可选，用于找回密码）"
+        />
+      </nz-input-wrapper>
+      <ng-template #emailErrorTip>邮箱格式不正确！</ng-template>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-control>
+      <nz-input-wrapper>
+        <nz-icon nzInputPrefix nzType="setting" />
+        <input
+          nz-input
+          nzSize="large"
+          formControlName="setupToken"
+          autocomplete="off"
+          placeholder="初始化凭据（服务器配置了 SETUP_TOKEN 时必填）"
+        />
+      </nz-input-wrapper>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <button nz-button type="submit" nzType="primary" nzSize="large" [nzLoading]="loading" nzBlock>
+      创建并登录
+    </button>
+  </nz-form-item>
+</form>

@@ -7,12 +7,41 @@ import {
 } from '@angular/common/http';
 import { EnvironmentProviders, Injector, inject, provideAppInitializer } from '@angular/core';
 import { DA_SERVICE_TOKEN, ITokenModel } from '@delon/auth';
-import { BehaviorSubject, Observable, catchError, filter, switchMap, take, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  filter,
+  map,
+  switchMap,
+  take,
+  throwError,
+} from 'rxjs';
 
 import { toLogin } from './helper';
+import type { ApiToken } from '../passport/passport.service';
 
 let refreshToking = false;
 let refreshToken$ = new BehaviorSubject<unknown>(null);
+
+/** 后端令牌刷新接口 */
+const REFRESH_URL = '/user/refresh';
+
+/**
+ * 后端令牌转为 `@delon/auth` 的令牌模型
+ *
+ * @param token 后端令牌对象
+ * @returns 令牌模型
+ */
+function toModel(token: ApiToken): ITokenModel {
+  return {
+    // 注：后端令牌形如 `<用户ID>:<随机码>`，与请求头 `token` 的取值一致
+    token: `${token.id}:${token.code}`,
+    id: token.id,
+    // 0 表示长期有效，`@delon/auth` 会把它当作「无过期时间」
+    expired: token.expired || 0,
+  };
+}
 
 /**
  * 重新附加新 Token 信息
@@ -23,16 +52,18 @@ function reAttachToken(injector: Injector, req: HttpRequest<unknown>): HttpReque
   const token = injector.get(DA_SERVICE_TOKEN).get()?.token;
   return req.clone({
     setHeaders: {
-      token: `Bearer ${token}`,
+      // 注：后端只认 `token` 头，不加 Bearer 前缀
+      token: token ?? '',
     },
   });
 }
 
 function refreshTokenRequest(injector: Injector): Observable<ITokenModel> {
-  const model = injector.get(DA_SERVICE_TOKEN).get();
-  return injector.get(HttpClient).post<ITokenModel>(`/api/auth/refresh`, {
-    headers: { refresh_token: model?.['refresh_token'] || '' },
-  });
+  // 注：`@delon/auth` 的拦截器会自动带上当前令牌；后端按旧令牌换发新令牌
+  return injector
+    .get(HttpClient)
+    .post<ApiToken>(REFRESH_URL, null)
+    .pipe(map((token) => toModel(token)));
 }
 
 /**
@@ -45,7 +76,7 @@ export function tryRefreshToken(
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> {
   // 1、若请求为刷新Token请求，表示来自刷新Token可以直接跳转登录页
-  if ([`/api/auth/refresh`].some((url) => req.url.includes(url))) {
+  if (req.url.includes(REFRESH_URL)) {
     toLogin(injector);
     return throwError(() => ev);
   }
@@ -84,20 +115,20 @@ function buildAuthRefresh(injector: Injector): void {
   tokenSrv.refresh
     .pipe(
       filter(() => !refreshToking),
-      switchMap((res) => {
-        console.log(res);
+      switchMap(() => {
         refreshToking = true;
         return refreshTokenRequest(injector);
       }),
     )
     .subscribe({
       next: (res) => {
-        // TODO: Mock expired value
-        res.expired = +new Date() + 1000 * 60 * 5;
         refreshToking = false;
         tokenSrv.set(res);
       },
-      error: () => toLogin(injector),
+      error: () => {
+        refreshToking = false;
+        toLogin(injector);
+      },
     });
 }
 

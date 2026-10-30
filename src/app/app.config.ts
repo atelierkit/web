@@ -33,6 +33,12 @@ import { ICONS_AUTO } from '../style-icons-auto';
 import { provideBindAuthRefresh } from './core/net';
 import { routes } from './routes/routes';
 
+/**
+ * 语言与地区设置
+ *
+ * 注：本项目**不做国际化**（没有 i18n 词典、没有语言切换），界面文案直接写简体中文；
+ * 这里只保留 zh_CN 的地区数据，供日期选择器、数字/日期管道等使用
+ */
 const defaultLang: AlainProvideLang = {
   abbr: 'zh-CN',
   ng: ngLang,
@@ -42,7 +48,9 @@ const defaultLang: AlainProvideLang = {
 };
 
 const alainConfig: AlainConfig = {
-  auth: { login_url: '/passport/login' },
+  // 注：passport 前缀的接口本身免令牌，静态资源同理，
+  // 交由拦截器按 `ignores` 跳过令牌校验与注入
+  auth: { login_url: '/passport/login', ignores: [/assets/, /passport/] },
 };
 
 const ngZorroConfig: NzConfig = {};

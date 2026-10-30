@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { I18nPipe } from '@delon/theme';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -15,7 +14,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
     '(click)': '_click()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NzIconModule, I18nPipe],
+  imports: [NzIconModule],
 })
 export class HeaderClearStorage {
   private readonly modalSrv = inject(NzModalService);
@@ -23,10 +22,13 @@ export class HeaderClearStorage {
 
   protected _click(): void {
     this.modalSrv.confirm({
-      nzTitle: 'Make sure clear all local storage?',
+      nzTitle: '确定清理全部本地缓存？',
+      nzContent: '清理后将退出登录，需要重新输入账号密码。',
+      nzOkText: '确定',
+      nzCancelText: '取消',
       nzOnOk: () => {
         localStorage.clear();
-        this.messageSrv.success('Clear Finished!');
+        this.messageSrv.success('本地缓存已清理！');
       },
     });
   }

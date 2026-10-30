@@ -10,6 +10,9 @@ export const environment = {
   production: false,
   useHash: true,
   api: {
+    // 注：后端地址实际取自运行时配置 `src/assets/config.json` 的 baseUrl
+    // （由 StartupService 注入 SettingsService，defaultInterceptor 取用），
+    // 这里的 baseUrl 只作为框架要求的占位
     baseUrl: './',
     refreshTokenEnabled: true,
     refreshTokenType: 'auth-refresh',

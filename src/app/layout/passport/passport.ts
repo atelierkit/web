@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { GlobalFooterModule } from '@delon/abc/global-footer';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { SettingsService } from '@delon/theme';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
@@ -12,15 +13,13 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
         <div class="top">
           <div class="head">
             <img class="logo" src="./assets/logo-color.svg" />
-            <span class="title">NG-ALAIN</span>
+            <span class="title">{{ settings.app.name || '管理平台' }}</span>
           </div>
-          <div class="desc">武林中最有影响力的《葵花宝典》；欲练神功，挥刀自宫</div>
+          <div class="desc">{{ settings.app.description }}</div>
         </div>
         <router-outlet />
         <global-footer [links]="links">
-          Copyright
-          <i class="anticon anticon-copyright"></i> 2025
-          <a href="//github.com/cipchk" target="_blank">卡色</a>出品
+          Copyright <i class="anticon anticon-copyright"></i> 2026
         </global-footer>
       </div>
     </div>
@@ -30,6 +29,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 })
 export class LayoutPassport {
   private tokenSrv = inject(DA_SERVICE_TOKEN);
+  /** 站点信息，注：由 StartupService 从 `/passport/app` 拉取 */
+  settings = inject(SettingsService);
 
   links = [
     {
@@ -47,6 +48,7 @@ export class LayoutPassport {
   ];
 
   constructor() {
+    // 进入登录/初始化页即视为未登录，清掉本地令牌
     this.tokenSrv.clear();
   }
 }
