@@ -1,5 +1,11 @@
+# 提交门禁：类型检查、静态检查与单元测试必须全绿，否则本次提交被拒绝。
+#
+# - 单元测试走浏览器模式（@angular/build:unit-test + Playwright/Chromium），
+#   新机器若报找不到浏览器，先执行一次：npx playwright install chromium
+# - 应急绕过：`git commit --no-verify`；绕过的提交在 CI 里仍会被 lint 检查拦下。
 # 注：husky 9 起钩子就是普通 shell 脚本，由 .husky/_/h 用 `sh -e` 执行，
 # 不再需要 shebang 与 source _/husky.sh（那两行在 husky 10 会被移除）。
 export NODE_OPTIONS="--max-old-space-size=4096"
 npx --no-install tsc -p tsconfig.app.json --noEmit
 npx --no-install lint-staged
+npx --no-install ng test --watch=false
