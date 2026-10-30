@@ -1,0 +1,19 @@
+# 依赖在 CI / 本地安装，不打进镜像
+node_modules
+
+# 版本库与 CI 配置
+.git
+.github
+.gitignore
+.gitattributes
+
+# Angular 构建缓存
+.angular
+
+# 注意：dist 必须保留 —— Dockerfile 要把 dist/web/browser 拷进镜像
+# （如改为在镜像内构建，再在这里忽略 dist）
+
+# 文档与本地杂项
+docs
+*.log
+.DS_Store
