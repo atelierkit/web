@@ -8,7 +8,7 @@ import { Environment } from '@delon/theme';
 
 export const environment = {
   production: false,
-  useHash: true,
+  useHash: false,
   api: {
     // 注：后端地址实际取自运行时配置 `src/assets/config.json` 的 baseUrl
     // （由 StartupService 注入 SettingsService，defaultInterceptor 取用），

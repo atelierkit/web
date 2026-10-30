@@ -1,0 +1,19 @@
+<page-header title="令牌管理" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+</ng-template>
+<st #st [data]="data()" [columns]="columns" [loading]="loading()">
+  <ng-template st-row="operate" let-item>
+    <button
+      nz-button
+      type="button"
+      nzType="link"
+      nzDanger
+      nz-popconfirm
+      nzPopconfirmTitle="确认作废该令牌？该会话会立即掉线。"
+      (nzOnConfirm)="destroy(item)"
+    >
+      作废
+    </button>
+  </ng-template>
+</st>

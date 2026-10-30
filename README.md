@@ -14,7 +14,7 @@
 - 私有文件与数据管理：文件浏览、上传下载、分享链接生成
 - 服务器运维：仪表盘、进程与服务管理
 - 下载中心：下载任务列表、进度展示、暂停 / 限速操作
-- 用户与权限：登录、角色与令牌管理界面
+- 用户与权限：登录、角色与令牌管理界面（`/auth/user`、`/auth/role`、`/auth/token`，入口仅管理员可见）
 - （规划中）家庭物联网：设备管理界面
 
 ## 技术栈
@@ -130,6 +130,24 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
 日常登录只有**用户名 + 密码**（已移除邮箱验证码、手机验证码与自助注册入口；账号由管理员创建）。
 令牌以 `token: <用户ID>:<随机码>` 请求头传递，失效时自动跳回登录页。
 
+## 访问控制（管理员）
+
+侧边栏「访问控制」分组只在当前账号带 `admin` 角色时出现（菜单项带 `acl: 'admin'`）。
+**隐藏入口不等于鉴权**：后端 `@Allow('admin')` 会独立校验，非管理员直接打接口仍然是 403。
+
+| 页面 | 路由 | 后端接口 |
+| --- | --- | --- |
+| 用户管理 | `/auth/user` | `GET auth/user/index`、`GET auth/user/show/:id`、`POST auth/user/create`、`POST auth/user/update/:id` |
+| 角色管理 | `/auth/role` | `GET auth/role/index`、`GET auth/role/show/:id`、`POST auth/role/create`、`POST auth/role/update/:id`、`POST auth/role/sort` |
+| 令牌管理 | `/auth/token` | `GET auth/token/index`、`DELETE auth/token/:id:code` |
+
+- **建号必须带用户名与初始密码**：用户名 3-20 位字母 / 数字 / 下划线 / 短横线（提交前转小写，编辑态不可改）；
+  密码 8-64 位且同时含字母和数字（与后端同一套策略）。账号建好后由用户自行改密。
+- **管理端不改密码**：改密走用户自己的 `/user/password`，忘记密码走邮箱重置 —— 所以编辑弹窗里没有密码框。
+- 邮箱是可选资料，留空即清空（后端把空串转 `NULL`，否则第二个不填邮箱的账号会撞唯一索引）。
+- 角色列表支持**行拖拽排序**，`保存排序` 按当前行顺序重排 `sort`（从 1 递增），不用手填数字。
+- 令牌存在后端 Redis 里，字段值都是字符串；`作废` 会让对应会话立即掉线，`过期时间` 为 0 表示长期有效。
+
 ## 常见状态码
 
 | 状态码 | 含义 | 处理 |
@@ -170,6 +188,7 @@ yarn test-coverage
 
 当前承诺的是 **core 层**：`passport.service`、`refresh-token`、`helper`、`setup.guard`、`start-page.guard` 为 100%，
 `startup.service` 约 95%、`default.interceptor` 约 82%，整体约 **95% 行 / 98% 函数 / 85% 分支**。
+访问控制部分的 `auth.service`（含接口路径 / 方法 / 提交体）与 `utils/token` 为 100%。
 页面组件尚未补 TestBed 用例，`@angular/build:unit-test` 只统计被用例加载过的文件，所以它们在报告里不出现
 （注：在该配置里写 `coverage.include` 会与 builder 冲突、覆盖率被算成 0%，不要加）。
 
@@ -179,8 +198,8 @@ yarn test-coverage
 src/app/
 ├── core/     # 核心服务与拦截器
 ├── layout/   # 布局
-├── routes/   # 各功能路由页
-└── shared/   # 共享组件与模块
+├── routes/   # 各功能路由页（auth = 用户 / 角色 / 令牌管理）
+└── shared/   # 共享组件与模块、工具函数（utils/token 为令牌档位）
 ```
 
 ## License

@@ -1,0 +1,7 @@
+<page-header title="角色管理" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="open()">创建</button>
+  <button nz-button type="button" nzType="primary" (click)="sort()">保存排序</button>
+</ng-template>
+<st #st [data]="data()" [columns]="columns" [loading]="loading()" drag />

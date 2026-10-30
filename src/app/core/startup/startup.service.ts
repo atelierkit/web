@@ -92,14 +92,14 @@ export class StartupService {
           description: config.description ?? '',
         });
         this.titleSrv.suffix = name;
-        // 菜单与权限外壳（菜单尚未接入后端，保持静态）
-        this.setupShell();
         // 当不存在令牌时
         if (!this.tokenSrv.get()?.token) {
           // 清空路由复用信息、用户信息与授权，避免残留上一次登录态
           this.reuseTabService?.clear();
           this.settingsSrv.setUser({});
           this.aclSrv.setRole([]);
+          // 菜单与权限外壳：须在角色就绪后再挂载，否则带 acl 的菜单会被按空角色过滤掉
+          this.setupShell();
           return of(void 0);
         }
         // 当存在令牌时
@@ -125,6 +125,8 @@ export class StartupService {
             });
             // 用户授权
             this.aclSrv.setRole(user.roles ?? []);
+            // 菜单与权限外壳：角色就绪后再挂载，带 acl 的菜单才能正确按角色显示
+            this.setupShell();
           }),
           mergeMap(() => this.refresh()),
         );
@@ -205,6 +207,31 @@ export class StartupService {
             text: 'Dashboard',
             link: '/dashboard',
             icon: { type: 'icon', value: 'appstore' },
+          },
+        ],
+      },
+      {
+        text: '访问控制',
+        group: true,
+        children: [
+          {
+            text: '用户管理',
+            link: '/auth/user',
+            icon: { type: 'icon', value: 'user' },
+            // 注：后端按 @Allow('admin') 校验，前端只隐藏入口，越权请求仍会被拦
+            acl: 'admin',
+          },
+          {
+            text: '角色管理',
+            link: '/auth/role',
+            icon: { type: 'icon', value: 'team' },
+            acl: 'admin',
+          },
+          {
+            text: '令牌管理',
+            link: '/auth/token',
+            icon: { type: 'icon', value: 'key' },
+            acl: 'admin',
           },
         ],
       },

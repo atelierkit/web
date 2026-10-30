@@ -3,7 +3,6 @@
  */
 
 import {
-  AlipayCircleOutline,
   ArrowDownOutline,
   CopyrightOutline,
   FullscreenExitOutline,
@@ -13,14 +12,11 @@ import {
   LogoutOutline,
   MailOutline,
   SettingOutline,
-  TaobaoCircleOutline,
   ToolOutline,
   UserOutline,
-  WeiboCircleOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const ICONS_AUTO = [
-  AlipayCircleOutline,
   ArrowDownOutline,
   CopyrightOutline,
   FullscreenExitOutline,
@@ -30,8 +26,6 @@ export const ICONS_AUTO = [
   LogoutOutline,
   MailOutline,
   SettingOutline,
-  TaobaoCircleOutline,
   ToolOutline,
   UserOutline,
-  WeiboCircleOutline,
 ];

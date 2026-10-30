@@ -1,6 +1,7 @@
 // Components
 
 // Utils
+export * from './utils/token';
 export * from './utils/yuan';
 
 // Module

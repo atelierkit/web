@@ -16,6 +16,12 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
+      // 访问控制（用户 / 角色 / 令牌），注：页面挂在主布局下，导航走侧边菜单
+      {
+        path: 'auth',
+        data: { title: '访问控制' },
+        loadChildren: () => import('./auth/routes').then((m) => m.routes),
+      },
     ],
   },
   // passport

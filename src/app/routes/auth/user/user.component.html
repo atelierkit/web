@@ -1,0 +1,14 @@
+<page-header title="用户管理" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="open()">创建</button>
+</ng-template>
+<st #st [data]="data()" [columns]="columns" [loading]="loading()">
+  <ng-template st-row="avatar" let-item>
+    @if (item.avatar) {
+      <nz-avatar nzSize="small" [nzSrc]="item.avatar" />
+    } @else {
+      <nz-avatar nzSize="small" nzIcon="user" />
+    }
+  </ng-template>
+</st>
