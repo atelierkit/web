@@ -54,6 +54,7 @@ export class AuthRoleComponent implements OnInit {
         false: { text: '禁用', color: 'red' },
       } as STColumnTag,
     },
+    { title: '创建时间', index: 'create.at', type: 'date', dateFormat: 'yyyy-MM-dd HH:mm:ss' },
     { title: '更新时间', index: 'update.at', type: 'date', dateFormat: 'yyyy-MM-dd HH:mm:ss' },
     {
       title: '操作',
