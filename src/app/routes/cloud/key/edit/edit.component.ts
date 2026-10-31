@@ -76,12 +76,12 @@ export class CloudKeyEditComponent implements OnInit {
         ui: { type: 'password' },
       },
       status: { type: 'boolean', title: '状态' },
-      // 注：审计字段放在表单末尾做只读项（对齐旧私有项目），仅在编辑态出现；
+      // 注：审计字段放在表单末尾做只读展示（对齐旧私有项目），仅在编辑态出现；
       // 它们不属于可提交内容，`save()` 里是显式构造 payload，不会被带出去
       ...(this.editable
         ? {
-            createAt: { type: 'string', title: '创建时间', readOnly: true },
-            updateAt: { type: 'string', title: '更新时间', readOnly: true },
+            createAt: { type: 'string', title: '创建时间' },
+            updateAt: { type: 'string', title: '更新时间' },
           }
         : {}),
     },
@@ -102,6 +102,10 @@ export class CloudKeyEditComponent implements OnInit {
       placeholder: this.editable ? '留空表示不修改当前 secret' : '访问密钥 Secret',
     },
     $status: { checkedChildren: '启用', unCheckedChildren: '禁用' },
+    // 注：text 小部件（`sf-text`）只把值当纯文本渲染，天然只读 —— 旧私有项目 `$id` 就是这么做的；
+    // 它同时令 `ui._required = false`，所以这两个字段也不会参与必填校验
+    $createAt: { widget: 'text' },
+    $updateAt: { widget: 'text' },
   };
 
   /** 页面初始化 */
