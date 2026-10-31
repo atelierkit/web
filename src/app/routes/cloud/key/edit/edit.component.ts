@@ -1,8 +1,7 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { apiErrorMessage } from '@core';
 import { SFSchema, SFUISchema } from '@delon/form';
-import { SHARED_IMPORTS } from '@shared';
+import { formatDateTime, SHARED_IMPORTS } from '@shared';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 
@@ -39,8 +38,7 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
   selector: 'cloud-key-edit',
   templateUrl: './edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // 注：`@shared` 里的 DatePipe 是 ng-alain 的 `_date`（见 @delon/theme），模板里的 `date` 管道要单独引 Angular 的
-  imports: [DatePipe, ...SHARED_IMPORTS],
+  imports: [...SHARED_IMPORTS],
 })
 export class CloudKeyEditComponent implements OnInit {
   private readonly cloudSrv = inject(CloudService);
@@ -57,15 +55,6 @@ export class CloudKeyEditComponent implements OnInit {
   readonly formData = signal<Record<string, unknown> | null>(
     this.editable ? null : { provider: 'tencent', status: true },
   );
-  /**
-   * 创建时间戳
-   *
-   * 注：审计字段只做只读展示，不进 schema —— 它不属于可提交内容，
-   * 放表单里反而要多一层 `params()` 过滤，容易漏
-   */
-  readonly createdAt = signal<number | null>(null);
-  /** 更新时间戳 */
-  readonly updatedAt = signal<number | null>(null);
 
   /** 表单 schema */
   readonly schema: SFSchema = {
@@ -87,6 +76,14 @@ export class CloudKeyEditComponent implements OnInit {
         ui: { type: 'password' },
       },
       status: { type: 'boolean', title: '状态' },
+      // 注：审计字段放在表单末尾做只读项（对齐旧私有项目），仅在编辑态出现；
+      // 它们不属于可提交内容，`save()` 里是显式构造 payload，不会被带出去
+      ...(this.editable
+        ? {
+            createAt: { type: 'string', title: '创建时间', readOnly: true },
+            updateAt: { type: 'string', title: '更新时间', readOnly: true },
+          }
+        : {}),
     },
     // 注：必填项与后端 DTO 对齐 —— 编辑态不提交 secret（留空即不改），故不设为必填
     required: this.editable
@@ -114,14 +111,15 @@ export class CloudKeyEditComponent implements OnInit {
     }
     this.cloudSrv.key(this.recordId).subscribe({
       next: (key) => {
-        this.createdAt.set(key.create?.at ?? null);
-        this.updatedAt.set(key.update?.at ?? null);
         this.formData.set({
           name: key.name,
           description: key.description,
           provider: key.provider,
           key: key.key,
           status: key.status,
+          // 注：只读项给的是格式化后的文本，SF 只负责展示
+          createAt: formatDateTime(key.create?.at),
+          updateAt: formatDateTime(key.update?.at),
         });
       },
       error: (err: unknown) => {

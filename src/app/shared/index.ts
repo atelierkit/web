@@ -3,6 +3,7 @@
 // Utils
 export * from './utils/token';
 export * from './utils/yuan';
+export * from './utils/date';
 
 // Module
 export * from './shared-imports';
