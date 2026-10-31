@@ -1,0 +1,53 @@
+<div class="mb-md d-flex" style="gap: 8px; flex-wrap: wrap">
+  <input
+    nz-input
+    placeholder="证券代码（sh.600000）"
+    [value]="code()"
+    (input)="code.set($any($event.target).value)"
+    (keyup.enter)="query()"
+    style="width: 180px"
+  />
+  <input
+    nz-input
+    placeholder="起始日期"
+    [value]="from()"
+    (input)="from.set($any($event.target).value)"
+    style="width: 140px"
+  />
+  <input
+    nz-input
+    placeholder="结束日期"
+    [value]="to()"
+    (input)="to.set($any($event.target).value)"
+    style="width: 140px"
+  />
+  <button nz-button nzType="primary" (click)="query()">查询</button>
+  <button nz-button nzSize="small" (click)="quickMonth()">近一月</button>
+  <button nz-button nzSize="small" (click)="quickYear()">近一年</button>
+  <button nz-button nzSize="small" (click)="quickAll()">全部</button>
+</div>
+
+@if (failed()) {
+  <nz-alert nzType="warning" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+}
+
+@if (queried() && isOverLimit) {
+  <nz-alert
+    nzType="warning"
+    nzShowIcon
+    [nzMessage]="
+      '区间内 ' + total() + ' 根超过上限 ' + barRowLimit + '，只显示最近的 ' + barRowLimit + ' 根'
+    "
+    class="mb-md"
+  />
+}
+
+@if (queried()) {
+  <div class="text-sm mb-sm">共 {{ barCountText(total()) }} 根</div>
+  <st [data]="rows()" [columns]="columns" [loading]="loading()" [page]="page" />
+} @else {
+  <nz-empty
+    nzNotFoundImage="simple"
+    nzNotFoundContent="填一只证券的代码（形如 sh.600000）后点「查询」。"
+  />
+}

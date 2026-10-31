@@ -20,3 +20,17 @@
 .ant-table-thead > tr > th {
   border-bottom-color: @border-color-base;
 }
+
+// ===== 行情涨跌色 class（颜色值在 theme.less 的 @market-up/@market-down/@market-flat）=====
+// 组件只引用 class、不写死色值，深浅主题下由变量统一调。
+.market-up {
+  color: @market-up;
+}
+
+.market-down {
+  color: @market-down;
+}
+
+.market-flat {
+  color: @market-flat;
+}

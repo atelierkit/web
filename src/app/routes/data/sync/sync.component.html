@@ -1,0 +1,38 @@
+<page-header title="数据同步" />
+
+@if (store.failed()) {
+  <nz-alert nzType="error" nzShowIcon [nzMessage]="store.failed()" class="mb-md" />
+}
+
+@if (store.loading() && store.cards().length === 0) {
+  <div class="py-lg text-center">
+    <nz-spin nzSimple />
+    <div class="mt-sm text-sm">正在读取数据状态…</div>
+  </div>
+} @else if (store.cards().length > 0) {
+  <nz-row [nzGutter]="[16, 16]" class="mb-md">
+    @for (card of store.cards(); track card.target) {
+      <nz-col [nzSpan]="6" [nzXs]="24">
+        <data-sync-card
+          [showActions]="true"
+          [card]="card"
+          (start)="start($event)"
+          (pause)="pause($event)"
+        />
+      </nz-col>
+    }
+  </nz-row>
+
+  <nz-card nzTitle="执行日志" [nzExtra]="queueTpl">
+    <st [data]="store.recent()" [columns]="columns" [page]="{ front: true, showSize: true }" />
+    @if (store.recent().length === 0) {
+      <nz-empty nzNotFoundImage="simple" class="py-lg" />
+    }
+  </nz-card>
+}
+
+<ng-template #queueTpl>
+  <span class="text-sm">
+    排队 {{ store.queue().queued }} · 执行中 {{ store.queue().running }}
+  </span>
+</ng-template>

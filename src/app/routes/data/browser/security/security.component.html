@@ -1,0 +1,52 @@
+<div class="mb-md d-flex" style="gap: 8px">
+  <input
+    nz-input
+    placeholder="关键字（代码或名称）"
+    [value]="query().keyword ?? ''"
+    (keyup.enter)="search()"
+    (input)="onKeyword($any($event.target).value)"
+    style="width: 240px"
+  />
+  <nz-select
+    nzAllowClear
+    nzShowSearch
+    nzPlaceHolder="类型"
+    [ngModel]="query().type ?? null"
+    (ngModelChange)="onType($event)"
+    style="width: 140px"
+  >
+    @for (opt of typeOptions; track opt.value) {
+      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
+    }
+  </nz-select>
+  <nz-select
+    nzAllowClear
+    nzShowSearch
+    nzPlaceHolder="交易所"
+    [ngModel]="query().market ?? null"
+    (ngModelChange)="onMarket($event)"
+    style="width: 140px"
+  >
+    @for (opt of marketOptions; track opt.value) {
+      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
+    }
+  </nz-select>
+  <button nz-button nzType="primary" (click)="search()">查询</button>
+  <button nz-button nzSize="small" (click)="toggleSort()" nzTooltip="点击切换排序">
+    排序：{{ sortHint(sort()) }}
+  </button>
+  <span class="text-sm ml-sm" style="align-self: center">{{ summaryText }}</span>
+</div>
+
+@if (failed()) {
+  <nz-alert nzType="error" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+}
+
+<st
+  [data]="rows()"
+  [columns]="columns"
+  [loading]="loading()"
+  [page]="page"
+  [total]="total()"
+  (change)="change($event)"
+/>

@@ -1,0 +1,27 @@
+<page-header title="仪表板" [action]="helpTpl" />
+<ng-template #helpTpl>
+  <span nz-icon nzType="question-circle" nz-tooltip [nzTooltipTitle]="helpText"></span>
+</ng-template>
+
+@if (store.failed()) {
+  <nz-alert nzType="error" nzShowIcon [nzMessage]="store.failed()" class="mb-md">
+    <ng-template #action>
+      <button nz-button nzSize="small" nzType="primary" (click)="retry()">重试</button>
+    </ng-template>
+  </nz-alert>
+}
+
+@if (store.loading() && store.cards().length === 0) {
+  <div class="py-lg text-center">
+    <nz-spin nzSimple />
+    <div class="mt-sm text-sm">正在读取数据状态…</div>
+  </div>
+} @else if (store.cards().length > 0) {
+  <nz-row [nzGutter]="[16, 16]" class="mb-md">
+    @for (card of store.cards(); track card.target) {
+      <nz-col [nzSpan]="6" [nzXs]="24">
+        <data-sync-card [showActions]="false" [card]="card" />
+      </nz-col>
+    }
+  </nz-row>
+}

@@ -1,0 +1,47 @@
+<div class="mb-md">
+  <button nz-button nzSize="small" (click)="prevYear()">上一年</button>
+  <span class="mx-md" style="font-size: 18px; font-weight: 600">{{ year() }} 年</span>
+  <button nz-button nzSize="small" (click)="nextYear()">下一年</button>
+  <button nz-button nzSize="small" class="ml-sm" (click)="toCurrentYear()">回到今年</button>
+</div>
+
+@if (failed()) {
+  <nz-alert nzType="error" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+}
+
+@if (loading()) {
+  <nz-spin nzSimple class="py-lg text-center" />
+} @else {
+  <nz-row [nzGutter]="[16, 16]">
+    @for (month of months(); track month.month) {
+      <nz-col [nzSpan]="8" [nzXs]="24" [nzMd]="12">
+        <nz-card [nzTitle]="month.title" nzSize="small">
+          <div class="cal-grid">
+            @for (w of weekdays; track w) {
+              <div class="cal-head">{{ w }}</div>
+            }
+            @for (cell of month.cells; track $index) {
+              <div
+                class="cal-cell"
+                [class.cal-open]="cell.state === 'open'"
+                [class.cal-closed]="cell.state === 'closed'"
+                [class.cal-unsynced]="cell.state === 'unsynced'"
+                [nz-tooltip]="cell.date"
+              >
+                @if (cell.day > 0) {
+                  {{ cell.day }}
+                }
+              </div>
+            }
+          </div>
+        </nz-card>
+      </nz-col>
+    }
+  </nz-row>
+
+  <div class="mt-md text-sm">
+    <span class="cal-legend cal-open">开市</span>
+    <span class="cal-legend cal-closed ml-sm">有记录休市</span>
+    <span class="cal-legend cal-unsynced ml-sm">无记录（未同步，不是休市）</span>
+  </div>
+}

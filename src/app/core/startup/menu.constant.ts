@@ -75,4 +75,26 @@ export const MENUS: Menu[] = [
       },
     ],
   },
+  {
+    text: '行情数据',
+    group: true,
+    children: [
+      {
+        text: '仪表板',
+        link: '/data/dashboard',
+        icon: { type: 'icon', value: 'dashboard' },
+        // 注：仪表板与浏览页登录即可看，不加 acl —— 写操作由后端 @Allow('admin') 拦
+      },
+      {
+        text: '数据同步',
+        link: '/data/sync',
+        icon: { type: 'icon', value: 'sync' },
+      },
+      {
+        text: '数据浏览',
+        link: '/data/browser',
+        icon: { type: 'icon', value: 'database' },
+      },
+    ],
+  },
 ];

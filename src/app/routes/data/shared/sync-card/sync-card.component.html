@@ -1,0 +1,33 @@
+<nz-card [nzTitle]="card().displayName" [nzExtra]="tagTpl" nzHoverable>
+  <div style="font-size: 24px; font-weight: 600">{{ countText(card().recordCount) }}</div>
+
+  <div class="mt-md">
+    <div class="text-sm">记录数</div>
+    <div>{{ card().recordCount.toLocaleString() }}</div>
+  </div>
+  <div class="mt-sm">
+    <div class="text-sm">已同步至</div>
+    <div>{{ card().lastDate ?? '—' }}</div>
+  </div>
+  <div class="mt-sm">
+    <div class="text-sm">状态</div>
+    <div>{{ stateText(card().state) }}</div>
+  </div>
+
+  @if (showActions()) {
+    <div class="mt-md">
+      <button nz-button nzType="primary" nzSize="small" (click)="start.emit(card().target)">
+        {{ actionText }}
+      </button>
+      @if (canPause) {
+        <button nz-button nzSize="small" class="ml-sm" (click)="pause.emit(card().target)">
+          暂停
+        </button>
+      }
+    </div>
+  }
+</nz-card>
+
+<ng-template #tagTpl>
+  <nz-tag [nzColor]="stateTag(card().state).color">{{ stateTag(card().state).text }}</nz-tag>
+</ng-template>

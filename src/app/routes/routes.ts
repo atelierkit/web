@@ -34,6 +34,12 @@ export const routes: Routes = [
         data: { title: '云服务' },
         loadChildren: () => import('./cloud/routes').then((m) => m.routes),
       },
+      // 行情数据（仪表板 / 数据同步 / 数据浏览），注：仪表板是默认落地页，菜单排组第一
+      {
+        path: 'data',
+        data: { title: '行情数据' },
+        loadChildren: () => import('./data/routes').then((m) => m.routes),
+      },
       // 腾讯云（证书 / 域名 / 轻量服务器），注：入口是密钥列表里「服务商为腾讯云」那条的「管理」，
       // 不带密钥ID时无法渲染，故不放侧边菜单
       {

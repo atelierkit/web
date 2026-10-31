@@ -7,9 +7,12 @@
 import {
   ApiOutline,
   AppstoreOutline,
+  DashboardOutline,
+  DatabaseOutline,
   IdcardOutline,
   KeyOutline,
   SafetyCertificateOutline,
+  SyncOutline,
   TeamOutline,
 } from '@ant-design/icons-angular/icons';
 
@@ -21,4 +24,8 @@ export const ICONS = [
   KeyOutline,
   SafetyCertificateOutline,
   ApiOutline,
+  // 侧边菜单：行情数据（仪表板 / 数据同步 / 数据浏览）
+  DashboardOutline,
+  SyncOutline,
+  DatabaseOutline,
 ];

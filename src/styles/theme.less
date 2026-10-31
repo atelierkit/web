@@ -22,3 +22,11 @@
 @table-row-hover-bg: #eef5ff; // 行 hover，跟随主色走淡蓝，鼠标位置一眼可见
 @table-selected-row-bg: #dbe9ff; // 选中行，需强于 hover 底色
 @table-border-radius-base: 8px; // 与 index.less 里给表格加的外框圆角保持一致
+
+// ========== 行情涨跌色（A 股约定：涨红跌绿）==========
+// 桌面端（almanac）有 MarketUpBrush / MarketDownBrush / MarketFlatBrush 三支主题画刷，
+// web 侧原先一个涨跌色变量都没有。这里只加变量、不在组件里写死色值，
+// 组件通过 `market-up` / `market-down` / `market-flat` 三个 class 引用（见 index.less 里的类定义）。
+@market-up: #cf1322;   // 涨（红）
+@market-down: #389e0d; // 跌（绿）
+@market-flat: #8c8c8c; // 平（灰）

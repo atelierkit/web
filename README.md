@@ -170,6 +170,33 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
 6. **纯逻辑抽到 `tencent.format.ts`**（状态标签、续期判定 `canRenew`、规则转换 `rulePayload`、标签页下标 `tabIndexOf`）：
    覆盖率口径只统计「被 spec 加载过的文件」，从 `*.component.ts` 导入测试会把整片页面模块拖进分母（见 `vitest.config.ts` 注释）。
 
+## 行情数据页面（`/data/*`）
+
+侧边栏「行情数据」分组，仪表板排组第一、登录即可看（**不加 `acl`**，写操作由后端 `@Allow('admin')` 拦）。
+
+| 页面 | 路由 | 后端接口 |
+| --- | --- | --- |
+| 仪表板（默认落地页） | `/data/dashboard` | `GET data/sync/snapshot` |
+| 数据同步 | `/data/sync` | `GET data/sync/snapshot`、`POST data/sync/{start,pause}` |
+| 数据浏览 | `/data/browser` | `GET data/{security,calendar,bar}` |
+
+照 almanac 桌面端（WinUI 3）的语义重实现，**与桌面端共用卡片组件与状态源**是硬约束：
+
+1. **四张同步卡只有一份实现**（`data/shared/sync-card/`），`showActions` 用 `input.required<boolean>()`（漏传编译报错）；
+   仪表板传 `false`（连按钮都不渲染）、同步页传 `true`。**不许**仪表板另抄一份简化版卡片。
+2. **两页共用同一个 `data.store.ts`**（`providedIn: 'root'` 的 signal store），页面里**不得**各自调 `data/sync/snapshot`
+   —— 那会得到「第二份镜像」，两页迟早显示不同的数。
+3. **实时进度走 socket.io 信号式**（`data.realtime.ts`）：WS 只收 `data:changed`（载荷只有 reason + at），
+   数值一律走 HTTP 快照；前端频率闸门 1s、终态无条件刷新。依赖 `socket.io-client`。
+4. **纯逻辑抽到 `data.format.ts` / `browser/browser.format.ts`**（量纲、预计完成时间四档格式、涨跌三色、
+   日历网格三态、证券标签映射），原因与 `admin.format.ts` 相同：从组件导入测试会把整片页面模块拖进覆盖率分母。
+5. **界面用 ng-zorro/ng-alain 组件**：四卡照 `kong/dashboard` 的 `nz-row + nz-col + nz-card` 写法（不引 `nz-statistic`）；
+   列表用 `st`；日历 12 月卡 × 42 格**自绘**（`nz-date-picker` 分不清「休市」与「日历没同步」的三态）。
+6. **涨跌色走 `theme.less` 的 `@market-up/@market-down/@market-flat` 变量**（涨红跌绿，A 股约定），
+   组件通过 `market-up/market-down/market-flat` class 引用，不在组件里写死色值。
+7. **日历接口只返回存在的行、不补空行**：三态（开市 / 有记录休市 / 无记录=未同步）靠这个保证。
+   K 线的 `truncated`（超 5000 根只保留最近 5000）由服务端给出，不是前端硬编码。
+
 ## 常见状态码
 
 | 状态码 | 含义 | 处理 |
@@ -220,7 +247,7 @@ yarn test-coverage
 src/app/
 ├── core/     # 核心服务与拦截器
 ├── layout/   # 布局
-├── routes/   # 各功能路由页（auth = 用户 / 角色 / 令牌；cloud = 密钥 / KONG；tencent = 腾讯云）
+├── routes/   # 各功能路由页（auth = 用户 / 角色 / 令牌；cloud = 密钥 / KONG；tencent = 腾讯云；data = 行情数据）
 └── shared/   # 共享组件与模块、工具函数（utils/token 为令牌档位）
 ```
 

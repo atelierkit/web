@@ -1,0 +1,49 @@
+// 日历年视图网格：7 列 × 6 行
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-head {
+  padding: 2px 0;
+  font-size: 12px;
+  color: #8c8c8c;
+  text-align: center;
+}
+
+.cal-cell {
+  cursor: default;
+  height: 28px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 28px;
+  color: #d9d9d9; // 非本月空格
+  text-align: center;
+}
+
+.cal-open {
+  font-weight: 500;
+  color: #0958d9;
+  background: #e6f7ff; // 开市（淡蓝）
+}
+
+.cal-closed {
+  color: #595959;
+  background: #f5f5f5; // 有记录休市（淡灰）
+}
+
+.cal-unsynced {
+  color: #d46b08;
+  background: #fff7e6; // 无记录 = 未同步（淡橙），区别于休市
+}
+
+// 图例色块
+.cal-legend {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  border-radius: 2px;
+  vertical-align: middle;
+}
