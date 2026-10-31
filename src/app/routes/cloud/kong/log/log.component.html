@@ -1,0 +1,8 @@
+@if (loading() && records().length === 0) {
+  <nz-spin nzSimple class="block py-lg text-center" />
+} @else {
+  <st [data]="records()" [columns]="columns" [loading]="loading()" [scroll]="{ x: '900px' }" />
+  <div class="text-right pt-md">
+    <button nz-button type="button" (click)="close()">关闭</button>
+  </div>
+}

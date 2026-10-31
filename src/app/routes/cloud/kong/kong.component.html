@@ -1,0 +1,6 @@
+<page-header title="KONG 网关" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="open()">创建</button>
+</ng-template>
+<st #st [data]="data()" [columns]="columns" [loading]="loading()" />

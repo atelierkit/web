@@ -1,0 +1,13 @@
+@if (loading()) {
+  <nz-spin nzSimple class="block py-lg text-center" />
+} @else {
+  <nz-card nzTitle="许可报告" nzSize="small">
+    <pre class="mb0">{{ report() }}</pre>
+  </nz-card>
+  <nz-card nzTitle="已启用插件" nzSize="small" class="mt-md">
+    <pre class="mb0">{{ plugin() }}</pre>
+  </nz-card>
+  <div class="text-right pt-md">
+    <button nz-button type="button" (click)="close()">关闭</button>
+  </div>
+}

@@ -22,6 +22,12 @@ export const routes: Routes = [
         data: { title: '访问控制' },
         loadChildren: () => import('./auth/routes').then((m) => m.routes),
       },
+      // 云服务（密钥管理 / KONG 网关站点），注：页面挂在主布局下，导航走侧边菜单
+      {
+        path: 'cloud',
+        data: { title: '云服务' },
+        loadChildren: () => import('./cloud/routes').then((m) => m.routes),
+      },
     ],
   },
   // passport

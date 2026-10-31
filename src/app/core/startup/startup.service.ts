@@ -235,6 +235,24 @@ export class StartupService {
           },
         ],
       },
+      {
+        text: '云服务',
+        group: true,
+        children: [
+          {
+            text: '密钥管理',
+            link: '/cloud/key',
+            icon: { type: 'icon', value: 'safety-certificate' },
+            acl: 'admin',
+          },
+          {
+            text: 'KONG 网关',
+            link: '/cloud/kong',
+            icon: { type: 'icon', value: 'api' },
+            acl: 'admin',
+          },
+        ],
+      },
     ]);
   }
 
