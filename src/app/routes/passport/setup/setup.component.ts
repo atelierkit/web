@@ -43,6 +43,7 @@ export class SetupComponent {
   form = inject(FormBuilder).nonNullable.group(
     {
       username: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_-]{3,20}$/)]],
+      name: ['', [Validators.maxLength(30)]],
       password: [
         '',
         [
@@ -76,13 +77,14 @@ export class SetupComponent {
     if (this.form.invalid) {
       return;
     }
-    const { username, password, email, setupToken } = this.form.getRawValue();
+    const { username, name, password, email, setupToken } = this.form.getRawValue();
     this.loading = true;
     this.cdr.detectChanges();
     this.passportSrv
       .setup({
         username,
         password,
+        name: name || undefined,
         email: email || undefined,
         setupToken: setupToken || undefined,
       })

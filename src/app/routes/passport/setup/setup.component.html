@@ -27,6 +27,25 @@
     </nz-form-control>
   </nz-form-item>
   <nz-form-item>
+    <nz-form-control [nzErrorTip]="nameErrorTip">
+      <nz-input-wrapper>
+        <nz-icon nzInputPrefix nzType="smile" />
+        <input
+          nz-input
+          nzSize="large"
+          formControlName="name"
+          autocomplete="nickname"
+          placeholder="昵称（可选，缺省取用户名）"
+        />
+      </nz-input-wrapper>
+      <ng-template #nameErrorTip let-i>
+        @if (i.errors?.maxlength) {
+          昵称长度不能超过 30 位！
+        }
+      </ng-template>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
     <nz-form-control [nzErrorTip]="passwordErrorTip">
       <nz-input-wrapper>
         <nz-icon nzInputPrefix nzType="lock" />
