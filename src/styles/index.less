@@ -13,6 +13,13 @@
   border: 1px solid @border-color-base;
   border-radius: @table-border-radius-base;
   background: @component-background;
+
+  // 分页器（st / nz-table 内置分页）默认 `justify-content: flex-end` 右对齐、`margin: 16px 0`（左右 0），
+  // 最右侧的 quickJumper「跳至 X 页」会直接贴到外框边线上；而表格单元格自带 16px 水平内边距，
+  // 给分页器补同样的右距，让「页」字与最后一列文本右缘对齐、不再贴边。
+  .ant-table-pagination {
+    margin-right: 16px;
+  }
 }
 
 // 表头与数据行之间用一条更实的线分隔（与外框同色），把「表头 / 数据区」分成两块；
