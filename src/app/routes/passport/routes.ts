@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authSimpleCanActivate } from '@delon/auth';
 
 import { LayoutPassport } from '../../layout';
 import { PassportActivateComponent } from './activate/activate.component';
@@ -14,6 +15,14 @@ export const routes: Routes = [
     path: 'passport/activate/:code',
     component: PassportActivateComponent,
     data: { title: '激活新邮箱' },
+  },
+  // 屏幕锁定，注：同样独立于 LayoutPassport —— 解锁是登录态操作（从令牌取用户），
+  // 进入锁定页必须保留令牌，且需登录守卫挡住未登录访问
+  {
+    path: 'passport/lock',
+    component: UserLockComponent,
+    canActivate: [authSimpleCanActivate],
+    data: { title: '锁屏' },
   },
   // passport
   {
@@ -36,11 +45,6 @@ export const routes: Routes = [
         path: 'setup',
         component: SetupComponent,
         data: { title: '创建管理员' },
-      },
-      {
-        path: 'lock',
-        component: UserLockComponent,
-        data: { title: '锁屏' },
       },
     ],
   },

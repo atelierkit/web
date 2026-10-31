@@ -86,6 +86,16 @@ describe('UserService', () => {
     expect(result?.msg).toBe('密码修改成功，已退出2个其它会话！');
   });
 
+  it('解锁走 POST user/unlock，只提交密码，用户ID由后端从令牌取', () => {
+    let result: { code: number; msg: string } | undefined;
+    service.unlock('abc12345').subscribe((res) => (result = res));
+    const req = http.expectOne('user/unlock');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ password: 'abc12345' });
+    req.flush({ code: 0, msg: '解锁成功！' });
+    expect(result?.msg).toBe('解锁成功！');
+  });
+
   it('设置有效期走 POST user/valid，并用返回的新令牌覆盖本地登录态', () => {
     let result: unknown;
     service.setValid(60).subscribe((token) => (result = token));

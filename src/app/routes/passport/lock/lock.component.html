@@ -1,26 +1,47 @@
-<div class="ant-card width-lg" style="margin: 0 auto">
-  <div class="ant-card-body">
+<div class="container">
+  <nz-card [nzBordered]="false" class="lock-card">
     <div class="avatar">
       <nz-avatar [nzSrc]="user.avatar" nzIcon="user" nzSize="large" />
     </div>
-    <form nz-form [formGroup]="f" (ngSubmit)="submit()" role="form" class="mt-md">
+    <form nz-form [formGroup]="f" (ngSubmit)="submit()" role="form">
+      @if (error) {
+        <nz-alert nzType="error" [nzMessage]="error" [nzShowIcon]="true" class="mb-lg" />
+      }
       <nz-form-item>
-        <nz-form-control nzErrorTip="请输入密码！">
-          <nz-input-password>
+        <nz-form-control [nzErrorTip]="passwordErrorTip">
+          <nz-input-wrapper>
+            <nz-icon nzInputPrefix nzType="lock" />
             <input
-              type="password"
-              autocomplete="new-password"
               nz-input
+              nzSize="large"
+              type="password"
               formControlName="password"
+              autocomplete="current-password"
+              placeholder="请输入登录密码"
             />
-          </nz-input-password>
+          </nz-input-wrapper>
+          <ng-template #passwordErrorTip let-i>
+            @if (i.errors?.required) {
+              请输入密码！
+            }
+          </ng-template>
         </nz-form-control>
       </nz-form-item>
-      <div nz-row nzType="flex" nzAlign="middle">
-        <div nz-col [nzOffset]="12" [nzSpan]="12" style="text-align: right">
-          <button nz-button [disabled]="!f.valid" nzType="primary">锁屏</button>
-        </div>
-      </div>
+      <nz-form-item>
+        <button
+          nz-button
+          type="submit"
+          nzType="primary"
+          nzSize="large"
+          [nzLoading]="loading"
+          nzBlock
+        >
+          解锁
+        </button>
+      </nz-form-item>
     </form>
-  </div>
+    <div class="logout">
+      <a routerLink="/passport/login" (click)="logout()">退出登录</a>
+    </div>
+  </nz-card>
 </div>

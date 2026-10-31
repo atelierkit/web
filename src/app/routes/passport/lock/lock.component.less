@@ -1,13 +1,45 @@
-:host ::ng-deep {
-  .ant-card-body {
-    position: relative;
-    margin-top: 80px;
+@import '@delon/theme/index';
+
+:host {
+  display: block;
+
+  .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #f0f2f5;
   }
 
-  .avatar {
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    margin-left: -20px;
+  ::ng-deep {
+    .lock-card {
+      width: 368px;
+    }
+
+    .ant-card-body {
+      position: relative;
+      margin-top: 60px;
+    }
+
+    .avatar {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      margin-left: -20px;
+    }
+  }
+
+  .logout {
+    margin-top: 16px;
+    font-size: 12px;
+    text-align: center;
+  }
+}
+
+[data-theme='dark'] {
+  :host {
+    .container {
+      background: #141414;
+    }
   }
 }

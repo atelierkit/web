@@ -109,6 +109,19 @@ export class UserService {
   }
 
   /**
+   * 屏幕锁定解锁
+   *
+   * 注：用户ID由后端从令牌里取，前端只传密码；密码错误时后端返回 400 而非 401，
+   * 避免被拦截器当成登录过期踢回登录页。成功后令牌保持不变，直接跳回首页即可
+   *
+   * @param password 登录密码
+   * @returns 业务操作结果
+   */
+  unlock(password: string): Observable<OperationResult> {
+    return this.http.post<OperationResult>('user/unlock', { password });
+  }
+
+  /**
    * 设置登录有效期
    *
    * 注：后端会先落库为默认有效期、再按新有效期重新签发令牌，
