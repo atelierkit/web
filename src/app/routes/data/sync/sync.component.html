@@ -1,4 +1,4 @@
-<page-header title="数据同步" />
+<page-header title="数据同步" [autoBreadcrumb]="false" />
 
 @if (store.failed()) {
   <nz-alert nzType="error" nzShowIcon [nzMessage]="store.failed()" class="mb-md" />

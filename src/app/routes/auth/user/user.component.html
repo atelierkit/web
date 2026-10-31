@@ -1,4 +1,4 @@
-<page-header title="用户管理" [action]="actionTpl" />
+<page-header title="用户管理" [action]="actionTpl" [autoBreadcrumb]="false" />
 <ng-template #actionTpl>
   <button nz-button type="button" (click)="fresh()">刷新</button>
   <button nz-button type="button" nzType="primary" (click)="open()">创建</button>
