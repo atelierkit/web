@@ -1,0 +1,78 @@
+@if (failed()) {
+  <nz-alert nzType="warning" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+}
+@if (report(); as data) {
+  <nz-row [nzGutter]="[16, 16]" class="mb-md">
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="总请求数" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">
+          {{ (data.counters?.total_requests ?? 0).toLocaleString() }}
+        </div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="服务数量" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.services_count ?? 0 }}</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="路由数量" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.routes_count ?? 0 }}</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="用户数量" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.consumers_count ?? 0 }}</div>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <nz-card nzTitle="系统信息" class="mb-md">
+    <nz-row [nzGutter]="[16, 16]">
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">Kong 版本</div>
+        <div>{{ data.kong_version ?? '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">数据库版本</div>
+        <div>{{ data.db_version ?? '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">部署类型</div>
+        <div>{{ data.deployment_info?.type ?? '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">主机名</div>
+        <div>{{ data.system_info?.hostname ?? '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">CPU 核心数</div>
+        <div>{{ data.system_info?.cores ?? '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">操作系统</div>
+        <div>{{ data.system_info?.uname ?? '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">许可证密钥</div>
+        <div>{{ data.license?.license_key ?? '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">许可证到期</div>
+        <div>{{ data.license?.license_expiration_date ?? '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">工作区数量</div>
+        <div>{{ data.workspaces_count ?? '-' }}</div>
+      </nz-col>
+    </nz-row>
+  </nz-card>
+
+  @if (chartData().length > 0) {
+    <nz-card nzTitle="分时段请求量">
+      <g2-bar [data]="chartData()" [color]="barColor" height="360px" />
+    </nz-card>
+  }
+} @else if (loading()) {
+  <nz-spin nzSimple class="block py-lg text-center" />
+}

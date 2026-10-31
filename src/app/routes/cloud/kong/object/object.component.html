@@ -1,0 +1,16 @@
+<div class="mb-md">
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="add()">创建</button>
+  <button
+    nz-button
+    type="button"
+    nzDanger
+    nz-popconfirm
+    nzPopconfirmTitle="确认删除已选中的 {{ selected().length }} 个{{ name }}？"
+    [disabled]="selected().length === 0 || deleting()"
+    (nzOnConfirm)="remove(selected())"
+  >
+    删除
+  </button>
+</div>
+<st [data]="data()" [columns]="columns" [loading]="loading()" (change)="onChange($event)" />

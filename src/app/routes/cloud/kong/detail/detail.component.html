@@ -1,0 +1,19 @@
+<page-header
+  [title]="title()"
+  [titleSub]="subtitle()"
+  [tab]="tabTpl"
+  [action]="actionTpl"
+  [autoBreadcrumb]="false"
+  [autoTitle]="false"
+/>
+<ng-template #actionTpl>
+  <button nz-button type="button" routerLink="/cloud/kong">返回列表</button>
+</ng-template>
+<ng-template #tabTpl>
+  <nz-tabs [nzSelectedIndex]="index()" (nzSelectedIndexChange)="go($event)">
+    @for (item of navs(); track item.path) {
+      <nz-tab [nzTitle]="item.title" />
+    }
+  </nz-tabs>
+</ng-template>
+<router-outlet />

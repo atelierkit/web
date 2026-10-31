@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { apiErrorMessage } from '@core';
 import { STColumn, STColumnTag, STData } from '@delon/abc/st';
 import { SHARED_IMPORTS } from '@shared';
@@ -13,8 +14,8 @@ import { CloudKongLogComponent } from './log/log.component';
 /**
  * KONG 网关站点管理组件
  *
- * 注：站点下的对象管理（services / routes / plugins 等）暂不迁移，
- * 这里只提供站点本身的增删改查、变更历史与连通性诊断
+ * 注：这里只管站点本身（增删改查、变更历史、连通性诊断）；站点下的对象管理
+ * （路由 / 服务 / 用户 / 上游 / 证书 / 插件）在 `kong/:id` 下，由「管理」按钮进入
  */
 @Component({
   selector: 'cloud-kong',
@@ -26,6 +27,7 @@ export class CloudKongComponent implements OnInit {
   private readonly cloudSrv = inject(CloudService);
   private readonly modalSrv = inject(NzModalService);
   private readonly msgSrv = inject(NzMessageService);
+  private readonly router = inject(Router);
 
   /** 站点清单 */
   readonly data = signal<CloudKong[]>([]);
@@ -52,6 +54,11 @@ export class CloudKongComponent implements OnInit {
     {
       title: '操作',
       buttons: [
+        {
+          text: '管理',
+          type: 'link',
+          click: (record: STData) => this.manage(record as CloudKong),
+        },
         {
           text: '变更历史',
           type: 'link',
@@ -112,6 +119,15 @@ export class CloudKongComponent implements OnInit {
           this.fresh();
         }
       });
+  }
+
+  /**
+   * 进入站点对象管理
+   *
+   * @param record 站点
+   */
+  manage(record: CloudKong): void {
+    void this.router.navigate(['/cloud/kong', record.id, 'dashboard']);
   }
 
   /**
