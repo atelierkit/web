@@ -77,6 +77,30 @@ export interface CloudKong {
   update?: Partial<CloudAudit>;
 }
 
+/** 网关概览，注：与后端 `KongSummary` 一一对应 */
+export interface KongSummary {
+  /** Kong 版本 */
+  version: string;
+  /** 版本类型，`community` 为社区版、`enterprise` 为企业版 */
+  edition: string;
+  /** 主机名 */
+  hostname: string;
+  /** 节点ID */
+  nodeId: string;
+  /** Lua 运行时版本 */
+  luaVersion: string;
+  /** 服务端可用插件数 */
+  pluginCount: number;
+  /** 集群内已启用的插件数 */
+  enabledCount: number;
+  /** 当前活跃连接数 */
+  connectionsActive: number;
+  /** 累计请求数 */
+  totalRequests: number;
+  /** 数据库是否可达，注：无数据库模式下为 `null`（不适用） */
+  dbReachable: boolean | null;
+}
+
 /** 站点提交信息 */
 export interface KongPayload {
   /** 实例名称 */
@@ -196,22 +220,25 @@ export class CloudService {
   }
 
   /**
-   * 获取网关许可报告
+   * 获取网关概览
+   *
+   * 注：后端把 Kong 的 `/`（版本、插件）与 `/status`（连接、数据库）合并成一份下发；
+   * 旧私有项目读的 `/default/license/report` 是企业版专属接口，社区版恒为 404
    *
    * @param id 站点ID
-   * @returns 许可报告，注：正文由 Kong 决定，按未知结构透传
+   * @returns 概览
    */
-  kongReport(id: number): Observable<unknown> {
-    return this.http.get<unknown>(`cloud/kong/report/${id}`);
+  kongSummary(id: number): Observable<KongSummary> {
+    return this.http.get<KongSummary>(`cloud/kong/summary/${id}`);
   }
 
   /**
    * 获取网关已启用的插件清单
    *
    * @param id 站点ID
-   * @returns 插件清单
+   * @returns 插件名清单，注：后端已把 `{ enabled_plugins }` 拆成数组
    */
-  kongPlugin(id: number): Observable<unknown> {
-    return this.http.get<unknown>(`cloud/kong/plugin/${id}`);
+  kongPlugin(id: number): Observable<string[]> {
+    return this.http.get<string[]>(`cloud/kong/plugin/${id}`);
   }
 }

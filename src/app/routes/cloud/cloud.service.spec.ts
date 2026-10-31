@@ -127,16 +127,27 @@ describe('CloudService', () => {
       updated.flush({ statusCode: 200, message: '保存成功' });
     });
 
-    it('诊断接口走 GET cloud/kong/report/:id 与 cloud/kong/plugin/:id', () => {
-      service.kongReport(1).subscribe();
-      const report = http.expectOne('cloud/kong/report/1');
-      expect(report.request.method).toBe('GET');
-      report.flush({ version: '3.6.1' });
+    it('诊断接口走 GET cloud/kong/summary/:id 与 cloud/kong/plugin/:id', () => {
+      service.kongSummary(1).subscribe();
+      const summary = http.expectOne('cloud/kong/summary/1');
+      expect(summary.request.method).toBe('GET');
+      summary.flush({
+        version: '3.9.4',
+        edition: 'community',
+        hostname: 'home-server',
+        nodeId: 'node-1',
+        luaVersion: 'LuaJIT',
+        pluginCount: 45,
+        enabledCount: 1,
+        connectionsActive: 5,
+        totalRequests: 49,
+        dbReachable: true,
+      });
 
       service.kongPlugin(1).subscribe();
       const plugin = http.expectOne('cloud/kong/plugin/1');
       expect(plugin.request.method).toBe('GET');
-      plugin.flush({ enabled_plugins: [] });
+      plugin.flush(['cors']);
     });
   });
 });

@@ -1,10 +1,10 @@
 @if (loading()) {
-  <nz-spin nzSimple class="block py-lg text-center" />
+  <nz-spin nzSimple class="py-lg text-center" />
 } @else {
-  <nz-card nzTitle="许可报告" nzSize="small">
-    <pre class="mb0">{{ report() }}</pre>
+  <nz-card nzTitle="网关概览（GET / 与 GET /status）" nzSize="small">
+    <pre class="mb0">{{ summary() }}</pre>
   </nz-card>
-  <nz-card nzTitle="已启用插件" nzSize="small" class="mt-md">
+  <nz-card nzTitle="已启用插件（GET /plugins/enabled）" nzSize="small" class="mt-md">
     <pre class="mb0">{{ plugin() }}</pre>
   </nz-card>
   <div class="text-right pt-md">

@@ -65,7 +65,9 @@ export abstract class KongObjectEditComponent implements OnInit {
 
   /** 页面初始化 */
   ngOnInit(): void {
-    if (!this.isEdit || !this.recordId) {
+    // 注：有 `recordId` 就要读详情 —— 「编辑」要回填原值，「复制」同样要，否则复制出来的是
+    // 一张空表单（保存方式仍由 `save()` 里的 `isEdit` 决定，复制走新建）
+    if (!this.recordId) {
       this.formData.set({});
       return;
     }

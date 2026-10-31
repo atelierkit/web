@@ -1,78 +1,60 @@
 @if (failed()) {
   <nz-alert nzType="warning" nzShowIcon [nzMessage]="failed()" class="mb-md" />
 }
-@if (report(); as data) {
+@if (summary(); as data) {
   <nz-row [nzGutter]="[16, 16]" class="mb-md">
     <nz-col [nzSpan]="6">
-      <nz-card nzTitle="总请求数" nzHoverable>
+      <nz-card nzTitle="累计请求数" nzHoverable>
         <div style="font-size: 24px; font-weight: 600">
-          {{ (data.counters?.total_requests ?? 0).toLocaleString() }}
+          {{ data.totalRequests.toLocaleString() }}
         </div>
       </nz-card>
     </nz-col>
     <nz-col [nzSpan]="6">
-      <nz-card nzTitle="服务数量" nzHoverable>
-        <div style="font-size: 24px; font-weight: 600">{{ data.services_count ?? 0 }}</div>
+      <nz-card nzTitle="活跃连接" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.connectionsActive }}</div>
       </nz-card>
     </nz-col>
     <nz-col [nzSpan]="6">
-      <nz-card nzTitle="路由数量" nzHoverable>
-        <div style="font-size: 24px; font-weight: 600">{{ data.routes_count ?? 0 }}</div>
+      <nz-card nzTitle="可用插件" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.pluginCount }}</div>
       </nz-card>
     </nz-col>
     <nz-col [nzSpan]="6">
-      <nz-card nzTitle="用户数量" nzHoverable>
-        <div style="font-size: 24px; font-weight: 600">{{ data.consumers_count ?? 0 }}</div>
+      <nz-card nzTitle="已启用插件" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.enabledCount }}</div>
       </nz-card>
     </nz-col>
   </nz-row>
 
-  <nz-card nzTitle="系统信息" class="mb-md">
+  <nz-card nzTitle="网关信息">
     <nz-row [nzGutter]="[16, 16]">
       <nz-col [nzSpan]="8">
         <div class="text-sm">Kong 版本</div>
-        <div>{{ data.kong_version ?? '-' }}</div>
+        <div>{{ data.version || '-' }}</div>
       </nz-col>
       <nz-col [nzSpan]="8">
-        <div class="text-sm">数据库版本</div>
-        <div>{{ data.db_version ?? '-' }}</div>
+        <div class="text-sm">版本类型</div>
+        <div>{{ editionOf(data.edition) }}</div>
       </nz-col>
       <nz-col [nzSpan]="8">
-        <div class="text-sm">部署类型</div>
-        <div>{{ data.deployment_info?.type ?? '-' }}</div>
+        <div class="text-sm">数据库</div>
+        <div>{{ dbOf(data.dbReachable) }}</div>
       </nz-col>
       <nz-col [nzSpan]="8">
         <div class="text-sm">主机名</div>
-        <div>{{ data.system_info?.hostname ?? '-' }}</div>
+        <div>{{ data.hostname || '-' }}</div>
       </nz-col>
       <nz-col [nzSpan]="8">
-        <div class="text-sm">CPU 核心数</div>
-        <div>{{ data.system_info?.cores ?? '-' }}</div>
+        <div class="text-sm">节点ID</div>
+        <div>{{ data.nodeId || '-' }}</div>
       </nz-col>
       <nz-col [nzSpan]="8">
-        <div class="text-sm">操作系统</div>
-        <div>{{ data.system_info?.uname ?? '-' }}</div>
-      </nz-col>
-      <nz-col [nzSpan]="8">
-        <div class="text-sm">许可证密钥</div>
-        <div>{{ data.license?.license_key ?? '-' }}</div>
-      </nz-col>
-      <nz-col [nzSpan]="8">
-        <div class="text-sm">许可证到期</div>
-        <div>{{ data.license?.license_expiration_date ?? '-' }}</div>
-      </nz-col>
-      <nz-col [nzSpan]="8">
-        <div class="text-sm">工作区数量</div>
-        <div>{{ data.workspaces_count ?? '-' }}</div>
+        <div class="text-sm">Lua 版本</div>
+        <div>{{ data.luaVersion || '-' }}</div>
       </nz-col>
     </nz-row>
   </nz-card>
-
-  @if (chartData().length > 0) {
-    <nz-card nzTitle="分时段请求量">
-      <g2-bar [data]="chartData()" [color]="barColor" height="360px" />
-    </nz-card>
-  }
 } @else if (loading()) {
-  <nz-spin nzSimple class="block py-lg text-center" />
+  <nz-spin nzSimple class="py-lg text-center" />
 }

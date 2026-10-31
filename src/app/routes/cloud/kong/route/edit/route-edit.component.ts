@@ -39,7 +39,8 @@ export class KongRouteEditComponent extends KongObjectEditComponent {
       protocols: {
         type: 'string',
         title: '协议',
-        default: 'http',
+        // 注：多选控件的初值必须是数组，给字符串会导致新建路由时提交成 `"http"`（Kong 要求数组）
+        default: ['http'],
         enum: [
           { label: 'HTTP', value: 'http' },
           { label: 'HTTPS', value: 'https' },
