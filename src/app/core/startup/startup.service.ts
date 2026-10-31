@@ -15,6 +15,7 @@ import type { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { Observable, catchError, finalize, map, mergeMap, of, retry, timer } from 'rxjs';
 
+import { MENUS } from './menu.constant';
 import { normalizeToken } from '../net/helper';
 
 /** 基础数据加载的重试次数，注：用于网络抖动、数据库连接被掐断等瞬时故障 */
@@ -194,66 +195,10 @@ export class StartupService {
   /**
    * 初始化应用外壳（菜单与权限）
    *
-   * 注：菜单尚未接入后端，先沿用静态配置
+   * 注：菜单尚未接入后端，先沿用静态配置（见 `menu.constant.ts`）
    */
   private setupShell(): void {
-    // Menu data, https://ng-alain.com/theme/menu
-    this.menuSrv.add([
-      {
-        text: 'Main',
-        group: true,
-        children: [
-          {
-            text: 'Dashboard',
-            link: '/dashboard',
-            icon: { type: 'icon', value: 'appstore' },
-          },
-        ],
-      },
-      {
-        text: '访问控制',
-        group: true,
-        children: [
-          {
-            text: '用户管理',
-            link: '/auth/user',
-            icon: { type: 'icon', value: 'user' },
-            // 注：后端按 @Allow('admin') 校验，前端只隐藏入口，越权请求仍会被拦
-            acl: 'admin',
-          },
-          {
-            text: '角色管理',
-            link: '/auth/role',
-            icon: { type: 'icon', value: 'team' },
-            acl: 'admin',
-          },
-          {
-            text: '令牌管理',
-            link: '/auth/token',
-            icon: { type: 'icon', value: 'key' },
-            acl: 'admin',
-          },
-        ],
-      },
-      {
-        text: '云服务',
-        group: true,
-        children: [
-          {
-            text: '密钥管理',
-            link: '/cloud/key',
-            icon: { type: 'icon', value: 'safety-certificate' },
-            acl: 'admin',
-          },
-          {
-            text: 'KONG 网关',
-            link: '/cloud/kong',
-            icon: { type: 'icon', value: 'api' },
-            acl: 'admin',
-          },
-        ],
-      },
-    ]);
+    this.menuSrv.add(MENUS);
   }
 
   /**
