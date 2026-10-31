@@ -108,8 +108,8 @@ import { HeaderUser } from './widgets/user';
 export class LayoutBasic {
   readonly user = inject(SettingsService).user;
   protected options: LayoutDefaultOptions = {
-    logoExpanded: `./assets/logo-full.svg`,
-    logoCollapsed: `./assets/logo.svg`,
+    logoExpanded: `./assets/logo.png`,
+    logoCollapsed: `./assets/logo.png`,
   };
   protected searchToggleStatus = signal(false);
 }

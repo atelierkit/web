@@ -12,7 +12,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
       <div class="wrap">
         <div class="top">
           <div class="head">
-            <img class="logo" src="./assets/logo-color.svg" />
+            <img class="logo" src="./assets/logo.png" />
             <span class="title">{{ settings.app.name || '管理平台' }}</span>
           </div>
           <div class="desc">{{ settings.app.description }}</div>
