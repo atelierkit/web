@@ -8,3 +8,17 @@
 // ==========The following is the custom theme variable area==========
 // The theme paraments can be generated at https://ng-alain.github.io/ng-alain/
 // @primary-color: #f50;
+
+// ========== 表格：在浅灰页面底上建立「表头 / 数据行 / 分隔线」的层次 ==========
+// zorro 默认值（style/themes/default.less）与页面底 @alain-default-content-bg(#f5f7fa) 几乎同色，
+// 列表页看不出表格从哪儿开始：
+//   @table-header-bg    = @background-color-light = #fafafa
+//   @table-border-color = @border-color-split    = #f0f0f0
+//   @table-row-hover-bg = @background-color-light = #fafafa（与表头同色 ⇒ 行 hover 几乎无反馈）
+@table-header-bg: #eaeef5; // 表头底色，明显区别于白色数据行
+@table-header-color: #1f2329; // 表头文字，比正文略重
+@table-border-color: #e3e7ee; // 行分隔线，默认 #f0f0f0 太淡
+@table-header-sort-bg: #dde3ef; // 排序列激活时的表头底（默认 #f5f5f5 会比表头还浅，看着像被"擦掉"）
+@table-row-hover-bg: #eef5ff; // 行 hover，跟随主色走淡蓝，鼠标位置一眼可见
+@table-selected-row-bg: #dbe9ff; // 选中行，需强于 hover 底色
+@table-border-radius-base: 8px; // 与 index.less 里给表格加的外框圆角保持一致

@@ -1,1 +1,22 @@
 /* You can add global styles to this file, and also import other style files */
+
+// ===== 列表页表格：让表格成为一块有明确边界的白底区块 =====
+// 页面内容底是 @alain-default-content-bg(#f5f7fa)，而表格只有 @table-bg(#fff) 白底、没有外框，
+// 两者亮度只差 5% ⇒ 看不出表格从哪里开始、到哪里结束。这里补一层外框与圆角。
+// 用 `overflow: clip`（而不是 hidden）收边：只裁切圆角，不产生滚动容器，
+// 因此不影响 `.ant-table-body` 的横向滚动，也不会让吸附表头失效。
+// 注：`nz-table` 的宿主元素自带 `ant-table-wrapper` 类，自定义元素默认是 inline，
+// 不显式改块级时外框会按行内框分片绘制
+.ant-table-wrapper {
+  overflow: clip;
+  display: block;
+  border: 1px solid @border-color-base;
+  border-radius: @table-border-radius-base;
+  background: @component-background;
+}
+
+// 表头与数据行之间用一条更实的线分隔（与外框同色），把「表头 / 数据区」分成两块；
+// 数据行之间仍是更浅的 @table-border-color，避免整个表格全是重线。
+.ant-table-thead > tr > th {
+  border-bottom-color: @border-color-base;
+}
