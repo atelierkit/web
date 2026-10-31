@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { apiErrorMessage } from '@core';
 import { SFSchema, SFUISchema } from '@delon/form';
-import { formatDateTime, SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS } from '@shared';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 
@@ -51,8 +51,9 @@ export class CloudKongEditComponent implements OnInit {
       // 它们不属于可提交内容，`save()` 里是显式构造 payload，不会被带出去
       ...(this.editable
         ? {
-            createAt: { type: 'string', title: '创建时间' },
-            updateAt: { type: 'string', title: '更新时间' },
+            // 注：值仍是后端原样的毫秒时间戳，格式化交给 `at` 小部件（shared/json-schema/at）
+            createAt: { type: 'number', title: '创建时间' },
+            updateAt: { type: 'number', title: '更新时间' },
           }
         : {}),
     },
@@ -68,8 +69,8 @@ export class CloudKongEditComponent implements OnInit {
     $status: { checkedChildren: '启用', unCheckedChildren: '禁用' },
     // 注：text 小部件（`sf-text`）只把值当纯文本渲染，天然只读 —— 旧私有项目 `$id` 就是这么做的；
     // 它同时令 `ui._required = false`，所以这两个字段也不会参与必填校验
-    $createAt: { widget: 'text' },
-    $updateAt: { widget: 'text' },
+    $createAt: { widget: 'at' },
+    $updateAt: { widget: 'at' },
   };
 
   /** 页面初始化 */
@@ -85,8 +86,8 @@ export class CloudKongEditComponent implements OnInit {
           url: kong.url,
           status: kong.status,
           // 注：只读项给的是格式化后的文本，SF 只负责展示
-          createAt: formatDateTime(kong.create?.at),
-          updateAt: formatDateTime(kong.update?.at),
+          createAt: kong.create?.at ?? null,
+          updateAt: kong.update?.at ?? null,
         });
       },
       error: (err: unknown) => {

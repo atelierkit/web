@@ -1,3 +1,6 @@
+/** 时间戳单位，注：本项目后端统一用毫秒，`s` 用于少数只给秒的外部接口 */
+export type TimeUnit = 'ms' | 's';
+
 /**
  * 时间戳格式化为 `yyyy-MM-dd HH:mm:ss`
  *
@@ -5,15 +8,16 @@
  * 而本项目 `@shared` 里的 `DatePipe` 是 ng-alain 的 `_date`（管道名不是 `date`）；这里只是纯数字格式化，
  * 手写反而没有依赖、结果也固定
  *
- * @param at 毫秒时间戳，缺省 / 0 / 负数一律视为「无」，返回空串
+ * @param at 时间戳，缺省 / 0 / 负数一律视为「无」，返回空串
+ * @param unit 时间戳单位，缺省毫秒
  * @returns 本地时区的展示文本
  */
-export function formatDateTime(at?: number | null): string {
+export function formatDateTime(at?: number | null, unit: TimeUnit = 'ms'): string {
   if (!at || at <= 0) {
     return '';
   }
   /** 日期对象 */
-  const date = new Date(at);
+  const date = new Date(unit === 's' ? at * 1000 : at);
   /**
    * 两位补零
    *
