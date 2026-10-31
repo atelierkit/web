@@ -110,10 +110,10 @@ describe('helper', () => {
 
     it('goTo 延迟跳转（让当前导航先结束）', () => {
       const router = { navigateByUrl: vi.fn(async () => true) };
-      goTo(injectorOf(tokenServiceStub(), { router }), '/dashboard');
+      goTo(injectorOf(tokenServiceStub(), { router }), '/home');
       expect(router.navigateByUrl).not.toHaveBeenCalled();
       vi.runAllTimers();
-      expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/home');
     });
 
     it('toLogin 先清令牌再提示，最后跳登录页', () => {

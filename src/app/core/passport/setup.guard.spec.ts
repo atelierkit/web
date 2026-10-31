@@ -26,7 +26,7 @@ async function run(url: string, initialized: boolean): Promise<boolean | UrlTree
 
 describe('setupGuard', () => {
   it('未初始化时把任意入口导向创建管理员页', async () => {
-    const result = await run('/dashboard', false);
+    const result = await run('/home', false);
     expect(result).toBeInstanceOf(UrlTree);
     expect(String(result)).toBe('/passport/setup');
   });
@@ -36,7 +36,7 @@ describe('setupGuard', () => {
   });
 
   it('已初始化时允许正常访问', async () => {
-    expect(await run('/dashboard', true)).toBe(true);
+    expect(await run('/home', true)).toBe(true);
   });
 
   it('已初始化后创建管理员页不可再访问', async () => {

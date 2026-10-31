@@ -44,7 +44,7 @@ export class UserLockComponent {
       this.tokenService.set({
         token: '123',
       });
-      this.router.navigate(['dashboard']);
+      this.router.navigate(['home']);
     }
   }
 }

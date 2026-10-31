@@ -21,7 +21,7 @@ describe('user.format', () => {
   it('认不出的地址回落到第一个标签，不会出现「没有任何高亮项」', () => {
     expect(tabIndexOf('/user')).toBe(0);
     expect(tabIndexOf('/user/unknown')).toBe(0);
-    expect(tabIndexOf('/dashboard')).toBe(0);
+    expect(tabIndexOf('/home')).toBe(0);
   });
 
   it('启用状态用中文文案展示（旧项目是 -1/0/1 三个数字）', () => {

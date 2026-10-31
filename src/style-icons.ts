@@ -6,11 +6,11 @@
 
 import {
   ApiOutline,
-  AppstoreOutline,
   AuditOutline,
   DashboardOutline,
   DatabaseOutline,
   FileTextOutline,
+  HomeOutline,
   IdcardOutline,
   KeyOutline,
   ProfileOutline,
@@ -20,8 +20,8 @@ import {
 } from '@ant-design/icons-angular/icons';
 
 export const ICONS = [
-  // 侧边菜单：仪表盘 / 个人资料 / 角色 / 令牌 / 密钥 / KONG 网关
-  AppstoreOutline,
+  // 侧边菜单：首页 / 个人资料 / 角色 / 令牌 / 密钥 / KONG 网关
+  HomeOutline,
   IdcardOutline,
   TeamOutline,
   KeyOutline,

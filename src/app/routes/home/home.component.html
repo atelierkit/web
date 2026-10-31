@@ -1,0 +1,26 @@
+<page-header title="首页" [autoBreadcrumb]="false" />
+
+<nz-card>
+  @if (state().deadline > 0) {
+    <nz-countdown
+      [nzValue]="state().deadline"
+      [nzTitle]="countTitle"
+      nzFormat="D 天 H 时 m 分 s 秒"
+    >
+      <ng-template #countTitle>
+        令牌过期倒计时
+        <a nz-button nzType="link" routerLink="/user/valid">续期</a>
+      </ng-template>
+    </nz-countdown>
+  } @else {
+    <nz-statistic
+      [nzValue]="state().alive ? '长期有效' : '已失效，请重新登录'"
+      [nzTitle]="stateTitle"
+    >
+      <ng-template #stateTitle>
+        登录有效期
+        <a nz-button nzType="link" routerLink="/user/valid">续期</a>
+      </ng-template>
+    </nz-statistic>
+  }
+</nz-card>

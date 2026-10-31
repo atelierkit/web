@@ -10,15 +10,9 @@ import { Menu } from '@delon/theme';
  */
 export const MENUS: Menu[] = [
   {
-    text: 'Main',
-    group: true,
-    children: [
-      {
-        text: 'Dashboard',
-        link: '/dashboard',
-        icon: { type: 'icon', value: 'appstore' },
-      },
-    ],
+    text: '首页',
+    link: '/home',
+    icon: { type: 'icon', value: 'home' },
   },
   {
     text: '账号',

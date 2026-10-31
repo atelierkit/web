@@ -3,7 +3,7 @@ import { setupGuard, startPageGuard } from '@core';
 import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
 
 import { LayoutBasic } from '../layout';
-import { DashboardComponent } from './dashboard/dashboard.component';
+import { HomeComponent } from './home/home.component';
 
 export const routes: Routes = [
   {
@@ -14,8 +14,8 @@ export const routes: Routes = [
     canActivateChild: [authSimpleCanActivateChild],
     data: {},
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: 'home', component: HomeComponent, data: { title: '首页' } },
       // 账号管理（基本资料 / 更换邮箱 / 登录有效期），注：不需要管理员角色，任何登录用户都能改自己的资料
       {
         path: 'user',
