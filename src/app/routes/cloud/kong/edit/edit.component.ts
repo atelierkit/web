@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { apiErrorMessage } from '@core';
 import { SFSchema, SFUISchema } from '@delon/form';
@@ -22,7 +23,8 @@ interface KongEditData {
   selector: 'cloud-kong-edit',
   templateUrl: './edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [...SHARED_IMPORTS],
+  // 注：`@shared` 里的 DatePipe 是 ng-alain 的 `_date`（见 @delon/theme），模板里的 `date` 管道要单独引 Angular 的
+  imports: [DatePipe, ...SHARED_IMPORTS],
 })
 export class CloudKongEditComponent implements OnInit {
   private readonly cloudSrv = inject(CloudService);
@@ -39,6 +41,14 @@ export class CloudKongEditComponent implements OnInit {
   readonly formData = signal<Record<string, unknown> | null>(
     this.editable ? null : { status: true },
   );
+  /**
+   * 创建时间戳
+   *
+   * 注：审计字段只做只读展示，不进 schema —— 它不属于可提交内容
+   */
+  readonly createdAt = signal<number | null>(null);
+  /** 更新时间戳 */
+  readonly updatedAt = signal<number | null>(null);
 
   /** 表单 schema */
   readonly schema: SFSchema = {
@@ -67,6 +77,8 @@ export class CloudKongEditComponent implements OnInit {
     }
     this.cloudSrv.kong(this.recordId).subscribe({
       next: (kong) => {
+        this.createdAt.set(kong.create?.at ?? null);
+        this.updatedAt.set(kong.update?.at ?? null);
         this.formData.set({
           name: kong.name,
           description: kong.description,
