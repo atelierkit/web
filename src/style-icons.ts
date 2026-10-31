@@ -7,14 +7,16 @@
 import {
   ApiOutline,
   AppstoreOutline,
+  IdcardOutline,
   KeyOutline,
   SafetyCertificateOutline,
   TeamOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const ICONS = [
-  // 侧边菜单：仪表盘 / 角色 / 令牌 / 密钥 / KONG 网关
+  // 侧边菜单：仪表盘 / 个人资料 / 角色 / 令牌 / 密钥 / KONG 网关
   AppstoreOutline,
+  IdcardOutline,
   TeamOutline,
   KeyOutline,
   SafetyCertificateOutline,

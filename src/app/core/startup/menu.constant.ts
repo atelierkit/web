@@ -21,6 +21,18 @@ export const MENUS: Menu[] = [
     ],
   },
   {
+    text: '账号',
+    group: true,
+    children: [
+      {
+        text: '个人资料',
+        link: '/user/basic',
+        icon: { type: 'icon', value: 'idcard' },
+        // 注：账号管理只改自己的资料，不需要任何角色（后端 `user/*` 也只认令牌里的用户ID）
+      },
+    ],
+  },
+  {
     text: '访问控制',
     group: true,
     children: [

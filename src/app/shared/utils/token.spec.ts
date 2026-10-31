@@ -1,6 +1,7 @@
+import type { ITokenModel } from '@delon/auth';
 import { describe, expect, it } from 'vitest';
 
-import { TOKEN_VALID_DEFAULT, TOKEN_VALID_OPTIONS, tokenValidLabel } from './token';
+import { TOKEN_VALID_DEFAULT, TOKEN_VALID_OPTIONS, isTokenValid, tokenValidLabel } from './token';
 
 describe('token 工具', () => {
   it('档位与后端 TOKEN_VALIDS 白名单逐项一致', () => {
@@ -23,5 +24,34 @@ describe('token 工具', () => {
 
   it('未知档位退化为「N分钟」，便于发现前后端档位不一致', () => {
     expect(tokenValidLabel(7)).toBe('7分钟');
+  });
+});
+
+describe('isTokenValid', () => {
+  /**
+   * 构造令牌
+   *
+   * @param expired 过期时间戳，0 表示长期有效
+   * @returns 令牌模型
+   */
+  function tokenOf(expired: number): ITokenModel {
+    return { token: '1:abc', expired } as ITokenModel;
+  }
+
+  it('没有令牌按失效处理（未登录不应被判成有效）', () => {
+    expect(isTokenValid(null)).toBe(false);
+    expect(isTokenValid(undefined)).toBe(false);
+  });
+
+  it('长期有效的 0 不会被当成已过期', () => {
+    expect(isTokenValid(tokenOf(0))).toBe(true);
+  });
+
+  it('过期时间在未来时为有效', () => {
+    expect(isTokenValid(tokenOf(Date.now() + 60_000))).toBe(true);
+  });
+
+  it('过期时间已过去时为失效', () => {
+    expect(isTokenValid(tokenOf(Date.now() - 60_000))).toBe(false);
   });
 });

@@ -1,15 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PassportService, StartupService, apiErrorMessage } from '@core';
 import { ReuseTabService } from '@delon/abc/reuse-tab';
 import { MatchControl } from '@delon/util/form';
+import { PASSWORD_MAX, PASSWORD_MIN, passwordValidator } from '@shared';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
@@ -17,26 +12,6 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { finalize } from 'rxjs';
-
-/**
- * 密码复杂度校验
- *
- * 注：与服务端规则保持一致 —— 8-64 位、必须同时包含字母与数字
- *
- * @param control 表单控件
- * @returns 校验结果
- */
-function passwordValidator(control: AbstractControl): ValidationErrors | null {
-  /** 密码值 */
-  const value = String(control.value ?? '');
-  if (!value) {
-    return null;
-  }
-  if (!/[a-zA-Z]/.test(value) || !/\d/.test(value)) {
-    return { password: true };
-  }
-  return null;
-}
 
 /**
  * 创建管理员页面
@@ -70,7 +45,12 @@ export class SetupComponent {
       username: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_-]{3,20}$/)]],
       password: [
         '',
-        [Validators.required, Validators.minLength(8), Validators.maxLength(64), passwordValidator],
+        [
+          Validators.required,
+          Validators.minLength(PASSWORD_MIN),
+          Validators.maxLength(PASSWORD_MAX),
+          passwordValidator,
+        ],
       ],
       confirm: ['', [Validators.required]],
       email: ['', [Validators.email]],

@@ -21,13 +21,13 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
     </div>
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-sm">
-        <div nz-menu-item routerLink="/pro/account/center">
+        <div nz-menu-item routerLink="/user/basic">
           <nz-icon nzType="user" class="mr-sm" />
-          个人中心
+          个人资料
         </div>
-        <div nz-menu-item routerLink="/pro/account/settings">
+        <div nz-menu-item routerLink="/user/valid">
           <nz-icon nzType="setting" class="mr-sm" />
-          个人设置
+          登录有效期
         </div>
         <div nz-menu-item routerLink="/exception/trigger">
           <nz-icon nzType="close-circle" class="mr-sm" />

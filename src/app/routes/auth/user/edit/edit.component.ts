@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { apiErrorMessage } from '@core';
 import { SFSchema, SFUISchema } from '@delon/form';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, PASSWORD_MAX, PASSWORD_MIN, PASSWORD_PATTERN } from '@shared';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { catchError, map, of } from 'rxjs';
@@ -10,9 +10,6 @@ import { AuthRole, AuthService, UserCreatePayload, UserUpdatePayload } from '../
 
 /** 用户名规则，注：与后端 USERNAME_RE 保持一致（后端入库前统一转小写） */
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/;
-
-/** 密码规则，注：与后端 PASSWORD_MIN/MAX 与「必须含字母和数字」保持一致 */
-const PASSWORD_RE = /^(?=.*[a-zA-Z])(?=.*\d).{8,64}$/;
 
 /** 用户弹窗入参 */
 interface UserEditData {
@@ -70,9 +67,9 @@ export class AuthUserEditComponent implements OnInit {
       password: {
         type: 'string',
         title: '密码',
-        minLength: 8,
-        maxLength: 64,
-        pattern: PASSWORD_RE.source,
+        minLength: PASSWORD_MIN,
+        maxLength: PASSWORD_MAX,
+        pattern: PASSWORD_PATTERN.source,
         // 注：编辑态不含改密，隐藏字段（隐藏项不参与校验）
         // 注：@delon/form 22 无独立 password widget，用 string widget 的 type 属性渲染密码框
         ui: { type: 'password', hidden: this.editable },

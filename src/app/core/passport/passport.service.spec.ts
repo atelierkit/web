@@ -158,4 +158,29 @@ describe('PassportService', () => {
       expect(tokenSrv.clear).toHaveBeenCalled();
     });
   });
+
+  describe('重置密码', () => {
+    it('发送验证码走匿名 POST passport/reset，邮箱去空白', () => {
+      service.resetCode('  a@b.com ').subscribe();
+      const req = http.expectOne('passport/reset');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ email: 'a@b.com' });
+      // 注：忘记密码时一定没有有效登录态，必须走匿名上下文，否则 401 会被踢回登录页
+      expect(req.request.context.get(ALLOW_ANONYMOUS)).toBe(true);
+      req.flush({ code: 0, msg: '如果该邮箱已绑定账号，验证码已发送' });
+    });
+
+    it('重置走匿名 POST passport/reset/confirm，原样提交邮箱、验证码与新密码', () => {
+      service.reset({ email: ' a@b.com ', code: '123456', password: 'abc12346' }).subscribe();
+      const req = http.expectOne('passport/reset/confirm');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        email: 'a@b.com',
+        code: '123456',
+        password: 'abc12346',
+      });
+      expect(req.request.context.get(ALLOW_ANONYMOUS)).toBe(true);
+      req.flush({ code: 0, msg: '密码已重置，请使用新密码登录！' });
+    });
+  });
 });

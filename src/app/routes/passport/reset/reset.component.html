@@ -1,0 +1,139 @@
+@if (done()) {
+  <nz-result nzStatus="success" nzTitle="密码已重置">
+    <div nz-result-content>请使用新密码重新登录；该账号在其它设备上的登录已被全部作废。</div>
+    <div nz-result-extra>
+      <button nz-button type="button" nzType="primary" nzSize="large" routerLink="/passport/login">
+        去登录
+      </button>
+    </div>
+  </nz-result>
+} @else {
+  <h3>重置密码</h3>
+  <p class="desc">通过账号绑定的邮箱接收验证码，验证码 2 分钟内有效。</p>
+  <form nz-form [formGroup]="form" (ngSubmit)="submit()" role="form">
+    @if (error()) {
+      <nz-alert nzType="error" [nzMessage]="error()" [nzShowIcon]="true" class="mb-lg" />
+    }
+    @if (notice()) {
+      <nz-alert nzType="success" [nzMessage]="notice()" [nzShowIcon]="true" class="mb-lg" />
+    }
+    <nz-form-item>
+      <nz-form-control [nzErrorTip]="emailErrorTip">
+        <nz-input-wrapper>
+          <nz-icon nzInputPrefix nzType="mail" />
+          <input
+            nz-input
+            nzSize="large"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="账号绑定的邮箱"
+          />
+        </nz-input-wrapper>
+        <ng-template #emailErrorTip let-i>
+          @if (i.errors?.required) {
+            请输入邮箱！
+          }
+          @if (i.errors?.email) {
+            邮箱格式不正确！
+          }
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-control [nzErrorTip]="codeErrorTip">
+        <nz-input-wrapper>
+          <nz-icon nzInputPrefix nzType="safety-certificate" />
+          <input
+            nz-input
+            nzSize="large"
+            formControlName="code"
+            autocomplete="one-time-code"
+            maxlength="6"
+            placeholder="6 位验证码"
+          />
+          <button
+            nz-button
+            nzInputSuffix
+            type="button"
+            nzSize="small"
+            [nzLoading]="sending()"
+            [disabled]="sending() || countdown() > 0"
+            (click)="sendCode()"
+          >
+            {{ countdown() > 0 ? countdown() + 's 后重发' : '发送验证码' }}
+          </button>
+        </nz-input-wrapper>
+        <ng-template #codeErrorTip let-i>
+          @if (i.errors?.required) {
+            请输入验证码！
+          }
+          @if (i.errors?.pattern) {
+            验证码为 6 位数字！
+          }
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-control [nzErrorTip]="passwordErrorTip">
+        <nz-input-wrapper>
+          <nz-icon nzInputPrefix nzType="lock" />
+          <input
+            nz-input
+            nzSize="large"
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+            placeholder="新密码（8-64 位，含字母与数字）"
+          />
+        </nz-input-wrapper>
+        <ng-template #passwordErrorTip let-i>
+          @if (i.errors?.required) {
+            请输入新密码！
+          }
+          @if (i.errors?.minlength || i.errors?.maxlength) {
+            密码长度为 8-64 位！
+          }
+          @if (i.errors?.password) {
+            密码必须同时包含字母和数字！
+          }
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-control [nzErrorTip]="confirmErrorTip">
+        <nz-input-wrapper>
+          <nz-icon nzInputPrefix nzType="lock" />
+          <input
+            nz-input
+            nzSize="large"
+            type="password"
+            formControlName="confirm"
+            autocomplete="new-password"
+            placeholder="确认新密码"
+          />
+        </nz-input-wrapper>
+        <ng-template #confirmErrorTip let-i>
+          @if (i.errors?.required) {
+            请再次输入新密码！
+          }
+          @if (i.errors?.matchControl) {
+            两次输入的密码不一致！
+          }
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <button
+        nz-button
+        type="submit"
+        nzType="primary"
+        nzSize="large"
+        [nzLoading]="loading()"
+        nzBlock
+      >
+        重置密码
+      </button>
+    </nz-form-item>
+  </form>
+  <div class="tip">想起密码了？<a routerLink="/passport/login">返回登录</a></div>
+}

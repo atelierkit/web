@@ -2,6 +2,8 @@
 
 // Utils
 export * from './utils/token';
+export * from './utils/password';
+export * from './utils/result';
 export * from './utils/yuan';
 export * from './utils/date';
 

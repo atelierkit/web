@@ -1,6 +1,7 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenModel } from '@delon/auth';
+import type { OperationResult } from '@shared';
 import { Observable, catchError, map, of, shareReplay, tap } from 'rxjs';
 
 import { normalizeToken } from '../net/helper';
@@ -46,6 +47,16 @@ export interface LoginPayload {
   /** 用户名 */
   username: string;
   /** 密码 */
+  password: string;
+}
+
+/** 重置密码入参，注：验证码由 `resetCode` 发到绑定邮箱 */
+export interface ResetPayload {
+  /** 绑定邮箱 */
+  email: string;
+  /** 邮箱验证码 */
+  code: string;
+  /** 新密码 */
   password: string;
 }
 
@@ -141,6 +152,40 @@ export class PassportService {
    */
   logout(): void {
     this.tokenSrv.clear();
+  }
+
+  /**
+   * 发送重置密码验证码
+   *
+   * 注：后端对「邮箱不存在 / 账号被禁用」也返回同一句文案且不发信（防账号探测），
+   * 因此返回成功不代表邮箱一定绑了账号，页面文案不能写成「已发送到该邮箱」
+   *
+   * @param email 绑定邮箱
+   * @returns 业务操作结果
+   */
+  resetCode(email: string): Observable<OperationResult> {
+    return this.http.post<OperationResult>(
+      'passport/reset',
+      { email: email.trim() },
+      { context: anonymous() },
+    );
+  }
+
+  /**
+   * 通过邮箱验证码重置密码
+   *
+   * 注 1：同一验证码连续输错有次数上限（后端 `RESET_FAIL_MAX`），超限后验证码会被销毁
+   * 注 2：成功后该用户的全部令牌都会失效，必须重新登录
+   *
+   * @param payload 重置信息
+   * @returns 业务操作结果
+   */
+  reset(payload: ResetPayload): Observable<OperationResult> {
+    return this.http.post<OperationResult>(
+      'passport/reset/confirm',
+      { ...payload, email: payload.email.trim() },
+      { context: anonymous() },
+    );
   }
 
   /**

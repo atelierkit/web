@@ -1,0 +1,19 @@
+<page-header
+  title="账号管理"
+  titleSub="昵称头像、登录邮箱与登录有效期"
+  [tab]="tabTpl"
+  [action]="actionTpl"
+  [autoBreadcrumb]="false"
+  [autoTitle]="false"
+/>
+<ng-template #actionTpl>
+  <button nz-button type="button" routerLink="/dashboard">返回首页</button>
+</ng-template>
+<ng-template #tabTpl>
+  <nz-tabs [nzSelectedIndex]="index()" (nzSelectedIndexChange)="go($event)">
+    @for (item of tabs; track item.path) {
+      <nz-tab [nzTitle]="item.title" />
+    }
+  </nz-tabs>
+</ng-template>
+<router-outlet />

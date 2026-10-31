@@ -16,6 +16,12 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
+      // 账号管理（基本资料 / 更换邮箱 / 登录有效期），注：不需要管理员角色，任何登录用户都能改自己的资料
+      {
+        path: 'user',
+        data: { title: '账号管理' },
+        loadChildren: () => import('./user/routes').then((m) => m.routes),
+      },
       // 访问控制（用户 / 角色 / 令牌），注：页面挂在主布局下，导航走侧边菜单
       {
         path: 'auth',
