@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { apiErrorMessage } from '@core';
 import { STColumn, STColumnTag, STData } from '@delon/abc/st';
 import { SHARED_IMPORTS } from '@shared';
@@ -24,6 +25,7 @@ export class CloudKeyComponent implements OnInit {
   private readonly cloudSrv = inject(CloudService);
   private readonly modalSrv = inject(NzModalService);
   private readonly msgSrv = inject(NzMessageService);
+  private readonly router = inject(Router);
 
   /** 密钥清单 */
   readonly data = signal<CloudKey[]>([]);
@@ -60,6 +62,13 @@ export class CloudKeyComponent implements OnInit {
     {
       title: '操作',
       buttons: [
+        {
+          text: '管理',
+          type: 'link',
+          // 注：目前只有腾讯云有专属管理页（证书 / 域名 / 轻量服务器），其它服务商没有入口
+          iif: (record: STData) => record['provider'] === 'tencent',
+          click: (record: STData) => void this.router.navigate(['/tencent', record['id']]),
+        },
         {
           text: '编辑',
           type: 'link',

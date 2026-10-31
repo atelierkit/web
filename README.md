@@ -16,6 +16,8 @@
 - 下载中心：下载任务列表、进度展示、暂停 / 限速操作
 - 用户与权限：登录、角色与令牌管理界面（`/auth/user`、`/auth/role`、`/auth/token`，入口仅管理员可见）
 - 云服务：云厂商访问密钥管理（`/cloud/key`）与 KONG 网关站点管理 / 诊断（`/cloud/kong`），入口仅管理员可见
+- 腾讯云：SSL 证书（申请 / 续期 / 部署到 KONG / 吊销）、域名与解析记录、轻量服务器（启停 / 重置密码）
+  与防火墙规则（`/tencent/:id`，入口是密钥列表里「服务商为腾讯云」那条的「管理」），入口仅管理员可见
 - （规划中）家庭物联网：设备管理界面
 
 ## 技术栈
@@ -149,6 +151,25 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
 - 角色列表支持**行拖拽排序**，`保存排序` 按当前行顺序重排 `sort`（从 1 递增），不用手填数字。
 - 令牌存在后端 Redis 里，字段值都是字符串；`作废` 会让对应会话立即掉线，`过期时间` 为 0 表示长期有效。
 
+## 腾讯云页面（`/tencent/:id`）
+
+`id` 是**云服务密钥ID**（`cloud/key` 里的记录），页面数据全部由后端代取，浏览器不接触访问密钥。
+旧私有项目（`marbleqi/web`）的同一模块已整体迁入，**与旧实现的差异是有意为之**：
+
+1. **不再依赖 `@brand`**：旧布局用了 `service-layout`（侧边二级导航 + 地域子菜单）与 `page-bar`，
+   本仓库没有这套组件 —— 现在布局是 `page-header` + 标签页（与 `/cloud/kong/:id` 一致），
+   地域改成轻量服务器页头右侧的下拉（地址仍是 `lighthouse/:region`）。
+2. **接口收在一个服务里**：旧的 `_HttpClient` 直接拼 URL、散落在各页面；现在统一走
+   `routes/tencent/tencent.service.ts`（`HttpClient` + 明确的响应类型）。
+3. **弹窗用 `NzModalService` + `NZ_MODAL_DATA`**：旧的 `ModalHelper.createStatic` 与 `modal-header/footer`
+   模板块不再使用，按钮放在表单底部（`text-right pt-md`）。
+4. **分页总数按接口实际字段取**（旧代码一律读顶层 `TotalCount`，DNS 与域名两页的分页器因此恒为 0）：
+   证书 / 实例 / 防火墙用 `TotalCount`，域名用 `DomainCountInfo.DomainTotal`，解析记录用 `RecordCountInfo.TotalCount`。
+5. **证书有效期不再在前端解 PEM**：KONG 证书对象的 `start` / `end` 由后端用 `crypto.X509Certificate`
+   解析补上（秒级时间戳），前端用 `formatDateTime(at, 's')` 直接格式化。
+6. **纯逻辑抽到 `tencent.format.ts`**（状态标签、续期判定 `canRenew`、规则转换 `rulePayload`、标签页下标 `tabIndexOf`）：
+   覆盖率口径只统计「被 spec 加载过的文件」，从 `*.component.ts` 导入测试会把整片页面模块拖进分母（见 `vitest.config.ts` 注释）。
+
 ## 常见状态码
 
 | 状态码 | 含义 | 处理 |
@@ -199,7 +220,7 @@ yarn test-coverage
 src/app/
 ├── core/     # 核心服务与拦截器
 ├── layout/   # 布局
-├── routes/   # 各功能路由页（auth = 用户 / 角色 / 令牌管理）
+├── routes/   # 各功能路由页（auth = 用户 / 角色 / 令牌；cloud = 密钥 / KONG；tencent = 腾讯云）
 └── shared/   # 共享组件与模块、工具函数（utils/token 为令牌档位）
 ```
 

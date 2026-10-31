@@ -1,0 +1,30 @@
+<page-header
+  title="轻量服务器"
+  [titleSub]="region()"
+  [action]="actionTpl"
+  [autoBreadcrumb]="false"
+/>
+<ng-template #actionTpl>
+  <nz-select
+    class="mr-sm"
+    style="width: 180px"
+    [ngModel]="region()"
+    (ngModelChange)="switchRegion($event)"
+    nzPlaceHolder="选择地域"
+  >
+    @for (item of regions(); track item.Region) {
+      <nz-option [nzValue]="item.Region" [nzLabel]="item.RegionName" />
+    }
+  </nz-select>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+</ng-template>
+<st
+  [data]="data()"
+  [columns]="columns"
+  [ps]="ps()"
+  [pi]="pi()"
+  [total]="total()"
+  [page]="page"
+  [loading]="loading()"
+  (change)="change($event)"
+/>

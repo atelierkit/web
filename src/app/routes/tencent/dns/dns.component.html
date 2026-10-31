@@ -1,0 +1,15 @@
+<page-header title="解析记录" [titleSub]="domain" [action]="actionTpl" [autoBreadcrumb]="false" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="add()">添加记录</button>
+</ng-template>
+<st
+  [data]="data()"
+  [columns]="columns"
+  [ps]="ps()"
+  [pi]="pi()"
+  [total]="total()"
+  [page]="page"
+  [loading]="loading()"
+  (change)="change($event)"
+/>

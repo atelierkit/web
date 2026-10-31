@@ -1,0 +1,14 @@
+<page-header title="域名" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+</ng-template>
+<st
+  [data]="data()"
+  [columns]="columns"
+  [ps]="ps()"
+  [pi]="pi()"
+  [total]="total()"
+  [page]="page"
+  [loading]="loading()"
+  (change)="change($event)"
+/>

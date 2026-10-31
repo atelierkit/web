@@ -1,0 +1,15 @@
+<page-header title="证书" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="apply()">申请证书</button>
+</ng-template>
+<st
+  [data]="data()"
+  [columns]="columns"
+  [ps]="ps()"
+  [pi]="pi()"
+  [total]="total()"
+  [page]="page"
+  [loading]="loading()"
+  (change)="change($event)"
+/>

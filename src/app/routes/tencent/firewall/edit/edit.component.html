@@ -1,0 +1,28 @@
+@if (formData() === null) {
+  <nz-spin nzSimple class="block py-lg text-center" />
+} @else {
+  <sf #sf [schema]="schema" [ui]="ui" [formData]="formData()!" button="none">
+    <ng-template sf-template="CidrBlock" let-i let-ui="ui" let-schema="schema">
+      <div nz-row [nzGutter]="16" nzJustify="space-between">
+        <div nz-col nzSpan="18">
+          <input nz-input [ngModel]="i.value" (ngModelChange)="i.setValue($event)" />
+        </div>
+        <div nz-col nzSpan="6" class="text-right">
+          <button nz-button type="button" (click)="i.setValue(ip())">填写本地IP</button>
+        </div>
+      </div>
+    </ng-template>
+    <div class="text-right pt-md">
+      <button nz-button type="button" (click)="close()">取消</button>
+      <button
+        nz-button
+        type="button"
+        nzType="primary"
+        (click)="save(sf.value)"
+        [disabled]="!sf.valid"
+      >
+        保存
+      </button>
+    </div>
+  </sf>
+}

@@ -28,6 +28,13 @@ export const routes: Routes = [
         data: { title: '云服务' },
         loadChildren: () => import('./cloud/routes').then((m) => m.routes),
       },
+      // 腾讯云（证书 / 域名 / 轻量服务器），注：入口是密钥列表里「服务商为腾讯云」那条的「管理」，
+      // 不带密钥ID时无法渲染，故不放侧边菜单
+      {
+        path: 'tencent',
+        data: { title: '腾讯云' },
+        loadChildren: () => import('./tencent/routes').then((m) => m.routes),
+      },
     ],
   },
   // passport
