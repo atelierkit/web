@@ -91,6 +91,13 @@ export class AuthUserEditComponent implements OnInit {
         default: [],
       },
       status: { type: 'boolean', title: '状态' },
+      // 注：审计字段放在表单末尾做只读展示，仅在编辑态出现
+      ...(this.editable
+        ? {
+            createAt: { type: 'number', title: '创建时间' },
+            updateAt: { type: 'number', title: '更新时间' },
+          }
+        : {}),
     },
     // 注：必填项与后端 DTO 对齐 —— 新建只有用户名+密码必填，其余可选；
     // 编辑态只提交改动字段，全部可选（用户名只读展示，后端 update 不接收用户名）
@@ -120,6 +127,9 @@ export class AuthUserEditComponent implements OnInit {
         ),
     },
     $status: { checkedChildren: '启用', unCheckedChildren: '禁用' },
+    // 注：时间戳只读展示，格式化交给 `at` 小部件（shared/json-schema/at）
+    $createAt: { widget: 'at' },
+    $updateAt: { widget: 'at' },
   };
 
   /** 页面初始化 */
@@ -136,6 +146,9 @@ export class AuthUserEditComponent implements OnInit {
           email: user.email ?? '',
           roles: user.roles ?? [],
           status: user.status,
+          // 注：只读项给原始时间戳，格式化由 `at` 小部件负责
+          createAt: user.create?.at ?? null,
+          updateAt: user.update?.at ?? null,
         });
       },
       error: (err: unknown) => {

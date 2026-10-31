@@ -28,6 +28,8 @@ export interface AuthRole {
   sort: number;
   /** 状态，true表示启用 */
   status: boolean;
+  /** 创建信息 */
+  create?: Partial<AuthAudit>;
   /** 更新信息 */
   update?: Partial<AuthAudit>;
 }
@@ -68,6 +70,8 @@ export interface AuthUser {
   status: boolean;
   /** 授权角色 */
   roles: string[];
+  /** 创建信息 */
+  create?: Partial<AuthAudit>;
   /** 更新信息 */
   update?: Partial<AuthAudit>;
 }

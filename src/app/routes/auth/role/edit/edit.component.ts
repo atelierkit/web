@@ -59,6 +59,13 @@ export class AuthRoleEditComponent implements OnInit {
         ui: { widget: 'textarea', autosize: { minRows: 2, maxRows: 4 } },
       },
       status: { type: 'boolean', title: '状态' },
+      // 注：审计字段放在表单末尾做只读展示，仅在编辑态出现
+      ...(this.editable
+        ? {
+            createAt: { type: 'number', title: '创建时间' },
+            updateAt: { type: 'number', title: '更新时间' },
+          }
+        : {}),
     },
     // 注：与后端 RoleUpdateDto 对齐，四字段皆必填；status 为布尔，false 也是合法值
     required: ['id', 'name', 'description', 'status'],
@@ -74,6 +81,9 @@ export class AuthRoleEditComponent implements OnInit {
     $name: { placeholder: '展示用名称' },
     $description: { placeholder: '角色职责说明' },
     $status: { checkedChildren: '启用', unCheckedChildren: '禁用' },
+    // 注：时间戳只读展示，格式化交给 `at` 小部件（shared/json-schema/at）
+    $createAt: { widget: 'at' },
+    $updateAt: { widget: 'at' },
   };
 
   /** 页面初始化 */
@@ -88,6 +98,9 @@ export class AuthRoleEditComponent implements OnInit {
           name: role.name,
           description: role.description,
           status: role.status,
+          // 注：只读项给原始时间戳，格式化由 `at` 小部件负责
+          createAt: role.create?.at ?? null,
+          updateAt: role.update?.at ?? null,
         });
       },
       error: (err: unknown) => {
