@@ -34,6 +34,12 @@ export const routes: Routes = [
         data: { title: '云服务' },
         loadChildren: () => import('./cloud/routes').then((m) => m.routes),
       },
+      // 管理员（配置管理 / 操作日志 / 请求日志），注：接口一律按 @Allow('admin') 校验
+      {
+        path: 'admin',
+        data: { title: '管理员' },
+        loadChildren: () => import('./admin/routes').then((m) => m.routes),
+      },
       // 行情数据（仪表板 / 数据同步 / 数据浏览），注：仪表板是默认落地页，菜单排组第一
       {
         path: 'data',

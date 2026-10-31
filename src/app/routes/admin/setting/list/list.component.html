@@ -1,0 +1,5 @@
+<page-header title="配置列表" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+</ng-template>
+<st [data]="data()" [columns]="columns" [loading]="loading()" />

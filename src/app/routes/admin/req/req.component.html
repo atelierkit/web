@@ -1,0 +1,27 @@
+<page-header title="请求日志" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+</ng-template>
+<nz-card nzTitle="日志查询">
+  <sf #sf [schema]="schema" [ui]="ui" button="none" (formChange)="onFormChange($event)" />
+  <div class="text-right pt-md">
+    <button nz-button type="button" nzType="primary" (click)="search()">查询</button>
+    <button nz-button type="button" (click)="reset()">重置</button>
+  </div>
+</nz-card>
+<st
+  [data]="data()"
+  [columns]="columns"
+  [loading]="loading()"
+  [pi]="pi()"
+  [ps]="ps()"
+  [total]="total()"
+  [page]="page"
+  (change)="change($event)"
+  style="margin-top: 16px"
+>
+  <!-- 注：慢请求标红，阈值见 admin.format 的 SLOW_DURATION -->
+  <ng-template st-row="duration" let-record>
+    <span [style.color]="isSlow(record) ? '#ff4d4f' : null">{{ record.duration }}ms</span>
+  </ng-template>
+</st>

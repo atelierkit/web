@@ -76,6 +76,30 @@ export const MENUS: Menu[] = [
     ],
   },
   {
+    text: '管理员',
+    group: true,
+    children: [
+      {
+        text: '配置管理',
+        link: '/admin/list',
+        icon: { type: 'icon', value: 'setting' },
+        acl: 'admin',
+      },
+      {
+        text: '操作日志',
+        link: '/admin/operate',
+        icon: { type: 'icon', value: 'audit' },
+        acl: 'admin',
+      },
+      {
+        text: '请求日志',
+        link: '/admin/req',
+        icon: { type: 'icon', value: 'file-text' },
+        acl: 'admin',
+      },
+    ],
+  },
+  {
     text: '行情数据',
     group: true,
     children: [

@@ -18,6 +18,8 @@
 - 云服务：云厂商访问密钥管理（`/cloud/key`）与 KONG 网关站点管理 / 诊断（`/cloud/kong`），入口仅管理员可见
 - 腾讯云：SSL 证书（申请 / 续期 / 部署到 KONG / 吊销）、域名与解析记录、轻量服务器（启停 / 重置密码）
   与防火墙规则（`/tencent/:id`，入口是密钥列表里「服务商为腾讯云」那条的「管理」），入口仅管理员可见
+- 管理员：系统配置（`/admin/list`、`/admin/app`、`/admin/icp`）、操作日志（`/admin/operate`）与
+  请求日志（`/admin/req`），入口仅管理员可见
 - （规划中）家庭物联网：设备管理界面
 
 ## 技术栈
@@ -170,6 +172,36 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
 6. **纯逻辑抽到 `tencent.format.ts`**（状态标签、续期判定 `canRenew`、规则转换 `rulePayload`、标签页下标 `tabIndexOf`）：
    覆盖率口径只统计「被 spec 加载过的文件」，从 `*.component.ts` 导入测试会把整片页面模块拖进分母（见 `vitest.config.ts` 注释）。
 
+## 管理员页面（`/admin/*`）
+
+侧边栏「管理员」分组同样带 `acl: 'admin'`，后端三个控制器（`admin/setting`、`admin/operate`、`admin/req`）全部 `@Allow('admin')`。
+
+| 页面 | 路由 | 后端接口 |
+| --- | --- | --- |
+| 配置列表 | `/admin/list` | `GET admin/setting/index` |
+| 应用配置 | `/admin/app` | `GET admin/setting/show/app`、`POST admin/setting/create`、`POST admin/setting/update/app` |
+| 备案配置 | `/admin/icp` | 同上，编码换成 `icp` |
+| 操作日志 | `/admin/operate` | `POST admin/operate/index`、`GET admin/operate/options` |
+| 请求日志 | `/admin/req` | `POST admin/req/index`、`GET admin/req/{url,user,controller}`、`GET admin/req/action/:controller` |
+
+迁移自旧私有项目（`marbleqi/web` 的 `routes/admin`），与旧实现的差异**是有意为之**：
+
+1. **`admin/task` 与 `admin/dashboard` 不迁移**：前者表格列是用户字段（id / 邮箱 / 昵称 / 头像 / 角色），却调
+   `kong/index`、`kong/show/:id`、`kong/create`（站点接口），后端也没有任务接口 —— 是从 Kong 页面复制的残骸；
+   后者（`AdminKongDashboardComponent`）根本没挂在路由里，功能已被 `/cloud/kong/:id/dashboard` 取代。
+2. **不再依赖 `@brand`**：旧布局用的 `service-layout` / `page-bar` / `ListComponent` / `PageListComponent` 本仓库都没有，
+   现在是 `page-header` + `nz-card` + `sf` + `st`，服务端分页由页面自己管（`pi` / `ps` / `total` 三个 signal +
+   `[page]="{ front: false }"` —— `front` 忘了关就会变成「只在当前页数据里翻页」，第 2 页永远是空的）。
+3. **接口收在 `admin.service.ts`**：旧页面用 `_HttpClient` 直接拼 URL；现在统一 `HttpClient` + 明确的响应类型。
+   两个日志接口在服务内先过 `cleanQuery`：剔除 `undefined` / `null` / 空串，但**保留 `0` 与 `false`** ——
+   `userId=0` 是「系统操作」、`success=false` 是「只看异常请求」，按真值剔除就等于没筛选。
+4. **纯逻辑抽到 `admin.format.ts`**（标签映射、`resultFilter`、`cleanQuery`、`isSlow`、`buildReqQuery`、两个详情字段组装），
+   原因与 `tencent.format.ts` 相同：覆盖率只统计被 spec 加载过的文件，从 `*.component.ts` 导入测试会把整片页面模块拖进分母。
+5. **重置查询条件要连回写变量一起清**：`sf` 的 `formData` 是单向输入，用户输入靠 `(formChange)` 回写进 signal；
+   只调 `sf.reset()` 而不清 signal，重置后仍按上一次的条件查。
+6. **配置未创建时按 404 判「新建」**：旧实现把任何加载失败都当成新建，网络抖动时会拿一份空表单去覆盖已有配置
+   （只靠后端「主键已使用」兜底）；现在只有 404 才转新建态，其它错误只提示。
+
 ## 行情数据页面（`/data/*`）
 
 侧边栏「行情数据」分组，仪表板排组第一、登录即可看（**不加 `acl`**，写操作由后端 `@Allow('admin')` 拦）。
@@ -247,7 +279,7 @@ yarn test-coverage
 src/app/
 ├── core/     # 核心服务与拦截器
 ├── layout/   # 布局
-├── routes/   # 各功能路由页（auth = 用户 / 角色 / 令牌；cloud = 密钥 / KONG；tencent = 腾讯云；data = 行情数据）
+├── routes/   # 各功能路由页（auth = 用户 / 角色 / 令牌；cloud = 密钥 / KONG；tencent = 腾讯云；admin = 配置 / 日志）
 └── shared/   # 共享组件与模块、工具函数（utils/token 为令牌档位）
 ```
 

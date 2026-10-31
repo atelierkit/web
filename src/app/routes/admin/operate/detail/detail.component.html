@@ -1,0 +1,8 @@
+<nz-descriptions nzBordered [nzColumn]="1" nzSize="small">
+  @for (item of items; track item.label) {
+    <nz-descriptions-item [nzTitle]="item.label">{{ item.value }}</nz-descriptions-item>
+  }
+</nz-descriptions>
+<div class="text-right pt-md">
+  <button nz-button type="button" (click)="close()">关闭</button>
+</div>
