@@ -11,8 +11,6 @@
     "analyze": "ng b --source-map",
     "analyze:view": "source-map-explorer dist/**/*.js --no-border-checks",
     "test-coverage": "ng test -c coverage --coverage --watch=false",
-    "color-less": "ng-alain-plugin-theme -t=colorLess",
-    "theme": "ng-alain-plugin-theme -t=themeCss",
     "icon": "ng g ng-alain:plugin icon",
     "lint": "npm run lint:ts && npm run lint:style",
     "lint:ts": "ng lint",

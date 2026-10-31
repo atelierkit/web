@@ -2,9 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { SettingsService } from '@delon/theme';
 import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
-import { SettingDrawerModule } from '@delon/theme/setting-drawer';
-import { ThemeBtnComponent } from '@delon/theme/theme-btn';
-import { environment } from '@env/environment';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -93,17 +90,11 @@ import { HeaderUser } from './widgets/user';
         <router-outlet />
       </ng-template>
     </layout-default>
-    @if (showSettingDrawer) {
-      <setting-drawer />
-    }
-    <theme-btn />
   `,
   imports: [
     RouterOutlet,
     RouterLink,
     LayoutDefaultModule,
-    SettingDrawerModule,
-    ThemeBtnComponent,
     NzIconModule,
     NzMenuModule,
     NzDropdownModule,
@@ -121,5 +112,4 @@ export class LayoutBasic {
     logoCollapsed: `./assets/logo.svg`,
   };
   protected searchToggleStatus = signal(false);
-  protected showSettingDrawer = !environment.production;
 }
