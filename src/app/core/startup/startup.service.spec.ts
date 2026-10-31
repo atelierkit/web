@@ -75,8 +75,6 @@ describe('StartupService', () => {
     });
     service = TestBed.inject(StartupService);
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    // 首屏加载动画由 load() 结束时移除
-    document.body.innerHTML = '<div class="preloader"></div>';
   });
 
   afterEach(() => {
@@ -122,8 +120,6 @@ describe('StartupService', () => {
     expect(acl.setRole).toHaveBeenCalledWith([]);
     // 不应该去打用户信息接口
     expect(http.get).toHaveBeenCalledTimes(1);
-    // 首屏加载动画被移除
-    expect(document.querySelector('.preloader')).toBeNull();
   });
 
   it('有令牌时加载用户信息并按服务端设置续期令牌', async () => {

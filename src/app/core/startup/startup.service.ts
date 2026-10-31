@@ -1,4 +1,3 @@
-import { DOCUMENT } from '@angular/common';
 import {
   EnvironmentProviders,
   Injectable,
@@ -13,7 +12,7 @@ import { DA_SERVICE_TOKEN, TokenService } from '@delon/auth';
 import { _HttpClient, MenuService, SettingsService, TitleService } from '@delon/theme';
 import type { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { Observable, catchError, finalize, map, mergeMap, of, retry, timer } from 'rxjs';
+import { Observable, catchError, map, mergeMap, of, retry, timer } from 'rxjs';
 
 import { MENUS } from './menu.constant';
 import { normalizeToken } from '../net/helper';
@@ -61,7 +60,6 @@ export function provideStartup(): Array<Provider | EnvironmentProviders> {
 export class StartupService {
   private readonly router = inject(Router);
   private readonly http = inject(_HttpClient);
-  private readonly doc = inject(DOCUMENT);
   private readonly settingsSrv = inject(SettingsService);
   private readonly aclSrv = inject(ACLService);
   private readonly titleSrv = inject(TitleService);
@@ -132,8 +130,11 @@ export class StartupService {
           mergeMap(() => this.refresh()),
         );
       }),
+      // 注：首屏加载动画（`.preloader`）与 body 的滚动锁由 `app.ts` 的 `stepPreloader()` 负责：
+      // 它启动时把 body 设为 `overflow: hidden`，等首次导航完成后通过过渡动画隐藏 preloader、
+      // 并恢复 body 滚动。这里不能再 `remove()` 掉 `.preloader` —— 否则 `stepPreloader` 的清理
+      // 函数找不到元素、提前返回，body 的 overflow 会永远停在 hidden，导致列表页等长内容无法滚动。
       catchError((err: NzSafeAny) => this.fail(err)),
-      finalize(() => this.removeLoading()),
     );
   }
 
@@ -199,12 +200,5 @@ export class StartupService {
    */
   private setupShell(): void {
     this.menuSrv.add(MENUS);
-  }
-
-  /**
-   * 移除首屏加载动画
-   */
-  private removeLoading(): void {
-    this.doc.querySelector('.preloader')?.remove();
   }
 }
