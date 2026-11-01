@@ -14,7 +14,7 @@
 } @else {
   <nz-row [nzGutter]="[16, 16]">
     @for (month of months(); track month.month) {
-      <nz-col [nzSpan]="8" [nzXs]="24" [nzMd]="12">
+      <nz-col [nzXs]="24" [nzMd]="6">
         <nz-card [nzTitle]="month.title" nzSize="small">
           <div class="cal-grid">
             @for (w of weekdays; track w) {

@@ -12,7 +12,7 @@
 } @else if (store.cards().length > 0) {
   <nz-row [nzGutter]="[16, 16]" class="mb-md">
     @for (card of store.cards(); track card.target) {
-      <nz-col [nzSpan]="6" [nzXs]="24">
+      <nz-col [nzXs]="24" [nzMd]="6">
         <data-sync-card
           [showActions]="true"
           [card]="card"
