@@ -7,12 +7,25 @@ import { Menu } from '@delon/theme';
  * 每个 `icon.value` 都是 ng-zorro 的图标名，**必须**在 `src/style-icons.ts`（菜单/Ts 里的字符串）
  * 或 `style-icons-auto.ts`（模板里出现、由脚本自动生成）中注册过，否则侧边栏该处渲染成空白；
  * 这条对应关系由 `menu.constant.spec.ts` 自动校验，新增菜单项时不用靠肉眼记。
+ *
+ * ⚠️ **顶层一项只能是「组」，不能是「直链」**：`MenuService` 的 `fixItem()` 里
+ * `item.group = item.group !== false`（不写 `group` 就等于 `true`），而 `layout-default` 的侧边栏模板是
+ * `@if (group.group) { 渲染不可点的组标题 }` + 遍历 `group.children`。所以顶层直接写 `{ text, link }`
+ * 只会渲染成一格**点不动的灰色标题**（现象：侧边栏「首页」点不了）。
+ * 顶层想放一个「直接可点的入口」，必须写成 `group: false` 容器 + 一个 `children`（容器自身不要 `link`）。
  */
 export const MENUS: Menu[] = [
   {
+    // 注：顶层必须是容器 —— `group: false` 只是让模板不渲染组标题，链接由 children 出（见上方说明）
     text: '首页',
-    link: '/home',
-    icon: { type: 'icon', value: 'home' },
+    group: false,
+    children: [
+      {
+        text: '首页',
+        link: '/home',
+        icon: { type: 'icon', value: 'home' },
+      },
+    ],
   },
   {
     text: '账号',
