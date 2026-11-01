@@ -31,8 +31,16 @@ export abstract class AdminSettingEditComponent implements OnInit {
   /** 表单数据，注：为 null 表示详情尚未就绪，模板据此显示加载态 */
   readonly formData = signal<SettingForm | null>(null);
 
-  /** 当前是否已存在配置，注：决定提交走 create 还是 update */
-  private exists = false;
+  /** 是否正在从后端重新读取，注：「重置」按钮据此显示加载态并防连点 */
+  readonly loading = signal(false);
+
+  /**
+   * 当前是否已存在配置
+   *
+   * 注 1：决定提交走 create 还是 update
+   * 注 2：同时决定「重置」是否可用 —— 库里没有记录时无从重置，模板据它禁用按钮
+   */
+  readonly exists = signal(false);
 
   /** 表单 schema，注：在 ngOnInit 里拼装，因为要等子类的 valueSchema 就绪 */
   schema!: SFSchema;
@@ -62,14 +70,17 @@ export abstract class AdminSettingEditComponent implements OnInit {
 
   /** 重新加载配置 */
   fresh(): void {
+    this.loading.set(true);
     this.adminSrv.setting(this.code).subscribe({
       next: (res) => {
-        this.exists = true;
+        this.exists.set(true);
         this.formData.set(toSettingForm(res));
+        this.loading.set(false);
       },
       error: (err: unknown) => {
-        this.exists = false;
+        this.exists.set(false);
         this.formData.set(toSettingForm());
+        this.loading.set(false);
         // 404 是「尚未配置」，属正常分支，不打扰用户
         if (!isNotFound(err)) {
           this.msgSrv.error(apiErrorMessage(err, '加载配置失败，请稍后重试！'));
@@ -87,12 +98,12 @@ export abstract class AdminSettingEditComponent implements OnInit {
     /** 提交内容 */
     const payload = buildSettingPayload(this.code, value);
     /** 保存请求 */
-    const request = this.exists
+    const request = this.exists()
       ? this.adminSrv.updateSetting(this.code, payload)
       : this.adminSrv.createSetting(payload);
     request.subscribe({
       next: () => {
-        this.msgSrv.success(this.exists ? '信息修改完成' : '信息配置完成');
+        this.msgSrv.success(this.exists() ? '信息修改完成' : '信息配置完成');
         this.fresh();
       },
       error: (err: unknown) =>

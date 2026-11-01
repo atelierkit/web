@@ -1,3 +1,8 @@
+<page-header [title]="title" [action]="actionTpl" [autoBreadcrumb]="false" />
+<ng-template #actionTpl>
+  <a nz-button type="button" routerLink="/admin/list">返回列表</a>
+</ng-template>
+
 @if (formData() === null) {
   <nz-spin nzSimple class="block py-lg text-center" />
 } @else {
@@ -13,7 +18,19 @@
       >
         保存
       </button>
-      <a nz-button type="button" nzSize="large" routerLink="/admin/list">返回</a>
+      <button
+        nz-button
+        type="button"
+        nzSize="large"
+        nz-popconfirm
+        nzPopconfirmTitle="放弃当前修改，并从数据库重新加载？"
+        [nzLoading]="loading()"
+        [disabled]="!exists()"
+        [title]="exists() ? '用数据库中的记录覆盖当前表单' : '数据库中暂无记录，无可重置的内容'"
+        (nzOnConfirm)="fresh()"
+      >
+        重置
+      </button>
     </div>
   </sf>
 }
