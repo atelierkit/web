@@ -74,9 +74,23 @@ export const MENUS: Menu[] = [
     group: true,
     children: [
       {
-        text: '配置管理',
+        text: '配置列表',
         link: '/admin/list',
         icon: { type: 'icon', value: 'setting' },
+        acl: 'admin',
+      },
+      {
+        // 注：应用与备案是配置里仅有的两个有专属表单的编码，单独给入口，
+        // 免得每次都要先进列表再点「编辑」（页面本身仍是 `/admin/app`、`/admin/icp`）
+        text: '应用配置',
+        link: '/admin/app',
+        icon: { type: 'icon', value: 'appstore' },
+        acl: 'admin',
+      },
+      {
+        text: '备案配置',
+        link: '/admin/icp',
+        icon: { type: 'icon', value: 'file-protect' },
         acl: 'admin',
       },
       {

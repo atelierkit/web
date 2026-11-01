@@ -5,10 +5,8 @@ import { STColumn, STColumnTag, STData } from '@delon/abc/st';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
+import { isSettingEditable } from '../../admin.format';
 import { AdminService, AdminSetting } from '../../admin.service';
-
-/** 有专属编辑页的配置编码，注：其余配置只在此处查看，改值要先给它做页面 */
-const EDITABLE_CODES = ['app', 'icp'];
 
 /**
  * 配置列表组件
@@ -62,7 +60,7 @@ export class AdminSettingListComponent implements OnInit {
           text: '编辑',
           type: 'link',
           // 注：没有专属编辑页的编码不显示入口，避免点进去是空白页
-          iif: (record: STData) => EDITABLE_CODES.includes(String(record['code'])),
+          iif: (record: STData) => isSettingEditable(String(record['code'])),
           click: (record: STData) => this.open(record),
         },
       ],

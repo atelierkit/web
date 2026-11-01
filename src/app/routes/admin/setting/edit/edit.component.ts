@@ -3,7 +3,8 @@ import { apiErrorMessage } from '@core';
 import { SFSchema, SFUISchema } from '@delon/form';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
-import { AdminService, SettingPayload } from '../../admin.service';
+import { SettingForm, buildSettingPayload, isNotFound, toSettingForm } from '../../admin.format';
+import { AdminService } from '../../admin.service';
 
 /**
  * 配置编辑组件基类
@@ -28,7 +29,7 @@ export abstract class AdminSettingEditComponent implements OnInit {
   abstract valueSchema: SFSchema;
 
   /** 表单数据，注：为 null 表示详情尚未就绪，模板据此显示加载态 */
-  readonly formData = signal<Record<string, unknown> | null>(null);
+  readonly formData = signal<SettingForm | null>(null);
 
   /** 当前是否已存在配置，注：决定提交走 create 还是 update */
   private exists = false;
@@ -41,6 +42,7 @@ export abstract class AdminSettingEditComponent implements OnInit {
     '*': { spanLabelFixed: 160, grid: { span: 24 } },
     $status: { checkedChildren: '正常', unCheckedChildren: '禁用' },
     // 注：时间戳只读展示，格式化交给 `at` 小部件
+    $createAt: { widget: 'at' },
     $updateAt: { widget: 'at' },
   };
 
@@ -50,6 +52,7 @@ export abstract class AdminSettingEditComponent implements OnInit {
       properties: {
         value: this.valueSchema,
         status: { type: 'boolean', title: '状态' },
+        createAt: { type: 'number', title: '创建时间' },
         updateAt: { type: 'number', title: '更新时间' },
       },
       required: ['status'],
@@ -62,17 +65,13 @@ export abstract class AdminSettingEditComponent implements OnInit {
     this.adminSrv.setting(this.code).subscribe({
       next: (res) => {
         this.exists = true;
-        this.formData.set({
-          value: res.value ?? {},
-          status: res.status,
-          updateAt: res.update?.at ?? null,
-        });
+        this.formData.set(toSettingForm(res));
       },
       error: (err: unknown) => {
         this.exists = false;
-        this.formData.set({ value: {}, status: true, updateAt: null });
+        this.formData.set(toSettingForm());
         // 404 是「尚未配置」，属正常分支，不打扰用户
-        if ((err as { status?: number } | null)?.status !== 404) {
+        if (!isNotFound(err)) {
           this.msgSrv.error(apiErrorMessage(err, '加载配置失败，请稍后重试！'));
         }
       },
@@ -86,11 +85,7 @@ export abstract class AdminSettingEditComponent implements OnInit {
    */
   save(value: Record<string, unknown>): void {
     /** 提交内容 */
-    const payload: SettingPayload = {
-      code: this.code,
-      value: value['value'],
-      status: value['status'] as boolean,
-    };
+    const payload = buildSettingPayload(this.code, value);
     /** 保存请求 */
     const request = this.exists
       ? this.adminSrv.updateSetting(this.code, payload)

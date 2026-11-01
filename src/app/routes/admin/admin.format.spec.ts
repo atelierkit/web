@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildSettingPayload,
   cleanQuery,
+  isNotFound,
+  isSettingEditable,
   isSlow,
   nameText,
   operateDetailItems,
@@ -10,6 +13,7 @@ import {
   resultFilter,
   statusText,
   timeText,
+  toSettingForm,
   userText,
 } from './admin.format';
 
@@ -116,6 +120,67 @@ describe('admin.format', () => {
       expect(items[5]).toEqual({ label: '请求耗时', value: '1200ms' });
       expect(items[6]).toEqual({ label: '请求用户', value: '未登录' });
       expect(items[10]).toEqual({ label: '请求时间', value: '-' });
+    });
+  });
+
+  describe('配置页', () => {
+    it('只有 app / icp 有专属编辑页，其余编码不给入口', () => {
+      expect(isSettingEditable('app')).toBe(true);
+      expect(isSettingEditable('icp')).toBe(true);
+      expect(isSettingEditable('other')).toBe(false);
+      expect(isSettingEditable('')).toBe(false);
+      expect(isSettingEditable(null)).toBe(false);
+      expect(isSettingEditable(undefined)).toBe(false);
+    });
+
+    it('isNotFound 只认响应体上的 404（拦截器抛的是后端响应体，不是 HttpErrorResponse）', () => {
+      expect(isNotFound({ status: 404, message: '配置不存在！' })).toBe(true);
+      expect(isNotFound({ status: 500 })).toBe(false);
+      // 注：status 0 是网络中断，不能当「尚未配置」处理，否则会静默转成新建态
+      expect(isNotFound({ status: 0 })).toBe(false);
+      expect(isNotFound(null)).toBe(false);
+      expect(isNotFound(undefined)).toBe(false);
+      expect(isNotFound('404')).toBe(false);
+    });
+
+    it('toSettingForm 回填配置值与两端时间戳', () => {
+      expect(
+        toSettingForm({
+          code: 'icp',
+          value: { owner: '示例公司', icp: '粤ICP备00000000号' },
+          status: false,
+          create: { at: 100 },
+          update: { at: 200 },
+        }),
+      ).toEqual({
+        value: { owner: '示例公司', icp: '粤ICP备00000000号' },
+        status: false,
+        createAt: 100,
+        updateAt: 200,
+      });
+    });
+
+    it('未配置时给空白表单，且状态默认启用', () => {
+      const blank = { value: {}, status: true, createAt: null, updateAt: null };
+      expect(toSettingForm()).toEqual(blank);
+      expect(toSettingForm(null)).toEqual(blank);
+      // 注：只有 value 没有审计信息时，两个时间戳都要给 null，模板才不会渲染出 undefined
+      expect(toSettingForm({ code: 'app', value: { name: '示例' }, status: true })).toEqual({
+        ...blank,
+        value: { name: '示例' },
+      });
+    });
+
+    it('buildSettingPayload 只取表单里的值与状态', () => {
+      expect(
+        buildSettingPayload('app', { value: { name: '示例' }, status: true, createAt: 100 }),
+      ).toEqual({ code: 'app', value: { name: '示例' }, status: true });
+    });
+
+    it('开关没给出取值时按启用处理，显式关闭必须保留', () => {
+      expect(buildSettingPayload('icp', { value: {} }).status).toBe(true);
+      expect(buildSettingPayload('icp', { value: {}, status: undefined }).status).toBe(true);
+      expect(buildSettingPayload('icp', { value: {}, status: false }).status).toBe(false);
     });
   });
 });

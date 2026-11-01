@@ -7,9 +7,11 @@
 
 import {
   ApiOutline,
+  AppstoreOutline,
   AuditOutline,
   DashboardOutline,
   DatabaseOutline,
+  FileProtectOutline,
   FileTextOutline,
   HomeOutline,
   IdcardOutline,
@@ -30,9 +32,12 @@ export const ICONS = [
   KeyOutline,
   SafetyCertificateOutline,
   ApiOutline,
-  // 侧边菜单：配置管理 / 操作日志 / 请求日志（`setting` 由 style-icons-auto 注册）
+  // 侧边菜单：配置列表 / 操作日志 / 请求日志（`setting` 由 style-icons-auto 注册）
   AuditOutline,
   FileTextOutline,
+  // 侧边菜单：应用配置 / 备案配置
+  AppstoreOutline,
+  FileProtectOutline,
   // 侧边菜单：行情数据（仪表板 / 数据同步 / 数据浏览）
   DashboardOutline,
   SyncOutline,

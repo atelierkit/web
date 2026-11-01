@@ -1,7 +1,7 @@
 import type { STColumnTag } from '@delon/abc/st';
 import { formatDateTime } from '@shared';
 
-import type { OperateRow, ReqQuery, ReqRow } from './admin.service';
+import type { AdminSetting, OperateRow, ReqQuery, ReqRow, SettingPayload } from './admin.service';
 
 /**
  * 管理员页面用到的纯逻辑
@@ -249,6 +249,75 @@ export function operateDetailItems(row: OperateRow): DetailItem[] {
     { label: '操作时间', value: timeText(row.at) },
     { label: '时间戳', value: `${row.at ?? ''}` },
   ];
+}
+
+/** 有专属编辑页的配置编码，注：其余编码的 `value` 结构没有对应表单，列表里不显示编辑入口 */
+const SETTING_EDITABLE_CODES: readonly string[] = ['app', 'icp'];
+
+/** 配置编辑表单的取值 */
+export interface SettingForm {
+  /** 配置值，注：各编码结构不同（应用配置是名称/说明，备案是所有者/备案号） */
+  value: Record<string, unknown>;
+  /** 状态，true 表示启用 */
+  status: boolean;
+  /** 创建时间（毫秒时间戳），未配置时为 null */
+  createAt: number | null;
+  /** 更新时间（毫秒时间戳），未配置时为 null */
+  updateAt: number | null;
+}
+
+/**
+ * 配置是否可编辑
+ *
+ * @param code 配置编码
+ * @returns 有专属编辑页时为 true
+ */
+export function isSettingEditable(code?: string | null): boolean {
+  return !!code && SETTING_EDITABLE_CODES.includes(code);
+}
+
+/**
+ * 是否为「资源不存在」错误
+ *
+ * 注：拦截器抛的是后端响应体而非 `HttpErrorResponse`，状态码取响应体上的 `status`；
+ * 配置未创建时后端回 404，属正常分支，调用方据此转为新建
+ *
+ * @param err 捕获到的错误
+ * @returns 状态码为 404 时为 true
+ */
+export function isNotFound(err: unknown): boolean {
+  return (err as { status?: number } | null)?.status === 404;
+}
+
+/**
+ * 配置详情 → 编辑表单取值
+ *
+ * @param res 配置详情，注：未配置（新建态）时不传
+ * @returns 编辑表单取值，未配置时给一份空白表单（状态默认启用）
+ */
+export function toSettingForm(res?: AdminSetting | null): SettingForm {
+  return {
+    value: res?.value ?? {},
+    status: res?.status ?? true,
+    createAt: res?.create?.at ?? null,
+    updateAt: res?.update?.at ?? null,
+  };
+}
+
+/**
+ * 编辑表单取值 → 提交内容
+ *
+ * @param code 配置编码
+ * @param form SF 表单提交值
+ * @returns 接口提交内容
+ */
+export function buildSettingPayload(code: string, form: Record<string, unknown>): SettingPayload {
+  return {
+    code,
+    value: form['value'],
+    // 注：开关未渲染出取值时按启用处理，避免误把配置置为禁用
+    status: form['status'] !== false,
+  };
 }
 
 /**
