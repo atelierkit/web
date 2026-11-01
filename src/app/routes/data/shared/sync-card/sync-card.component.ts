@@ -12,6 +12,7 @@ import { countText, stateTag, stateText, type DataCard, type DataTarget } from '
 @Component({
   selector: 'data-sync-card',
   templateUrl: './sync-card.component.html',
+  styleUrls: ['./sync-card.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [...SHARED_IMPORTS],
 })

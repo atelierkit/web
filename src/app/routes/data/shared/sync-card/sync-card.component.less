@@ -1,0 +1,10 @@
+// 卡片右上角的「状态」徽标：去掉 zorro 默认的 1px 边框
+//
+// 默认 `.ant-tag` 是 `border: 1px solid #d9d9d9` + 2px 圆角，配上语义色底（如 `.ant-tag-success`
+// 的淡绿底 + 绿字）后，在卡片角上会被读成一个可点的按钮 —— 它只是状态，不可交互。
+// 语义色类只覆盖 `border-color`、不覆盖 `border-width`，所以这里一次清掉宽度即可。
+// 作用域是本组件的模板（Angular 模拟封装会给 `nz-tag` 宿主加 `_ngcontent` 属性，特异性高于 zorro 的 `.ant-tag`），
+// 不会波及 st 表格里的状态标签。
+.sync-state-tag {
+  border: 0;
+}

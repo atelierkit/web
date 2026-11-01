@@ -29,5 +29,7 @@
 </nz-card>
 
 <ng-template #tagTpl>
-  <nz-tag [nzColor]="stateTag(card().state).color">{{ stateTag(card().state).text }}</nz-tag>
+  <nz-tag class="sync-state-tag" [nzColor]="stateTag(card().state).color">{{
+    stateTag(card().state).text
+  }}</nz-tag>
 </ng-template>
