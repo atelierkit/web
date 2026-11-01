@@ -42,6 +42,54 @@ export interface SettingPayload {
   status: boolean;
 }
 
+/** 邮件配置表单取值 */
+export interface EmailSettingForm {
+  /** SMTP 主机 */
+  host: string;
+  /** SMTP 端口 */
+  port: number;
+  /** 是否使用 SSL 直连 */
+  secure: boolean;
+  /** 发件邮箱 */
+  account: string;
+  /** 发件人名称 */
+  name: string;
+  /** 回复地址，可空 */
+  replyTo: string;
+  /** SMTP 授权码，注：详情接口只回占位符，留空表示不修改 */
+  password: string;
+}
+
+/** 邮件配置提交信息 */
+export interface EmailSettingPayload extends EmailSettingForm {
+  /** 状态，true表示启用 */
+  status: boolean;
+}
+
+/** 邮件配置详情 */
+export interface EmailSettingView {
+  /** 配置来源，`none` 表示尚未配置 */
+  source: 'db' | 'none';
+  /** 状态，true表示启用 */
+  status: boolean;
+  /** 配置值（授权码已脱敏） */
+  value: EmailSettingForm;
+  /** 是否已设置授权码 */
+  hasPassword: boolean;
+  /** `.env` 里是否还留着 SMTP 参数，注：仅作迁移提示 */
+  envDetected: boolean;
+  /** 更新信息 */
+  update?: Partial<AdminAudit>;
+}
+
+/** 测试邮件结果 */
+export interface EmailTestResult {
+  /** 是否成功 */
+  ok: boolean;
+  /** 耗时（毫秒） */
+  latencyMs: number;
+}
+
 /** 操作日志查询条件 */
 export interface OperateQuery {
   /** 起始时间（毫秒时间戳），缺省为最近 24 小时 */
@@ -208,6 +256,37 @@ export class AdminService {
    */
   updateSetting(code: string, value: SettingPayload): Observable<unknown> {
     return this.http.post(`admin/setting/update/${code}`, value);
+  }
+
+  /**
+   * 获取邮件配置
+   *
+   * 注：授权码只回占位符 `***`，原值不出库；`source` 为 `none` 表示尚未配置
+   *
+   * @returns 邮件配置详情
+   */
+  emailSetting(): Observable<EmailSettingView> {
+    return this.http.get<EmailSettingView>('admin/email');
+  }
+
+  /**
+   * 保存邮件配置（无记录时由后端创建）
+   *
+   * @param value 配置信息
+   * @returns 配置编码
+   */
+  saveEmail(value: EmailSettingPayload): Observable<unknown> {
+    return this.http.post('admin/email', value);
+  }
+
+  /**
+   * 发送测试邮件
+   *
+   * @param to 收件邮箱
+   * @returns 是否成功与耗时
+   */
+  testEmail(to: string): Observable<EmailTestResult> {
+    return this.http.post<EmailTestResult>('admin/email/test', { to });
   }
 
   /**

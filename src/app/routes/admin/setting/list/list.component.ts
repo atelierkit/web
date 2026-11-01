@@ -11,8 +11,8 @@ import { AdminService, AdminSetting } from '../../admin.service';
 /**
  * 配置列表组件
  *
- * 注：配置是按编码聚合的 JSON，各编码的 `value` 结构不同（应用配置是名称/说明、备案是所有者/备案号），
- * 因此列表只做只读展示，改值走各自的编辑页（`/admin/app`、`/admin/icp`）
+ * 注：配置是按编码聚合的 JSON，各编码的 `value` 结构不同（应用配置是名称/说明、备案是所有者/备案号、
+ * 邮件是 SMTP 参数），因此列表只做只读展示，改值走各自的编辑页（`/admin/app`、`/admin/icp`、`/admin/email`）
  */
 @Component({
   selector: 'admin-setting-list',

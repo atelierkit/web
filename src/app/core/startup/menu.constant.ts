@@ -80,8 +80,8 @@ export const MENUS: Menu[] = [
         acl: 'admin',
       },
       {
-        // 注：应用与备案是配置里仅有的两个有专属表单的编码，单独给入口，
-        // 免得每次都要先进列表再点「编辑」（页面本身仍是 `/admin/app`、`/admin/icp`）
+        // 注：应用 / 备案 / 邮件是配置里有专属表单的三个编码，单独给入口，
+        // 免得每次都要先进列表再点「编辑」（页面本身仍是 `/admin/app`、`/admin/icp`、`/admin/email`）
         text: '应用配置',
         link: '/admin/app',
         icon: { type: 'icon', value: 'appstore' },
@@ -91,6 +91,12 @@ export const MENUS: Menu[] = [
         text: '备案配置',
         link: '/admin/icp',
         icon: { type: 'icon', value: 'file-protect' },
+        acl: 'admin',
+      },
+      {
+        text: '邮件配置',
+        link: '/admin/email',
+        icon: { type: 'icon', value: 'mail' },
         acl: 'admin',
       },
       {

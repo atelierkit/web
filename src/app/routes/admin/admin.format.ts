@@ -252,7 +252,7 @@ export function operateDetailItems(row: OperateRow): DetailItem[] {
 }
 
 /** 有专属编辑页的配置编码，注：其余编码的 `value` 结构没有对应表单，列表里不显示编辑入口 */
-const SETTING_EDITABLE_CODES: readonly string[] = ['app', 'icp'];
+const SETTING_EDITABLE_CODES: readonly string[] = ['app', 'icp', 'email'];
 
 /** 配置编辑表单的取值 */
 export interface SettingForm {

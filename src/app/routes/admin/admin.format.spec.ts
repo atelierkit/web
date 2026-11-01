@@ -124,9 +124,10 @@ describe('admin.format', () => {
   });
 
   describe('配置页', () => {
-    it('只有 app / icp 有专属编辑页，其余编码不给入口', () => {
+    it('只有 app / icp / email 有专属编辑页，其余编码不给入口', () => {
       expect(isSettingEditable('app')).toBe(true);
       expect(isSettingEditable('icp')).toBe(true);
+      expect(isSettingEditable('email')).toBe(true);
       expect(isSettingEditable('other')).toBe(false);
       expect(isSettingEditable('')).toBe(false);
       expect(isSettingEditable(null)).toBe(false);

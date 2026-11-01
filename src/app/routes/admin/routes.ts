@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { AdminOperateComponent } from './operate/operate.component';
 import { AdminReqComponent } from './req/req.component';
 import { AdminSettingAppComponent } from './setting/app/app.component';
+import { AdminSettingEmailComponent } from './setting/email/email.component';
 import { AdminSettingIcpComponent } from './setting/icp/icp.component';
 import { AdminSettingListComponent } from './setting/list/list.component';
 
@@ -18,6 +19,7 @@ export const routes: Routes = [
   { path: 'list', component: AdminSettingListComponent, data: { title: '配置列表' } },
   { path: 'app', component: AdminSettingAppComponent, data: { title: '应用配置' } },
   { path: 'icp', component: AdminSettingIcpComponent, data: { title: '备案配置' } },
+  { path: 'email', component: AdminSettingEmailComponent, data: { title: '邮件配置' } },
   { path: 'operate', component: AdminOperateComponent, data: { title: '操作日志' } },
   { path: 'req', component: AdminReqComponent, data: { title: '请求日志' } },
 ];

@@ -1,0 +1,64 @@
+<page-header title="邮件配置" [action]="actionTpl" [autoBreadcrumb]="false" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <a nz-button type="button" routerLink="/admin/list">返回列表</a>
+</ng-template>
+
+@if (loading()) {
+  <nz-spin nzSimple class="block py-lg text-center" />
+} @else if (formData(); as form) {
+  @if (data()?.envDetected) {
+    <nz-alert
+      nzType="warning"
+      nzShowIcon
+      nzTitle="检测到 .env 里仍有 SMTP_* 参数"
+      nzDescription="邮件配置已改为从系统设置读取，环境变量里的 SMTP_* 不再生效；确认本页配置可用后，请把 .env 里的 SMTP 段删掉。"
+      class="mb-md"
+    />
+  }
+  @if (data()?.source === 'none') {
+    <nz-alert
+      nzType="info"
+      nzShowIcon
+      nzTitle="尚未配置邮件服务"
+      nzDescription="填好下面的参数并保存后，找回密码、修改邮箱等功能才能发出邮件；在此之前发信会直接报错。"
+      class="mb-md"
+    />
+  }
+
+  <nz-card nzTitle="SMTP 参数">
+    <sf #sf [schema]="schema()" [ui]="ui" [formData]="form" button="none">
+      <div class="text-center pt-md">
+        <button
+          nz-button
+          type="button"
+          nzType="primary"
+          nzSize="large"
+          (click)="save(sf.value)"
+          [nzLoading]="saving()"
+          [disabled]="!sf.valid"
+        >
+          保存
+        </button>
+        <a nz-button type="button" nzSize="large" routerLink="/admin/list">返回</a>
+      </div>
+    </sf>
+  </nz-card>
+
+  <nz-card nzTitle="测试发送" class="mt-md">
+    <div nz-row nzGutter="8">
+      <div nz-col nzSpan="14">
+        <input nz-input placeholder="收件邮箱" [value]="testTo()" (input)="onTestTo($event)" />
+      </div>
+      <div nz-col nzSpan="10">
+        <button nz-button type="button" nzType="primary" (click)="test()" [nzLoading]="testing()">
+          发送测试邮件
+        </button>
+      </div>
+    </div>
+    <p class="mt-sm text-grey">
+      先用当前配置与 SMTP
+      服务器握手，再发一封测试信；失败时会给出具体原因，便于区分「认证失败」与「连不通」。
+    </p>
+  </nz-card>
+}

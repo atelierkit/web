@@ -53,6 +53,47 @@ describe('AdminService', () => {
     });
   });
 
+  describe('邮件配置', () => {
+    it('详情走 GET admin/email（后端只回授权码占位符）', () => {
+      service.emailSetting().subscribe();
+      const req = http.expectOne('admin/email');
+      expect(req.request.method).toBe('GET');
+      req.flush({
+        source: 'db',
+        status: true,
+        value: { host: 'smtp.163.com', password: '***' },
+        hasPassword: true,
+        envDetected: false,
+      });
+    });
+
+    it('保存走 POST admin/email，授权码留空即不修改', () => {
+      const value = {
+        host: 'smtp.163.com',
+        port: 465,
+        secure: true,
+        account: 'robot@example.com',
+        name: '个人量化工具',
+        replyTo: '',
+        password: '',
+        status: true,
+      };
+      service.saveEmail(value).subscribe();
+      const req = http.expectOne('admin/email');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(value);
+      req.flush({ code: 'email' });
+    });
+
+    it('测试发送走 POST admin/email/test，只带收件邮箱', () => {
+      service.testEmail('me@example.com').subscribe();
+      const req = http.expectOne('admin/email/test');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ to: 'me@example.com' });
+      req.flush({ ok: true, latencyMs: 120 });
+    });
+  });
+
   describe('操作日志', () => {
     it('清单走 POST admin/operate/index，并剔除空条件、保留有意义的 0', () => {
       service.operates({ pi: 1, ps: 20, name: '', userId: 0 }).subscribe();
