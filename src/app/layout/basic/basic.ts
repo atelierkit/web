@@ -1,7 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { SettingsService } from '@delon/theme';
-import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
+import {
+  LayoutDefaultModule,
+  LayoutDefaultOptions,
+  LayoutDefaultService,
+} from '@delon/theme/layout-default';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -101,10 +105,30 @@ import { HeaderUser } from './widgets/user';
   ],
 })
 export class LayoutBasic {
-  readonly user = inject(SettingsService).user;
+  private readonly settings = inject(SettingsService);
+  /**
+   * 注：注入 `LayoutDefaultService` 不只是为了用它，更是为了**在首屏渲染前把它创建出来**。
+   * ng-alain 22 里 `collapsedIcon` 的初值是空串，只有该服务的构造函数订阅到一次 `layout` 变更通知后
+   * 才会算出 `menu-fold` / `menu-unfold`；而 `SettingsService.notify$` 是普通 Subject（无回放），
+   * 早于订阅发出的通知会被直接丢掉。所以必须先 `inject` 建立订阅，再在构造函数里补一次通知。
+   */
+  private readonly layoutSrv = inject(LayoutDefaultService);
+  readonly user = this.settings.user;
   protected options: LayoutDefaultOptions = {
     logoExpanded: `./assets/logo.png`,
     logoCollapsed: `./assets/logo.png`,
   };
   protected searchToggleStatus = signal(false);
+
+  constructor() {
+    // 折叠按钮空白方块的兜底（成因见 `layoutSrv` 的注释）：
+    // 上面的 `<nz-icon [nzType]="srv.collapsedIcon()" />` 拿到空串时不渲染任何图形，
+    // 而项目里没有任何地方调用过 `setLayout`，于是首屏就是一个空的蓝色方块，
+    // 直到用户点一次折叠/展开才被 `toggleCollapsed()` 顺带填上图标。
+    // 这里用「与当前值相同」的 `collapsed` 触发一次通知，把图标名在首屏前补齐；
+    // 上游若把初值改成 `menu-fold` 之类的有效值，此处 `if` 自然短路，不再产生任何副作用。
+    if (!this.layoutSrv.collapsedIcon()) {
+      this.settings.setLayout('collapsed', this.settings.layout.collapsed);
+    }
+  }
 }
