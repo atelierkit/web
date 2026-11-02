@@ -31,134 +31,394 @@
 
 ## 部署
 
-### 1. 构建
+### 部署形态速览
+
+| # | 方式 | 适用场景 | 需要的工具 |
+| --- | --- | --- | --- |
+| [1](#1-直接部署nginx-托管静态文件) | 直接部署 | 已有 nginx / 宿主机环境（最轻） | Node 24 + yarn，运行期只要 nginx |
+| [2](#2-单容器部署) | 单容器部署 | 只想要「一个容器托住前端」 | Docker |
+| [3](#3-直接多容器部署docker-run) | 直接多容器部署 | 前端与后端全部容器化、不用编排 | Docker |
+| [4](#4-docker-compose-部署) | Docker Compose | 单机自托管（**推荐**） | Docker Compose v2 |
+| [5](#5-kubernetes-部署) | Kubernetes | 已有集群、要声明式发布 | kubectl + Ingress 控制器 |
+| [6](#6-配置项说明) | 配置项说明 | 以上任意方式 | — |
+
+**三条前置约定**（与本项目「构建期不含环境信息」的设计直接相关，先读再选）：
+
+1. **前端没有运行时环境变量。** 后端地址只由构建产物里的 `assets/config.json` 决定，镜像与构建产物可以跨环境复用。
+   想「同一份产物切到另一个后端」，改那个 JSON 即可；不要指望 `yarn build` 时传什么变量。
+2. **前端是纯静态站点，运行期没有 Node。** `Dockerfile` 只做 `nginx + dist` 的打包，构建发生在它之前（CI 或本地 `yarn build`）。
+3. **连后端只有两条路线**：直连（`baseUrl` 填绝对地址，后端已 `enableCors`）或同源反代（`baseUrl` 填 `/api/`，反代层必须同时提供 `/api/` 与 `/socket.io/`）。
+   选错的表现分别是「页面能开、接口全挂」与「实时通道静默退化为 5 秒轮询」，两种都不报错（详见 §1.3）。
+
+### 1. 直接部署（nginx 托管静态文件）
+
+最轻的形态：构建好把目录拷到 Web 服务器，运行期只需要 nginx。
+
+#### 1.1 构建
 
 ```bash
-yarn install
+yarn install --frozen-lockfile
 yarn build          # 产物：dist/web/browser
 ```
 
-> 开发态用 `yarn start`（默认 http://localhost:4200）。开发前请先启动后端 `atelierkit/api`（默认 3000 端口），
-> 否则初始化状态与登录接口都会连接失败。
+- Node **24**（仓库 `.nvmrc` 为 `24.20.0`；Angular CLI 要求 ≥ 22.22.3）、yarn **1.22**。
+- 开发态用 `yarn start`（默认 http://localhost:4200），需先启动后端 `atelierkit/api`（默认 3000 端口），
+  否则初始化状态与登录接口都会连接失败。
 
-### 2. 静态托管
+#### 1.2 nginx 站点
 
-把 `dist/web/browser` 整个目录拷到 Web 服务器即可（纯静态，无 Node 运行时依赖）。nginx 参考：
+把 `dist/web/browser` 整个目录拷到服务器（例如 `/var/www/atelierkit/web`），然后：
 
 ```nginx
+# 放在 http {} 块里（与 server 同级）：只在真正升级时才发 Connection: upgrade
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
 server {
   listen 80;
-  root /var/www/atelierkit/web;   # 即 dist/web/browser 的内容
+  server_name _;
+  root /var/www/atelierkit/web;
   index index.html;
 
-  # SPA 兜底：前端用 hash 路由，刷新任何地址都要回 index.html
+  # 上传文件上限（下载中心 / 文件管理用得到）
+  client_max_body_size 500m;
+
+  gzip on;
+  gzip_min_length 1k;
+  gzip_comp_level 5;
+  gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+  # SPA 兜底：前端用 hash 路由，刷新任意地址都要回 index.html
   location / {
     try_files $uri $uri/ /index.html;
   }
 
-  # 带哈希的构建产物可长缓存
-  location ~* \.(?:js|css|woff2?|svg|png|jpg)$ {
-    expires 30d;
-    add_header Cache-Control "public, immutable";
-  }
-
   # 运行时配置不要缓存，改完立即生效
   location = /assets/config.json {
-    add_header Cache-Control "no-store";
+    add_header Cache-Control 'no-store';
   }
-}
-```
 
-### 3. 配置后端地址（运行时，无需重新构建）
+  # 入口页同样不缓存，避免发版后仍指向旧的哈希资源
+  location = /index.html {
+    add_header Cache-Control 'no-store';
+  }
 
-后端地址不编进产物，而是启动时读 `assets/config.json`：
+  # 带内容哈希的构建产物可以长缓存
+  location ~* \.(?:js|css|woff2?|ttf|eot|svg|png|jpe?g|gif|ico)$ {
+    expires 30d;
+    add_header Cache-Control 'public, immutable';
+  }
 
-```jsonc
-// src/assets/config.json → 构建后位于 dist/web/browser/assets/config.json
-{
-  "baseUrl": "//localhost:3000/"
-}
-```
-
-- `baseUrl` 由 `StartupService` 启动时读入并写入 `SettingsService`，`defaultInterceptor` 给所有相对路径请求补前缀；
-  `assets/*`、`//host/`、`http(s)://` 开头的地址不加前缀。**部署后直接改这个文件即可切换后端。**
-- **应用名称与说明不在这个文件里**：它们由管理员在后台「配置 → 应用配置」（`/admin/app`，见下表）维护，
-  经 `GET passport/app` 读取后写入页头与浏览器标题；管理员未配置名称时前端退回内置名称「管理平台」。
-- **跨机直连**：填 `//192.168.1.3:3000/` 这种地址，浏览器直连后端（服务端已 `enableCors`）。
-- **同机反代**：填 `/api/`，由 nginx 转给后端（末尾的 `/` 负责去掉前缀）：
-
-  ```nginx
+  # 仅「同源反代」路线需要下面两段；直连路线可以删掉
   location /api/ {
-    proxy_pass http://127.0.0.1:3000/;
+    proxy_pass http://127.0.0.1:3000/;      # 末尾带 /：用前缀换掉 URL 前缀
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
-  ```
 
-  ⚠️ 走反代时后端看到的来源恒为 nginx（`127.0.0.1`），「内网 IP」闸门等于放行所有人 ——
-  **这种情况下必须在后端 `.env` 里配置 `SETUP_TOKEN`**，否则初始化接口是敞开的。
-
-- **同机反代还要单独放行 `socket.io`**：`/api/` 只管 HTTP，实时通道（行情页的 `data:changed` 信号）
-  不走拦截器、按 socket.io 默认路径 `/socket.io/` 打到**页面所在的同一台 nginx**上。
-  填 `/api/` 时 `apiOriginOf` 推导出的源就是页面源，所以这条 `location` 与 `/api/` **必须成对出现**；
-  漏掉它会落到 SPA 兜底（返回 `index.html`、握手 404），**前端不报错**，但同步页顶部会常驻
-  「实时通道未连接，页面已改为每 5 秒自动刷新。」—— 即实时性静默退化：
-
-  ```nginx
-  # 放在 http {} 块里（与 server 同级）：只在真正升级时才发 Connection: upgrade
-  map $http_upgrade $connection_upgrade {
-    default upgrade;
-    ''      close;
-  }
-
-  # 与上面的 location /api/ 放在同一个 server 块里
   location /socket.io/ {
-    proxy_pass http://127.0.0.1:3000;   # ⚠ 末尾不能带 / —— 带斜杠会剥掉 /socket.io/ 前缀，握手同样 404
-    proxy_http_version 1.1;             # WebSocket 升级要求 1.1（默认 1.0 只能走长轮询）
+    proxy_pass http://127.0.0.1:3000;       # ⚠ 末尾不能带 /：带斜杠会剥掉 /socket.io/ 前缀，握手 404
+    proxy_http_version 1.1;                 # WebSocket 升级要求 1.1（默认 1.0 只能走长轮询）
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection $connection_upgrade;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_buffering off;                # 长轮询的响应要及时送出，不能被缓冲攒着
-    proxy_read_timeout 600s;            # 默认 60s 对空闲的 WebSocket 偏短
+    proxy_buffering off;                    # 长轮询的响应要及时送出，不能被缓冲攒着
+    proxy_read_timeout 600s;                # 默认 60s 对空闲的 WebSocket 偏短
     proxy_send_timeout 600s;
   }
-  ```
-
-  两条 `proxy_pass` 的写法**故意不同**：`/api/` 末尾带 `/`（用前缀换掉 URL 前缀），
-  `/socket.io/` 末尾不带（原样保留路径，后端网关的 `path` 就是 `/socket.io`）。
-  验证：浏览器 Network 里先出现 `/socket.io/?EIO=4&transport=polling` 的 `200`，随后出现
-  `transport=websocket` 的 `101`；同步页的黄色提示不再出现。
-
-- 开发态 `proxy.conf.js` 默认留空（就是跨域直连），需要走代理时再放开示例；走代理时同样要给
-  `/socket.io` 加一条带 `ws: true` 的规则（socket 的地址由 `baseUrl` 推导，不认代理表）。
-
-### 4. Docker 镜像
-
-`Dockerfile` 只负责**托管静态文件**，构建在前一步完成（镜像里不装 Node）：
-
-```bash
-yarn build                      # 先产出 dist/web/browser
-docker build -t atelierkit/web .
-docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
+}
 ```
 
-- 镜像内置 `nginx.conf`：SPA 兜底、gzip、`index.html` 与 `assets/config.json` 不缓存、带哈希的静态资源长缓存。
-- ⚠️ 镜像**不含** `/api/` 与 `/socket.io/` 反代（它只托管静态文件，后端通常是另一台机器或另一个容器）：
-  要么把 `baseUrl` 填成完整的后端地址（含协议与端口），要么在**宿主** nginx 上做那两条反代、
-  再由宿主 nginx 指向本容器 —— 否则实时通道会因缺少 `/socket.io/` 而退化为 5 秒轮询。
-- **改后端地址不需要重建镜像**，把配置文件挂进容器即可：
+#### 1.3 后端地址（运行时配置，无需重新构建）
 
-  ```bash
-  docker run -d --name atelierkit-web -p 8080:80 \
-    -v "$PWD/config.json:/usr/share/nginx/html/assets/config.json:ro" \
-    atelierkit/web
-  ```
+```jsonc
+// dist/web/browser/assets/config.json（源文件在 src/assets/config.json）
+{
+  "baseUrl": "//localhost:3000/"
+}
+```
 
-- CI（`.github/workflows/docker.yml`）：装依赖 → `yarn lint:ts` → `yarn build` → 构建镜像并推送到 `ghcr.io/atelierkit/web`
-  （PR 只验证构建，推 `main` / `v*` 标签才推送）。
+`baseUrl` 由 `StartupService` 启动时读入并写入 `SettingsService`，`defaultInterceptor` 给所有相对路径请求补前缀；
+`assets/*`、`//host/`、`http(s)://` 开头的地址不加前缀。
+
+| 场景 | `baseUrl` 写法 | 反代层要求 |
+| --- | --- | --- |
+| 同机反代 | `/api/` | nginx 必须同时提供 `/api/`（末尾带 `/`）与 `/socket.io/`（末尾不带 `/`），见 §1.2 |
+| 跨机直连 | `//192.168.1.3:3000/` | 无（后端已 `enableCors`，浏览器直连） |
+| 独立域名 | `https://api.example.com/` | 无 |
+
+- **应用名称与说明不在这个文件里**：由管理员在后台「配置 → 应用配置」（`/admin/app`）维护，
+  经 `GET passport/app` 读取后写入页头与浏览器标题；未配置时前端退回内置名称「管理平台」。
+- ⚠️ **走反代时必须在后端配 `SETUP_TOKEN`**：反代下后端看到的来源恒为 nginx（`127.0.0.1`），
+  「内网 IP」闸门等于放行所有人，初始化接口会敞开（见 `atelierkit/api` README 的环境变量参考）。
+- ⚠️ **`/api/` 与 `/socket.io/` 必须成对出现**：实时通道（行情页的 `data:changed` 信号）不走 HTTP 拦截器，
+  按 socket.io 默认路径 `/socket.io/` 打到**页面所在的同一台 nginx**；漏掉它不会报错，只会落到 SPA 兜底返回 `index.html`，
+  同步页顶部常驻「实时通道未连接，页面已改为每 5 秒自动刷新。」。
+- 开发态 `proxy.conf.js` 默认留空（就是跨域直连），需要走代理时再放开示例；走代理时同样要给 `/socket.io`
+  加一条带 `ws: true` 的规则（socket 的地址由 `baseUrl` 推导，不认代理表）。
+
+#### 1.4 自检
+
+```bash
+# 页面与运行时配置可访问
+curl -sI http://127.0.0.1/ | head -3
+curl -s  http://127.0.0.1/assets/config.json
+
+# 反代路线：先 200（polling 握手），再 101（升级为 WebSocket）
+curl -si 'http://127.0.0.1/socket.io/?EIO=4&transport=polling' | head -3
+```
+
+浏览器 Network 里应依次出现 `/socket.io/?EIO=4&transport=polling` 的 `200` 与 `transport=websocket` 的 `101`。
+
+### 2. 单容器部署
+
+镜像只负责托管静态文件（`nginx:alpine` + `dist/web/browser`），**构建在镜像外完成**。
+
+```bash
+yarn build                                         # 产物必须在 docker build 之前存在
+docker build -t atelierkit/web .
+# 或直接用 CI 产出的镜像 ghcr.io/atelierkit/web:latest
+
+# 运行时配置：把 src/assets/config.json 复制到仓库根再按环境改（别直接挂 dist/ 里那份，yarn build 会覆盖它）
+cp src/assets/config.json config.json
+
+docker run -d --name atelierkit-web --restart always \
+  -p 8080:80 \
+  -v "$PWD/config.json:/usr/share/nginx/html/assets/config.json:ro" \
+  atelierkit/web
+```
+
+镜像内置的 `nginx.conf` 含 SPA 兜底、gzip、`index.html` 与 `assets/config.json` 不缓存、带哈希静态资源长缓存
+（与 §1.2 同源，但没有 `/api/` 与 `/socket.io/` 两段反代）。
+
+三个必须知道的点：
+
+1. **镜像不含 `/api/` 与 `/socket.io/` 反代。** 它只托管静态文件，后端通常在后端容器里。要么把 `baseUrl` 填成完整后端地址（直连），
+   要么在**宿主** nginx 上做那两条反代、再指到本容器（§3 给了网关容器的写法）。
+2. **漏写 `-v` 不会报错，但后端地址会变回镜像里那份。** 镜像内打包的是 `assets/config.json`（`baseUrl=//localhost:3000/`），
+   页面能打开、接口全打到访问者本机，极易被误判为后端故障。
+3. **宿主机文件缺失时 Docker 会建一个同名目录**，`/assets/config.json` 变成 404，前端直接提示「未配置有效后端地址」。
+   部署前先确认文件存在：`docker exec atelierkit-web cat /usr/share/nginx/html/assets/config.json`。
+
+容器内 nginx 固定监听 **80**（见仓库根 `nginx.conf`），改端口只能改宿主机侧的 `-p`。镜像自带 `HEALTHCHECK`
+（探测首页），`docker ps` 的 `STATUS` 会显示 `healthy`：
+
+```bash
+docker inspect -f '{{.State.Health.Status}}' atelierkit-web
+```
+
+### 3. 直接多容器部署（docker run）
+
+前端与后端全部容器化但不引入编排时的最小组合：**一个自定义网络 + 前端容器 + 后端容器（含其 PG / Redis）**。
+后端的容器化命令见 `atelierkit/api` README 的 §3，这里只补前端侧与「同源反代」的可选网关。
+
+#### 3.1 直连方案（最简单，推荐先跑通）
+
+```bash
+docker network create atelierkit
+
+# 前端：baseUrl 必须是「浏览器能访问」的后端地址（域名，或宿主机 IP:端口），不能写容器名
+docker run -d --name atelierkit-web --network atelierkit --restart always \
+  -p 8080:80 \
+  -v "$PWD/config.json:/usr/share/nginx/html/assets/config.json:ro" \
+  atelierkit/web
+```
+
+`config.json` 里的 `baseUrl` 填后端的可达地址，例如 `{"baseUrl":"//192.168.1.3:3000/"}`（后端容器需把 3000 映射到宿主机）。
+前端与后端不同源，靠后端的 `enableCors({ origin: true })` 放行；socket.io 的连接地址由 `baseUrl` 推导，同样跨域，
+后端 `DataGateway` 已开 `cors`。
+
+#### 3.2 同源反代方案（可选网关容器）
+
+需要「一个域名同时提供页面与接口」时，用 nginx 做网关，把 `config.json` 的 `baseUrl` 填成 `/api/`：
+
+```bash
+docker run -d --name atelierkit-gateway --network atelierkit --restart always \
+  -p 80:80 \
+  -v "$PWD/gateway.conf:/etc/nginx/nginx.conf:ro" \
+  nginx:alpine
+```
+
+`gateway.conf` 必须是**整份 `nginx.conf`**（`map` 只能放在 `http {}` 层；塞进 `conf.d/default.conf` 会让 nginx 启动失败）：
+
+```nginx
+worker_processes auto;
+events { worker_connections 1024; }
+
+http {
+  # WebSocket 升级：只在真正升级时才发 Connection: upgrade
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+  }
+
+  server {
+    listen 80;
+    server_name _;
+
+    location / {
+      proxy_pass http://atelierkit-web:80;
+      proxy_set_header Host $host;
+    }
+
+    location /api/ {
+      proxy_pass http://atelierkit-api:3000/;   # 服务名按 api README 里的容器名改；末尾带 /
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /socket.io/ {
+      proxy_pass http://atelierkit-api:3000;    # 末尾不带 /：保留 /socket.io/ 前缀
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+      proxy_set_header Host $host;
+      proxy_buffering off;
+      proxy_read_timeout 600s;
+    }
+  }
+}
+```
+
+### 4. Docker Compose 部署
+
+把下面内容存为**仓库根目录**的 `docker-compose.yml`，与 `config.json` 同层。前端只依赖「后端地址」，所以它既能和
+`atelierkit/api` 的 compose 合并成一套完整栈，也能单独起一份指向已有的后端。
+
+```yaml
+name: atelierkit-web
+
+services:
+  web:
+    image: ghcr.io/atelierkit/web:latest
+    # 本地构建时改用下面一行（需先 yarn build，产物在 dist/web/browser）
+    # build: { context: . }
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      # 后端地址走挂载：改完 docker compose up -d 即可生效，不必重建镜像
+      - ./config.json:/usr/share/nginx/html/assets/config.json:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1/ >/dev/null || exit 1']
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+```
+
+常用的三条命令：
+
+```bash
+docker compose up -d
+docker compose logs -f web
+docker compose down            # 只有静态文件与一个只读挂载，加不加 -v 都不影响数据
+```
+
+两个容易出问题的点：
+
+1. **`config.json` 的相对路径是相对 compose 文件**，不是相对当前目录。`./config.json` 即仓库根的 `config.json`
+   （`src/assets/config.json` 的副本，部署时按环境改 `baseUrl`；**不要**直接挂 `dist/` 里的那份，`yarn build` 会覆盖它）。
+2. **完整栈建议把 `web` 并入 `atelierkit/api` 的 compose**（同一 `name:` 下加一个 `web` 服务，`baseUrl` 填 `/api/`，
+   并在网关或 `web` 容器前加 `/api/` 反代），否则前后端在两个 compose 项目里，网络与服务名不互通。
+
+### 5. Kubernetes 部署
+
+前提：镜像已推到集群可拉的仓库（CI 推 `ghcr.io/atelierkit/web`，私有仓库需配 `imagePullSecrets`）；
+`config.json` 用 ConfigMap 提供，Ingress 负责把 `/api` 与 `/socket.io` 转发给后端（规则见 `atelierkit/api` README 的 §5.3）。
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atelierkit-web-config
+  namespace: atelierkit
+data:
+  config.json: |
+    { "baseUrl": "/api/" }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: atelierkit
+spec:
+  replicas: 2                     # 纯静态，可以多副本；与前端的单实例约束无关
+  selector:
+    matchLabels: { app: atelierkit-web }
+  template:
+    metadata:
+      labels: { app: atelierkit-web }
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/atelierkit/web:latest
+          ports:
+            - { name: http, containerPort: 80 }
+          volumeMounts:
+            # subPath 挂载单个文件：覆盖镜像内打包的那份 config.json
+            - name: web-config
+              mountPath: /usr/share/nginx/html/assets/config.json
+              subPath: config.json
+              readOnly: true
+          readinessProbe:
+            httpGet: { path: /assets/config.json, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }
+            limits: { memory: 128Mi }
+      volumes:
+        - name: web-config
+          configMap: { name: atelierkit-web-config }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: atelierkit
+spec:
+  selector: { app: atelierkit-web }
+  ports:
+    - { name: http, port: 80, targetPort: http }
+```
+
+两个必须注意的点：
+
+1. **`subPath` 挂载的 ConfigMap 不会热更新**：改完 ConfigMap 必须 `kubectl -n atelierkit rollout restart deploy/web`，
+   否则容器里仍是旧文件（现象是「改完后端地址没生效」）。若要热更新，改成挂目录（`emptyDir` + initContainer 拷贝）
+   或直接省掉这一步 —— 用域名切后端时根本不需要改它。
+2. **`replicas` 可以大于 1**：前端无状态。但 §1.2 的 nginx 内建 SPA 兜底与缓存头在镜像里，多副本行为一致；
+   `baseUrl` 用相对路径 `/api/` 时，反代（Ingress）必须与后端 routing 配套，否则接口 404。
+
+### 6. 配置项说明
+
+前端没有运行时环境变量 —— 下表就是全部可配置项。
+
+| 配置 | 位置 | 生效时机 | 说明 |
+| --- | --- | --- | --- |
+| `baseUrl` | `assets/config.json` | 打入产物，运行期读取 | 后端地址。`/api/`（同源反代）、`//host:port/`（跨机直连）、`https://host/` 三种写法；**末尾 `/` 不能省**（拦截器直接拼接） |
+| 应用名称 / 说明 | 后端「系统设置 → 应用配置」`/admin/app` | 运行时 `GET passport/app` | **不在 config.json 里**；未配置时退回内置名称「管理平台」 |
+| ICP 备案信息 | 后端「系统设置 → 备案配置」`/admin/icp` | 运行时 `GET passport/icp` | 同上，与构建产物无关 |
+| 监听端口 | 镜像内 `nginx.conf`（固定 `80`） | 构建镜像时 | 改端口只能改宿主机 `-p` / k8s `containerPort`，不要改容器内监听（`HEALTHCHECK` 与探针都按 80 写） |
+| 上传上限 | 镜像内 `nginx.conf`（`client_max_body_size 500m`） | 构建镜像时 | 需要更大时改 `nginx.conf` 后重建镜像，或在反代层放大 |
+| `TZ` | 容器环境变量 | 启动时 | 镜像已设 `Asia/Shanghai`；影响 nginx 访问日志时间戳 |
+| 构建参数 | `angular.json` / `yarn build` | 构建时 | **没有任何后端地址相关的构建变量**：切换环境只改 `config.json`，不要重新构建 |
+
+> 后端侧的全部环境变量（`POSTGRES_*`、`REDIS_*`、`SETUP_TOKEN`、`SETTING_KEY` 等）见 `atelierkit/api` README 的「环境变量参考」，
+> 与本仓库无关 —— web 只需要知道「后端地址是什么」。
 
 ## 首次使用：创建管理员
 
@@ -260,7 +520,7 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
    - ⚠ **建连地址必须显式传后端 origin**（`apiOriginOf(baseUrl, location.href)`）：socket 不走 HTTP 拦截器，
      `io()` 空参连的是**前端页面源**（dev 的 `:4200` / 生产 nginx 的 `:80`），握手必然 404 且静默失败。
      后端 `DataGateway` 相应开了 `cors`，否则跨域 polling 仍会被浏览器拦掉。
-     ⇒ 生产用 `/api/` 同机反代时，nginx 必须补一条 `/socket.io/`（含 WebSocket 升级），写法见上文「同机反代」。
+     ⇒ 生产用 `/api/` 同机反代时，nginx 必须补一条 `/socket.io/`（含 WebSocket 升级），写法见上文「部署 → 1.2 nginx 站点」。
    - ⚠ **必须有兜底轮询**：通道连不上（地址 / CORS / 代理任一处不对）时每 5s 拉一次快照，并在同步页给出提示；
      只靠实时信号的话，界面会永远停在首屏那一次快照上（「后端在跑、页面不动」）。
    - 节流是 **leading + trailing**（被挡下的那一次在窗口结束时补拉），且只接受最后发起的响应（旧响应后到即丢弃）。
