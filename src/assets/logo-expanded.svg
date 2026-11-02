@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  展开态 logo（header 左上角，aside 展开时显示）
+  尺寸：152 × 36，正好落在 layout-default 的 200px 宽 logo 容器内，
+        高度不超过 @alain-default-header-logo-max-height（36px），不会被二次缩放。
+  配色：纯白单色 + 透明底。header 背景为主色（亮色主题）或 @component-background（暗色主题），
+        两者都是深底，白色均成立；与 ng-alain 默认 logo 的处理方式一致。
+  图形：首字母 A 几何化，横梁略上挑（左低右高 1.7px）暗示工作台面；
+        笔画重量 3px 与字标保持一致，24px 高时仍可辨认。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="152" height="36" viewBox="0 0 152 36" role="img" aria-label="atelierkit">
+  <title>atelierkit</title>
+  <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 4.8 L4.9 30.4" />
+    <path d="M16 4.8 L27.1 30.4" />
+    <path d="M9.7 23.4 L22.3 21.7" />
+  </g>
+  <text
+    x="43"
+    y="22.6"
+    fill="#FFFFFF"
+    font-family="'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', system-ui, sans-serif"
+    font-size="18"
+    font-weight="500"
+    letter-spacing="0.3"
+  >atelierkit</text>
+</svg>

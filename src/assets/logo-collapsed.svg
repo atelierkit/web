@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  折叠态 logo（header 左上角，aside 收起时显示）
+  尺寸：32 × 32，与展开态同源（取 A 形徽标，去掉字标），保证折叠/展开切换时图形连续。
+  配色：纯白单色 + 透明底，理由同 logo-expanded.svg。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-label="atelierkit">
+  <title>atelierkit</title>
+  <g fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 3.6 L4.4 28.6" />
+    <path d="M16 3.6 L27.6 28.6" />
+    <path d="M9.4 21.6 L22.6 19.9" />
+  </g>
+</svg>

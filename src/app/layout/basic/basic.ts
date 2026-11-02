@@ -119,8 +119,8 @@ export class LayoutBasic {
   private readonly layoutSrv = inject(LayoutDefaultService);
   readonly user = this.settings.user;
   protected options: LayoutDefaultOptions = {
-    logoExpanded: `./assets/logo.png`,
-    logoCollapsed: `./assets/logo.png`,
+    logoExpanded: `./assets/logo-expanded.svg`,
+    logoCollapsed: `./assets/logo-collapsed.svg`,
   };
   protected searchToggleStatus = signal(false);
 
