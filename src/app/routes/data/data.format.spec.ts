@@ -26,8 +26,8 @@ describe('data.format', () => {
     });
 
     it('绝对地址原样取 origin（丢掉路径，socket 只认源）', () => {
-      expect(apiOriginOf('http://192.168.1.3:3000/api/', 'http://x/')).toBe(
-        'http://192.168.1.3:3000',
+      expect(apiOriginOf('http://192.0.2.10:3000/api/', 'http://x/')).toBe(
+        'http://192.0.2.10:3000',
       );
     });
 

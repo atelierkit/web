@@ -65,7 +65,7 @@ export class CloudKongEditComponent implements OnInit {
     '*': { spanLabelFixed: 110, grid: { span: 24 } },
     $name: { placeholder: '便于识别的名称，如「本地网关」' },
     $description: { placeholder: '这个网关做什么用' },
-    $url: { placeholder: 'http://192.168.1.10:8001（Admin API 地址）' },
+    $url: { placeholder: 'http://127.0.0.1:8001（Admin API 地址）' },
     $status: { checkedChildren: '启用', unCheckedChildren: '禁用' },
     // 注：text 小部件（`sf-text`）只把值当纯文本渲染，天然只读 —— 旧私有项目 `$id` 就是这么做的；
     // 它同时令 `ui._required = false`，所以这两个字段也不会参与必填校验

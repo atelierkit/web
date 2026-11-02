@@ -43,6 +43,9 @@ testem.log
 /typings
 __screenshots__/
 
+# 本机部署参数（deploy/start-*.sh 会 source，含 IP / 网络名等现场信息）
+deploy/deploy.env
+
 # System files
 .DS_Store
 Thumbs.db

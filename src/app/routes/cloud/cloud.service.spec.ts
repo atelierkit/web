@@ -95,7 +95,7 @@ describe('CloudService', () => {
         id: 1,
         name: '本地网关',
         description: '家用服务器的 Kong',
-        url: 'http://192.168.1.10:8001',
+        url: 'http://192.0.2.10:8001',
         status: true,
       });
     });
@@ -111,7 +111,7 @@ describe('CloudService', () => {
       const value: KongPayload = {
         name: '本地网关',
         description: '家用服务器的 Kong',
-        url: 'http://192.168.1.10:8001',
+        url: 'http://192.0.2.10:8001',
         status: true,
       };
       service.createKong(value).subscribe();
@@ -134,7 +134,7 @@ describe('CloudService', () => {
       summary.flush({
         version: '3.9.4',
         edition: 'community',
-        hostname: 'home-server',
+        hostname: 'kong-host',
         nodeId: 'node-1',
         luaVersion: 'LuaJIT',
         pluginCount: 45,

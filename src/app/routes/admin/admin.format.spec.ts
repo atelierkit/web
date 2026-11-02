@@ -112,7 +112,7 @@ describe('admin.format', () => {
         userId: 0,
         email: null,
         clientIp: '127.0.0.1',
-        serverIp: '192.168.1.3',
+        serverIp: '192.0.2.10',
         startAt: 0,
         endAt: 0,
       });

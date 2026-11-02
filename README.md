@@ -149,8 +149,11 @@ server {
 | 场景 | `baseUrl` 写法 | 反代层要求 |
 | --- | --- | --- |
 | 同机反代 | `/api/` | nginx 必须同时提供 `/api/`（末尾带 `/`）与 `/socket.io/`（末尾不带 `/`），见 §1.2 |
-| 跨机直连 | `//192.168.1.3:3000/` | 无（后端已 `enableCors`，浏览器直连） |
+| 跨机直连 | `//192.0.2.10:3000/` | 无（后端已 `enableCors`，浏览器直连） |
 | 独立域名 | `https://api.example.com/` | 无 |
+
+> 文档里的 `192.0.2.10` 属 RFC 5737 文档专用地址段，仅作占位，请替换成你实际的后端地址
+> （局域网写 `//<后端IP>:3000/`，公网写 `https://<域名>/`）。
 
 - **应用名称与说明不在这个文件里**：由管理员在后台「配置 → 应用配置」（`/admin/app`）维护，
   经 `GET passport/app` 读取后写入页头与浏览器标题；未配置时前端退回内置名称「管理平台」。
@@ -229,7 +232,7 @@ docker run -d --name atelierkit-web --network atelierkit --restart always \
   atelierkit/web
 ```
 
-`config.json` 里的 `baseUrl` 填后端的可达地址，例如 `{"baseUrl":"//192.168.1.3:3000/"}`（后端容器需把 3000 映射到宿主机）。
+`config.json` 里的 `baseUrl` 填后端的可达地址，例如 `{"baseUrl":"//192.0.2.10:3000/"}`（后端容器需把 3000 映射到宿主机）。
 前端与后端不同源，靠后端的 `enableCors({ origin: true })` 放行；socket.io 的连接地址由 `baseUrl` 推导，同样跨域，
 后端 `DataGateway` 已开 `cors`。
 
@@ -453,7 +456,7 @@ spec:
 ## 腾讯云页面（`/tencent/:id`）
 
 `id` 是**云服务密钥ID**（`cloud/key` 里的记录），页面数据全部由后端代取，浏览器不接触访问密钥。
-旧私有项目（`marbleqi/web`）的同一模块已整体迁入，**与旧实现的差异是有意为之**：
+旧私有项目（`web`）的同一模块已整体迁入，**与旧实现的差异是有意为之**：
 
 1. **不再依赖 `@brand`**：旧布局用了 `service-layout`（侧边二级导航 + 地域子菜单）与 `page-bar`，
    本仓库没有这套组件 —— 现在布局是 `page-header` + 标签页（与 `/cloud/kong/:id` 一致），
@@ -481,7 +484,7 @@ spec:
 | 操作日志 | `/admin/operate` | `POST admin/operate/index`、`GET admin/operate/options` |
 | 请求日志 | `/admin/req` | `POST admin/req/index`、`GET admin/req/{url,user,controller}`、`GET admin/req/action/:controller` |
 
-迁移自旧私有项目（`marbleqi/web` 的 `routes/admin`），与旧实现的差异**是有意为之**：
+迁移自旧私有项目（`web` 的 `routes/admin`），与旧实现的差异**是有意为之**：
 
 1. **`admin/task` 与 `admin/dashboard` 不迁移**：前者表格列是用户字段（id / 邮箱 / 昵称 / 头像 / 角色），却调
    `kong/index`、`kong/show/:id`、`kong/create`（站点接口），后端也没有任务接口 —— 是从 Kong 页面复制的残骸；

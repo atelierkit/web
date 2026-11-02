@@ -22,7 +22,7 @@ export class KongServiceEditComponent extends KongObjectEditComponent {
       url: {
         type: 'string',
         title: '地址',
-        description: '协议://主机:端口/路径，如 http://192.168.1.10:8080/api',
+        description: '协议://主机:端口/路径，如 http://127.0.0.1:8080/api',
       },
       connect_timeout: { type: 'number', title: '连接超时', minimum: 1 },
       read_timeout: { type: 'number', title: '读超时', minimum: 1 },
