@@ -65,6 +65,22 @@ describe('UserService', () => {
     req.flush(1);
   });
 
+  it('上传头像走 POST user/avatar，字段名固定 file 且不手写 Content-Type', () => {
+    /** 裁剪后的图片数据 */
+    const blob = new Blob(['fake-webp'], { type: 'image/webp' });
+    service.uploadAvatar(blob).subscribe();
+    const req = http.expectOne('user/avatar');
+    expect(req.request.method).toBe('POST');
+    /** 提交体 */
+    const body = req.request.body as FormData;
+    expect(body instanceof FormData).toBe(true);
+    // 注：后端是 FileInterceptor('file')，字段名不一致会直接 400
+    expect(body.has('file')).toBe(true);
+    // 注：Content-Type 必须由浏览器补上 multipart boundary，手写会把 boundary 写没
+    expect(req.request.headers.has('Content-Type')).toBe(false);
+    req.flush({ avatar: '/static/avatar/a.webp' });
+  });
+
   it('换邮箱走 POST user/email，提交 { email }', () => {
     service.changeEmail('new@example.com').subscribe();
     const req = http.expectOne('user/email');
