@@ -45,6 +45,8 @@ __screenshots__/
 
 # 本机部署参数（deploy/start-*.sh 会 source，含 IP / 网络名等现场信息）
 deploy/deploy.env
+# 运行时配置副本（含后端地址，部署时按环境生成，不入库）
+/config.json
 
 # System files
 .DS_Store
