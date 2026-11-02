@@ -16,6 +16,8 @@ import { Observable, catchError, map, mergeMap, of, retry, timer } from 'rxjs';
 
 import { MENUS } from './menu.constant';
 import { normalizeToken } from '../net/helper';
+import { mergeApp } from '../site/site.format';
+import { SiteService } from '../site/site.service';
 
 /** 基础数据加载的重试次数，注：用于网络抖动、数据库连接被掐断等瞬时故障 */
 const LOAD_RETRY = 2;
@@ -65,6 +67,7 @@ export class StartupService {
   private readonly titleSrv = inject(TitleService);
   private readonly menuSrv = inject(MenuService);
   private readonly notifySrv = inject(NzNotificationService);
+  private readonly siteSrv = inject(SiteService);
   private readonly tokenSrv = inject<TokenService>(DA_SERVICE_TOKEN);
   private readonly reuseTabService = inject(ReuseTabService, { optional: true });
 
@@ -72,7 +75,11 @@ export class StartupService {
    * 应用启动加载
    *
    * 注：先读运行时配置 `assets/config.json` 拿到后端地址（部署时改这一个文件即可切换后端），
-   * 再按是否有令牌决定是否加载用户信息；令牌续期属于附带动作，失败时不影响本次登录态
+   * 再读管理员配置的站点信息（应用名称与说明，`passport` 接口免登录可读），
+   * 最后按是否有令牌决定是否加载用户信息；令牌续期属于附带动作，失败时不影响本次登录态
+   *
+   * 站点信息在 `provideAppInitializer` 内完成，因此登录页首次渲染时页头即是后台配置的名称，
+   * 不会出现「先显示默认名再跳变」的情况
    *
    * @returns 启动完成的 Observable
    */
@@ -84,50 +91,52 @@ export class StartupService {
         }
         // 后端地址注入到 SettingsService，由 defaultInterceptor 取用
         this.settingsSrv.setData('baseUrl', config.baseUrl);
-        /** 站点名 */
-        const name = config.name as string;
-        this.settingsSrv.setApp({
-          name: config.name ?? '个人工具平台',
-          description: config.description ?? '',
-        });
-        this.titleSrv.suffix = name;
-        // 当不存在令牌时
-        if (!this.tokenSrv.get()?.token) {
-          // 清空路由复用信息、用户信息与授权，避免残留上一次登录态
-          this.reuseTabService?.clear();
-          this.settingsSrv.setUser({});
-          this.aclSrv.setRole([]);
-          // 菜单与权限外壳：须在角色就绪后再挂载，否则带 acl 的菜单会被按空角色过滤掉
-          this.setupShell();
-          return of(void 0);
-        }
-        // 当存在令牌时
-        return this.http.get('user/startup').pipe(
-          // 瞬时故障重试，避免因首次连接超时等原因以空授权进入系统
-          retry({
-            count: LOAD_RETRY,
-            delay: (err: NzSafeAny, attempt: number) => {
-              // 登录态失效重试无意义，直接抛出交由统一异常处理
-              if (isAuthError(err)) {
-                throw err;
-              }
-              console.warn(`加载用户信息失败，正在进行第${attempt}次重试：`, err);
-              return timer(LOAD_RETRY_DELAY * attempt);
-            },
+        // 站点信息以管理员在「配置 → 应用配置」中维护的值为准，后端不可用时退回运行时配置
+        return this.siteSrv.info().pipe(
+          map((info) => mergeApp(info.app, { name: config.name, description: config.description })),
+          mergeMap((app) => {
+            // 应用名称与说明：登录页页头、浏览器标题后缀都取这里
+            this.settingsSrv.setApp(app);
+            this.titleSrv.suffix = app.name;
+            // 当不存在令牌时
+            if (!this.tokenSrv.get()?.token) {
+              // 清空路由复用信息、用户信息与授权，避免残留上一次登录态
+              this.reuseTabService?.clear();
+              this.settingsSrv.setUser({});
+              this.aclSrv.setRole([]);
+              // 菜单与权限外壳：须在角色就绪后再挂载，否则带 acl 的菜单会被按空角色过滤掉
+              this.setupShell();
+              return of(void 0);
+            }
+            // 当存在令牌时
+            return this.http.get('user/startup').pipe(
+              // 瞬时故障重试，避免因首次连接超时等原因以空授权进入系统
+              retry({
+                count: LOAD_RETRY,
+                delay: (err: NzSafeAny, attempt: number) => {
+                  // 登录态失效重试无意义，直接抛出交由统一异常处理
+                  if (isAuthError(err)) {
+                    throw err;
+                  }
+                  console.warn(`加载用户信息失败，正在进行第${attempt}次重试：`, err);
+                  return timer(LOAD_RETRY_DELAY * attempt);
+                },
+              }),
+              map((user: NzSafeAny) => {
+                // 用户信息：包括姓名、头像、邮箱地址
+                this.settingsSrv.setUser({
+                  name: user.name || user.username,
+                  avatar: user.avatar,
+                  email: user.email ?? '',
+                });
+                // 用户授权
+                this.aclSrv.setRole(user.roles ?? []);
+                // 菜单与权限外壳：角色就绪后再挂载，带 acl 的菜单才能正确按角色显示
+                this.setupShell();
+              }),
+              mergeMap(() => this.refresh()),
+            );
           }),
-          map((user: NzSafeAny) => {
-            // 用户信息：包括姓名、头像、邮箱地址
-            this.settingsSrv.setUser({
-              name: user.name || user.username,
-              avatar: user.avatar,
-              email: user.email ?? '',
-            });
-            // 用户授权
-            this.aclSrv.setRole(user.roles ?? []);
-            // 菜单与权限外壳：角色就绪后再挂载，带 acl 的菜单才能正确按角色显示
-            this.setupShell();
-          }),
-          mergeMap(() => this.refresh()),
         );
       }),
       // 注：首屏加载动画（`.preloader`）与 body 的滚动锁由 `app.ts` 的 `stepPreloader()` 负责：

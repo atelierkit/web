@@ -9,9 +9,14 @@ import { Observable, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { StartupService } from './startup.service';
+import type { SiteInfo } from '../site/site.format';
+import { SiteService } from '../site/site.service';
 
 /** 运行时配置 */
 const CONFIG = { baseUrl: '//localhost:3000/', name: '个人工具平台', description: '工具集' };
+
+/** 站点信息，注：应用配置来自管理员在后台的维护结果 */
+const SITE: SiteInfo = { app: { name: '星图', description: '量化平台' }, icp: {} };
 
 /** 后端令牌 */
 const TOKEN = { id: 2, code: 'new', valid: 1440, expired: 0, createAt: 1, updateAt: 1 };
@@ -39,6 +44,7 @@ describe('StartupService', () => {
   let title: { suffix?: string };
   let menu: { add: ReturnType<typeof vi.fn> };
   let notify: { error: ReturnType<typeof vi.fn> };
+  let site: { info: ReturnType<typeof vi.fn> };
   let tokenSrv: {
     get: ReturnType<typeof vi.fn>;
     set: ReturnType<typeof vi.fn>;
@@ -55,6 +61,7 @@ describe('StartupService', () => {
     title = {};
     menu = { add: vi.fn() };
     notify = { error: vi.fn() };
+    site = { info: vi.fn(() => of(SITE)) };
     tokenSrv = { get: vi.fn(), set: vi.fn(), clear: vi.fn(), login_url: '/passport/login' };
     reuseTab = { clear: vi.fn() };
 
@@ -69,6 +76,7 @@ describe('StartupService', () => {
         { provide: TitleService, useValue: title },
         { provide: MenuService, useValue: menu },
         { provide: NzNotificationService, useValue: notify },
+        { provide: SiteService, useValue: site },
         { provide: DA_SERVICE_TOKEN, useValue: tokenSrv },
         { provide: ReuseTabService, useValue: reuseTab },
       ],
@@ -102,17 +110,15 @@ describe('StartupService', () => {
     return done;
   }
 
-  it('无令牌时只注入运行时配置，并清空上一次的残留登录态', async () => {
+  it('无令牌时注入运行时配置与站点信息，并清空上一次的残留登录态', async () => {
     http.get.mockReturnValue(of(CONFIG));
     tokenSrv.get.mockReturnValue(undefined);
 
     expect(await run()).toBe(true);
     expect(settings.setData).toHaveBeenCalledWith('baseUrl', CONFIG.baseUrl);
-    expect(settings.setApp).toHaveBeenCalledWith({
-      name: CONFIG.name,
-      description: CONFIG.description,
-    });
-    expect(title.suffix).toBe(CONFIG.name);
+    // 应用名称与说明取管理员在后台配置的值，而不是运行时配置
+    expect(settings.setApp).toHaveBeenCalledWith(SITE.app);
+    expect(title.suffix).toBe(SITE.app.name);
     expect(menu.add).toHaveBeenCalled();
     // 无令牌：清空路由复用、用户信息与授权
     expect(reuseTab.clear).toHaveBeenCalled();
@@ -120,6 +126,19 @@ describe('StartupService', () => {
     expect(acl.setRole).toHaveBeenCalledWith([]);
     // 不应该去打用户信息接口
     expect(http.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('后端未配置应用信息时退回运行时配置，避免登录页页头空白', async () => {
+    http.get.mockReturnValue(of(CONFIG));
+    tokenSrv.get.mockReturnValue(undefined);
+    site.info.mockReturnValue(of({ app: {}, icp: {} }));
+
+    expect(await run()).toBe(true);
+    expect(settings.setApp).toHaveBeenCalledWith({
+      name: CONFIG.name,
+      description: CONFIG.description,
+    });
+    expect(title.suffix).toBe(CONFIG.name);
   });
 
   it('有令牌时加载用户信息并按服务端设置续期令牌', async () => {
@@ -155,6 +174,8 @@ describe('StartupService', () => {
       '未配置有效后端地址！',
       expect.anything(),
     );
+    // 后端地址都没有，站点信息无从读取，不应再发请求
+    expect(site.info).not.toHaveBeenCalled();
   });
 
   it('登录态失效时清空令牌并跳登录页，且不再尝试重试', async () => {
