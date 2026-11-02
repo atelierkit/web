@@ -91,9 +91,9 @@ export class StartupService {
         }
         // 后端地址注入到 SettingsService，由 defaultInterceptor 取用
         this.settingsSrv.setData('baseUrl', config.baseUrl);
-        // 站点信息以管理员在「配置 → 应用配置」中维护的值为准，后端不可用时退回运行时配置
+        // 站点信息以管理员在「配置 → 应用配置」中维护的值为准，未配置名称时退回内置兜底
         return this.siteSrv.info().pipe(
-          map((info) => mergeApp(info.app, { name: config.name, description: config.description })),
+          map((info) => mergeApp(info.app)),
           mergeMap((app) => {
             // 应用名称与说明：登录页页头、浏览器标题后缀都取这里
             this.settingsSrv.setApp(app);

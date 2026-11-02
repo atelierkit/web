@@ -9,11 +9,11 @@ import { Observable, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { StartupService } from './startup.service';
-import type { SiteInfo } from '../site/site.format';
+import { DEFAULT_APP_NAME, type SiteInfo } from '../site/site.format';
 import { SiteService } from '../site/site.service';
 
-/** 运行时配置 */
-const CONFIG = { baseUrl: '//localhost:3000/', name: '个人工具平台', description: '工具集' };
+/** 运行时配置，注：只承载后端地址，应用名称与说明由管理员在后台维护 */
+const CONFIG = { baseUrl: '//localhost:3000/' };
 
 /** 站点信息，注：应用配置来自管理员在后台的维护结果 */
 const SITE: SiteInfo = { app: { name: '星图', description: '量化平台' }, icp: {} };
@@ -128,17 +128,17 @@ describe('StartupService', () => {
     expect(http.get).toHaveBeenCalledTimes(1);
   });
 
-  it('后端未配置应用信息时退回运行时配置，避免登录页页头空白', async () => {
+  it('管理员未配置应用信息时使用内置名称，避免登录页页头空白', async () => {
     http.get.mockReturnValue(of(CONFIG));
     tokenSrv.get.mockReturnValue(undefined);
     site.info.mockReturnValue(of({ app: {}, icp: {} }));
 
     expect(await run()).toBe(true);
     expect(settings.setApp).toHaveBeenCalledWith({
-      name: CONFIG.name,
-      description: CONFIG.description,
+      name: DEFAULT_APP_NAME,
+      description: '',
     });
-    expect(title.suffix).toBe(CONFIG.name);
+    expect(title.suffix).toBe(DEFAULT_APP_NAME);
   });
 
   it('有令牌时加载用户信息并按服务端设置续期令牌', async () => {
@@ -166,7 +166,7 @@ describe('StartupService', () => {
   });
 
   it('运行时配置缺少后端地址时给出明确提示，而不是静默进入系统', async () => {
-    http.get.mockReturnValue(of({ name: 'x' }));
+    http.get.mockReturnValue(of({}));
 
     expect(await run()).toBe(true);
     expect(notify.error).toHaveBeenCalledWith(

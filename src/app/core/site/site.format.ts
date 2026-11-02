@@ -22,7 +22,7 @@ export interface SiteInfo {
   icp: Partial<SiteIcp>;
 }
 
-/** 应用名称兜底，注：运行时配置与后端都取不到时使用，避免页头空白 */
+/** 应用名称兜底，注：管理员未配置应用名称时使用，避免页头空白 */
 export const DEFAULT_APP_NAME = '管理平台';
 
 /** 备案号查询地址（工业和信息化部政务服务平台） */
@@ -31,20 +31,17 @@ export const ICP_URL = 'https://beian.miit.gov.cn/';
 /**
  * 合并应用配置
  *
- * 注：优先级为「后端配置 → 运行时配置（`assets/config.json`）→ 内置兜底」，
- * 后端未配置过应用信息时不应把站点名称显示成空白
+ * 注：应用名称与说明的唯一来源是管理员在「配置 → 应用配置」（`/admin/app`）中维护的值，
+ * 运行时配置 `assets/config.json` 不再提供这两项；管理员尚未配置名称时退回内置兜底，
+ * 不应把站点名称显示成空白
  *
  * @param raw 后端返回的应用配置
- * @param fallback 运行时配置提供的兜底值
  * @returns 可直接用于展示的应用配置
  */
-export function mergeApp(
-  raw?: Partial<SiteApp> | null,
-  fallback?: Partial<SiteApp> | null,
-): SiteApp {
+export function mergeApp(raw?: Partial<SiteApp> | null): SiteApp {
   return {
-    name: raw?.name?.trim() || fallback?.name?.trim() || DEFAULT_APP_NAME,
-    description: raw?.description?.trim() || fallback?.description?.trim() || '',
+    name: raw?.name?.trim() || DEFAULT_APP_NAME,
+    description: raw?.description?.trim() || '',
   };
 }
 

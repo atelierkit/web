@@ -76,14 +76,14 @@ server {
 ```jsonc
 // src/assets/config.json → 构建后位于 dist/web/browser/assets/config.json
 {
-  "baseUrl": "//localhost:3000/",
-  "name": "个人工具平台",
-  "description": "家用局域网服务器上的个人工具集合"
+  "baseUrl": "//localhost:3000/"
 }
 ```
 
 - `baseUrl` 由 `StartupService` 启动时读入并写入 `SettingsService`，`defaultInterceptor` 给所有相对路径请求补前缀；
   `assets/*`、`//host/`、`http(s)://` 开头的地址不加前缀。**部署后直接改这个文件即可切换后端。**
+- **应用名称与说明不在这个文件里**：它们由管理员在后台「配置 → 应用配置」（`/admin/app`，见下表）维护，
+  经 `GET passport/app` 读取后写入页头与浏览器标题；管理员未配置名称时前端退回内置名称「管理平台」。
 - **跨机直连**：填 `//192.168.1.3:3000/` 这种地址，浏览器直连后端（服务端已 `enableCors`）。
 - **同机反代**：填 `/api/`，由 nginx 转给后端（末尾的 `/` 负责去掉前缀）：
 

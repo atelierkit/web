@@ -3,27 +3,20 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_APP_NAME, copyrightText, mergeApp, mergeIcp } from './site.format';
 
 describe('mergeApp', () => {
-  it('优先使用后端配置的应用信息', () => {
-    expect(mergeApp({ name: '星图', description: '量化平台' }, { name: '兜底' })).toEqual({
+  it('使用后端配置的应用信息', () => {
+    expect(mergeApp({ name: '星图', description: '量化平台' })).toEqual({
       name: '星图',
       description: '量化平台',
     });
   });
 
-  it('后端未配置时退回运行时配置', () => {
-    expect(mergeApp({}, { name: '个人工具平台', description: '工具集' })).toEqual({
-      name: '个人工具平台',
-      description: '工具集',
-    });
-  });
-
-  it('后端与运行时配置都缺失时使用内置名称，说明留空', () => {
+  it('后端未配置名称时使用内置名称，说明留空', () => {
     expect(mergeApp(undefined)).toEqual({ name: DEFAULT_APP_NAME, description: '' });
-    expect(mergeApp({}, {})).toEqual({ name: DEFAULT_APP_NAME, description: '' });
+    expect(mergeApp({})).toEqual({ name: DEFAULT_APP_NAME, description: '' });
   });
 
   it('忽略纯空白取值，避免页头显示空标题', () => {
-    expect(mergeApp({ name: '   ' }, { name: ' ' })).toEqual({
+    expect(mergeApp({ name: '   ', description: ' ' })).toEqual({
       name: DEFAULT_APP_NAME,
       description: '',
     });
