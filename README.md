@@ -99,7 +99,41 @@ server {
   ⚠️ 走反代时后端看到的来源恒为 nginx（`127.0.0.1`），「内网 IP」闸门等于放行所有人 ——
   **这种情况下必须在后端 `.env` 里配置 `SETUP_TOKEN`**，否则初始化接口是敞开的。
 
-- 开发态 `proxy.conf.js` 默认留空（就是跨域直连），需要走代理时再放开示例。
+- **同机反代还要单独放行 `socket.io`**：`/api/` 只管 HTTP，实时通道（行情页的 `data:changed` 信号）
+  不走拦截器、按 socket.io 默认路径 `/socket.io/` 打到**页面所在的同一台 nginx**上。
+  填 `/api/` 时 `apiOriginOf` 推导出的源就是页面源，所以这条 `location` 与 `/api/` **必须成对出现**；
+  漏掉它会落到 SPA 兜底（返回 `index.html`、握手 404），**前端不报错**，但同步页顶部会常驻
+  「实时通道未连接，页面已改为每 5 秒自动刷新。」—— 即实时性静默退化：
+
+  ```nginx
+  # 放在 http {} 块里（与 server 同级）：只在真正升级时才发 Connection: upgrade
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+  }
+
+  # 与上面的 location /api/ 放在同一个 server 块里
+  location /socket.io/ {
+    proxy_pass http://127.0.0.1:3000;   # ⚠ 末尾不能带 / —— 带斜杠会剥掉 /socket.io/ 前缀，握手同样 404
+    proxy_http_version 1.1;             # WebSocket 升级要求 1.1（默认 1.0 只能走长轮询）
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_buffering off;                # 长轮询的响应要及时送出，不能被缓冲攒着
+    proxy_read_timeout 600s;            # 默认 60s 对空闲的 WebSocket 偏短
+    proxy_send_timeout 600s;
+  }
+  ```
+
+  两条 `proxy_pass` 的写法**故意不同**：`/api/` 末尾带 `/`（用前缀换掉 URL 前缀），
+  `/socket.io/` 末尾不带（原样保留路径，后端网关的 `path` 就是 `/socket.io`）。
+  验证：浏览器 Network 里先出现 `/socket.io/?EIO=4&transport=polling` 的 `200`，随后出现
+  `transport=websocket` 的 `101`；同步页的黄色提示不再出现。
+
+- 开发态 `proxy.conf.js` 默认留空（就是跨域直连），需要走代理时再放开示例；走代理时同样要给
+  `/socket.io` 加一条带 `ws: true` 的规则（socket 的地址由 `baseUrl` 推导，不认代理表）。
 
 ### 4. Docker 镜像
 
@@ -112,6 +146,9 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
 ```
 
 - 镜像内置 `nginx.conf`：SPA 兜底、gzip、`index.html` 与 `assets/config.json` 不缓存、带哈希的静态资源长缓存。
+- ⚠️ 镜像**不含** `/api/` 与 `/socket.io/` 反代（它只托管静态文件，后端通常是另一台机器或另一个容器）：
+  要么把 `baseUrl` 填成完整的后端地址（含协议与端口），要么在**宿主** nginx 上做那两条反代、
+  再由宿主 nginx 指向本容器 —— 否则实时通道会因缺少 `/socket.io/` 而退化为 5 秒轮询。
 - **改后端地址不需要重建镜像**，把配置文件挂进容器即可：
 
   ```bash
@@ -223,6 +260,7 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
    - ⚠ **建连地址必须显式传后端 origin**（`apiOriginOf(baseUrl, location.href)`）：socket 不走 HTTP 拦截器，
      `io()` 空参连的是**前端页面源**（dev 的 `:4200` / 生产 nginx 的 `:80`），握手必然 404 且静默失败。
      后端 `DataGateway` 相应开了 `cors`，否则跨域 polling 仍会被浏览器拦掉。
+     ⇒ 生产用 `/api/` 同机反代时，nginx 必须补一条 `/socket.io/`（含 WebSocket 升级），写法见上文「同机反代」。
    - ⚠ **必须有兜底轮询**：通道连不上（地址 / CORS / 代理任一处不对）时每 5s 拉一次快照，并在同步页给出提示；
      只靠实时信号的话，界面会永远停在首屏那一次快照上（「后端在跑、页面不动」）。
    - 节流是 **leading + trailing**（被挡下的那一次在窗口结束时补拉），且只接受最后发起的响应（旧响应后到即丢弃）。
