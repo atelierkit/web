@@ -1,7 +1,7 @@
 <div class="container">
   <nz-card [nzBordered]="false" class="lock-card">
     <div class="avatar">
-      <nz-avatar [nzSrc]="user.avatar" nzIcon="user" nzSize="large" />
+      <user-avatar [src]="user.avatar" [name]="user.name" size="large" />
     </div>
     <form nz-form [formGroup]="f" (ngSubmit)="submit()" role="form">
       @if (error) {

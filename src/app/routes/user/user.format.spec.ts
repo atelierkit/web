@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { USER_TABS, expiredLabel, tabIndexOf, userStatusLabel } from './user.format';
+import { USER_TABS, cropRectOf, expiredLabel, tabIndexOf, userStatusLabel } from './user.format';
 
 describe('user.format', () => {
   it('标签页与子路由逐项对应，顺序即下标', () => {
@@ -27,6 +27,26 @@ describe('user.format', () => {
   it('启用状态用中文文案展示（旧项目是 -1/0/1 三个数字）', () => {
     expect(userStatusLabel(true)).toBe('启用');
     expect(userStatusLabel(false)).toBe('禁用');
+  });
+
+  describe('cropRectOf', () => {
+    it('横图取短边并水平居中', () => {
+      expect(cropRectOf(800, 400)).toEqual({ sx: 200, sy: 0, size: 400 });
+    });
+
+    it('竖图取短边并垂直居中', () => {
+      expect(cropRectOf(400, 800)).toEqual({ sx: 0, sy: 200, size: 400 });
+    });
+
+    it('正方形原样裁', () => {
+      expect(cropRectOf(300, 300)).toEqual({ sx: 0, sy: 0, size: 300 });
+    });
+
+    it('尺寸为 0 或非法值时给 size = 0，由调用方拦下', () => {
+      expect(cropRectOf(0, 0)).toEqual({ sx: 0, sy: 0, size: 0 });
+      expect(cropRectOf(Number.NaN, 100)).toEqual({ sx: 0, sy: 0, size: 0 });
+      expect(cropRectOf(-10, 100)).toEqual({ sx: 0, sy: 0, size: 0 });
+    });
   });
 
   describe('expiredLabel', () => {

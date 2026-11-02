@@ -110,7 +110,7 @@ export class AuthUserEditComponent implements OnInit {
     },
     $password: { placeholder: '初始密码（8-64 位，含字母和数字）' },
     $name: { placeholder: '缺省取用户名' },
-    $avatar: { placeholder: '头像图片地址' },
+    $avatar: { placeholder: '留空则显示名字首字符；也可粘贴图片地址' },
     $email: { placeholder: '可选资料，用于找回密码' },
     $roles: {
       widget: 'select',

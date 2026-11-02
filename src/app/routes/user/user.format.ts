@@ -28,6 +28,47 @@ export function tabIndexOf(url: string): number {
   return index < 0 ? 0 : index;
 }
 
+/** 头像裁剪后的边长（像素），注：256 在 2× 屏的头像尺寸下依然清晰，单张通常 20~40KB */
+export const AVATAR_SIDE = 256;
+
+/** 正方形裁剪区域 */
+export interface AvatarCrop {
+  /** 裁剪起点 X */
+  sx: number;
+  /** 裁剪起点 Y */
+  sy: number;
+  /** 裁剪边长 */
+  size: number;
+}
+
+/**
+ * 计算居中正方形裁剪区域
+ *
+ * 注：头像统一按「取短边、居中裁」处理 —— 不裁的话 16:9 的照片会被压成扁脸；
+ * 尺寸为 0（空图 / 损坏文件）时返回 size = 0，由调用方拦下
+ *
+ * @param width 原图宽度
+ * @param height 原图高度
+ * @returns 裁剪区域
+ */
+export function cropRectOf(width: number, height: number): AvatarCrop {
+  /** 可用的非负尺寸 */
+  const w = Number.isFinite(width) ? Math.max(0, width) : 0;
+  /** 可用的非负尺寸 */
+  const h = Number.isFinite(height) ? Math.max(0, height) : 0;
+  /** 短边长度 */
+  const size = Math.min(w, h);
+  // 没有可裁剪的面积时统一给零值，避免留下 (0, 50) 这种「有偏移却没尺寸」的组合
+  if (!(size > 0)) {
+    return { sx: 0, sy: 0, size: 0 };
+  }
+  return {
+    sx: (w - size) / 2,
+    sy: (h - size) / 2,
+    size,
+  };
+}
+
 /**
  * 用户启用状态文案
  *

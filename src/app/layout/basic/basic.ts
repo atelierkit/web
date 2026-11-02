@@ -6,7 +6,7 @@ import {
   LayoutDefaultOptions,
   LayoutDefaultService,
 } from '@delon/theme/layout-default';
-import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { UserAvatar } from '@shared';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -72,7 +72,11 @@ import { HeaderUser } from './widgets/user';
           [nzDropdownMenu]="userMenu"
           class="alain-default__aside-user"
         >
-          <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
+          <user-avatar
+            class="alain-default__aside-user-avatar"
+            [src]="user.avatar"
+            [name]="user.name"
+          />
           <div class="alain-default__aside-user-info">
             <strong>{{ user.name }}</strong>
             <p class="mb0">{{ user.email }}</p>
@@ -97,7 +101,7 @@ import { HeaderUser } from './widgets/user';
     NzIconModule,
     NzMenuModule,
     NzDropdownModule,
-    NzAvatarModule,
+    UserAvatar,
     HeaderSearch,
     HeaderClearStorage,
     HeaderFullScreen,

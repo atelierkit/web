@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { apiErrorMessage } from '@core';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, UserAvatar } from '@shared';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 
@@ -24,7 +24,7 @@ import { AuthUserEditComponent } from './edit/edit.component';
   selector: 'auth-user',
   templateUrl: './user.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [...SHARED_IMPORTS],
+  imports: [...SHARED_IMPORTS, UserAvatar],
 })
 export class AuthUserComponent implements OnInit {
   private readonly authSrv = inject(AuthService);

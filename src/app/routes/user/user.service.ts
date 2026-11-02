@@ -39,8 +39,8 @@ export interface ProfileUser {
 export interface ProfileUpdatePayload {
   /** 昵称 */
   name: string;
-  /** 头像URL */
-  avatar: string;
+  /** 头像，注：可选 —— 不传表示保持原值；头像单独走上传接口，这里一般只提交昵称 */
+  avatar?: string;
 }
 
 /** 修改密码信息，注：后端要求先校验原密码，避免拿到登录态就能直接改密 */
@@ -79,6 +79,23 @@ export class UserService {
    */
   update(value: ProfileUpdatePayload): Observable<unknown> {
     return this.http.post('user/update', value);
+  }
+
+  /**
+   * 上传头像
+   *
+   * 注 1：前端已裁成 256×256，后端按文件头校验格式（不信 mimetype）并返回新的头像地址
+   * 注 2：字段名固定为 `file`，与后端 `FileInterceptor('file')` 对齐；
+   *      不手动设 Content-Type —— 由浏览器补 multipart boundary，手写会把 boundary 写没
+   *
+   * @param file 裁剪后的图片数据
+   * @returns 新的头像地址
+   */
+  uploadAvatar(file: Blob): Observable<{ avatar: string }> {
+    /** 上传表单 */
+    const body = new FormData();
+    body.append('file', file, 'avatar.webp');
+    return this.http.post<{ avatar: string }>('user/avatar', body);
   }
 
   /**

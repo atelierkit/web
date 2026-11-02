@@ -4,8 +4,8 @@ import { Router, RouterLink } from '@angular/router';
 import { apiErrorMessage } from '@core';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { SettingsService, User } from '@delon/theme';
+import { UserAvatar } from '@shared';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
-import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -30,7 +30,7 @@ import { UserService } from '../../user/user.service';
     ReactiveFormsModule,
     RouterLink,
     NzAlertModule,
-    NzAvatarModule,
+    UserAvatar,
     NzCardModule,
     NzFormModule,
     NzInputModule,

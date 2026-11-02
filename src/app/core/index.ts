@@ -1,3 +1,4 @@
+export * from './asset-url';
 export * from './net/default.interceptor';
 export * from './net/helper';
 export * from './startup/startup.service';

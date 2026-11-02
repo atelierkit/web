@@ -5,10 +5,6 @@
 </ng-template>
 <st #st [data]="data()" [columns]="columns" [loading]="loading()">
   <ng-template st-row="avatar" let-item>
-    @if (item.avatar) {
-      <nz-avatar nzSize="small" [nzSrc]="item.avatar" />
-    } @else {
-      <nz-avatar nzSize="small" nzIcon="user" />
-    }
+    <user-avatar [src]="item.avatar" [name]="item.name" [username]="item.username" size="small" />
   </ng-template>
 </st>

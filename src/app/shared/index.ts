@@ -1,6 +1,8 @@
 // Components
+export * from './avatar/user-avatar';
 
 // Utils
+export * from './utils/avatar';
 export * from './utils/token';
 export * from './utils/password';
 export * from './utils/result';
