@@ -30,6 +30,11 @@ export class AuthTokenComponent implements OnInit {
   /** 列定义 */
   readonly columns: STColumn[] = [
     { title: '用户ID', index: 'id' },
+    {
+      title: '设备',
+      index: 'device',
+      format: (item: STData) => this.deviceLabel(item['device']),
+    },
     { title: '令牌', index: 'code' },
     {
       title: '创建时间',
@@ -90,6 +95,24 @@ export class AuthTokenComponent implements OnInit {
       error: (err: unknown) =>
         this.msgSrv.error(apiErrorMessage(err, '作废令牌失败，请稍后重试！')),
     });
+  }
+
+  /**
+   * 设备标识展示文案
+   *
+   * 注：设备标识由客户端生成，本身没有可读含义，这里只把「未上报 / 缺失」翻译成人话；
+   * 同一用户在同一设备上登录时旧令牌会被顶掉，因此这里的每一行即一个在线设备
+   *
+   * @param value 设备标识
+   * @returns 展示文案
+   */
+  private deviceLabel(value: unknown): string {
+    /** 设备标识 */
+    const device = String(value ?? '');
+    if (!device || device === 'unreported') {
+      return '未上报';
+    }
+    return device;
   }
 
   /**

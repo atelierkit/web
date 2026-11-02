@@ -99,6 +99,8 @@ describe('PassportService', () => {
         password: 'abc12345',
         name: undefined,
         email: undefined,
+        // 注：初始化成功即完成登录，设备标识需与后续登录一致
+        deviceId: expect.any(String),
       });
       expect(req.request.context.get(ALLOW_ANONYMOUS)).toBe(true);
       req.flush({ id: 1, code: 'abc', valid: 1440, expired: 0 });
@@ -143,7 +145,12 @@ describe('PassportService', () => {
         token = model as { token?: string };
       });
       const req = http.expectOne('passport/login');
-      expect(req.request.body).toEqual({ username: 'Admin', password: 'abc12345' });
+      expect(req.request.body).toEqual({
+        username: 'Admin',
+        password: 'abc12345',
+        // 注：设备标识由本地存储生成，随登录一并上报，服务端按它划分会话
+        deviceId: expect.any(String),
+      });
       expect(req.request.context.get(ALLOW_ANONYMOUS)).toBe(true);
       req.flush({ id: 7, code: 'code', valid: 60, expired: 0 });
 

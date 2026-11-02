@@ -4,6 +4,7 @@ import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenModel } from '@delon/auth';
 import type { OperationResult } from '@shared';
 import { Observable, catchError, map, of, shareReplay, tap } from 'rxjs';
 
+import { getDeviceId } from '../net/device';
 import { normalizeToken } from '../net/helper';
 
 /** 后端签发的令牌对象 */
@@ -119,6 +120,8 @@ export class PassportService {
           password: payload.password,
           name: payload.name?.trim() || undefined,
           email: payload.email?.trim() || undefined,
+          // 注：初始化成功即完成登录，设备标识要与后续登录一致，否则同一台机器会留下两个会话
+          deviceId: getDeviceId(),
         },
         { context: anonymous(), headers },
       )
@@ -134,6 +137,9 @@ export class PassportService {
   /**
    * 用户名密码登录
    *
+   * 注：随登录信息一并上报设备标识，服务端按设备划分会话 ——
+   * 同一设备重复登录只保留一个令牌，电脑与手机可同时在线
+   *
    * @param payload 登录信息
    * @returns 令牌模型
    */
@@ -141,7 +147,11 @@ export class PassportService {
     return this.http
       .post<ApiToken>(
         'passport/login',
-        { username: payload.username.trim(), password: payload.password },
+        {
+          username: payload.username.trim(),
+          password: payload.password,
+          deviceId: getDeviceId(),
+        },
         { context: anonymous() },
       )
       .pipe(map((token) => this.save(token, payload.username)));
