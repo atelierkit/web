@@ -29,10 +29,6 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
           <nz-icon nzType="setting" class="mr-sm" />
           登录有效期
         </div>
-        <div nz-menu-item routerLink="/exception/trigger">
-          <nz-icon nzType="close-circle" class="mr-sm" />
-          触发错误
-        </div>
         <li nz-menu-divider></li>
         <div nz-menu-item (click)="logout()">
           <nz-icon nzType="logout" class="mr-sm" />
