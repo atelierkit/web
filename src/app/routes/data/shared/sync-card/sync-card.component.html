@@ -14,6 +14,26 @@
     <div>{{ stateText(card().state) }}</div>
   </div>
 
+  @if (showProgress) {
+    <div class="mt-sm">
+      <nz-progress
+        nzSize="small"
+        [nzPercent]="percent"
+        [nzFormat]="progressFormat"
+        [nzShowInfo]="true"
+      />
+      @if (card().stage) {
+        <div class="text-sm">{{ card().stage }}</div>
+      }
+    </div>
+  } @else if (card().stage) {
+    <div class="mt-sm text-sm">{{ card().stage }}</div>
+  }
+
+  @if (timeText(card().updatedAt)) {
+    <div class="mt-sm text-sm">最后更新：{{ timeText(card().updatedAt) }}</div>
+  }
+
   @if (showActions()) {
     <div class="mt-md">
       <button nz-button nzType="primary" nzSize="small" (click)="start.emit(card().target)">

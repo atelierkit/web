@@ -1,17 +1,77 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  apiOriginOf,
   changeColorClass,
   changePercentText,
   countText,
   estimateText,
+  percentOf,
   progressUnitOf,
   stateTag,
   stateText,
+  timeTextOf,
   DATA_STATE,
 } from './data.format';
 
 describe('data.format', () => {
+  describe('apiOriginOf', () => {
+    it('协议相对地址按页面协议补齐（dev 的 //localhost:3000/）', () => {
+      expect(apiOriginOf('//localhost:3000/', 'http://localhost:4200/#/data/sync')).toBe(
+        'http://localhost:3000',
+      );
+      expect(apiOriginOf('//localhost:3000/', 'https://example.com/#/')).toBe(
+        'https://localhost:3000',
+      );
+    });
+
+    it('绝对地址原样取 origin（丢掉路径，socket 只认源）', () => {
+      expect(apiOriginOf('http://192.168.1.3:3000/api/', 'http://x/')).toBe(
+        'http://192.168.1.3:3000',
+      );
+    });
+
+    it('缺失或非法配置返回 null（调用方据此判定「不能建连」）', () => {
+      expect(apiOriginOf(undefined, 'http://x/')).toBeNull();
+      expect(apiOriginOf('', 'http://x/')).toBeNull();
+      expect(apiOriginOf('   ', 'http://x/')).toBeNull();
+      expect(apiOriginOf('http://', 'not a url')).toBeNull();
+    });
+  });
+
+  describe('percentOf', () => {
+    it('四舍五入到整数百分比', () => {
+      expect(percentOf(5, 10)).toBe(50);
+      expect(percentOf(1, 3)).toBe(33);
+      expect(percentOf(10, 10)).toBe(100);
+    });
+
+    it('总量未知或为 0 时给 0（不显示假进度）', () => {
+      expect(percentOf(5, 0)).toBe(0);
+      expect(percentOf(0, 0)).toBe(0);
+      expect(percentOf(5, -1)).toBe(0);
+    });
+
+    it('越界不超过 100', () => {
+      expect(percentOf(15, 10)).toBe(100);
+    });
+  });
+
+  describe('timeTextOf', () => {
+    it('ISO 串按本地时区格式化为 MM-dd HH:mm:ss', () => {
+      // 用本地时间构造，避免测试机时区不同导致断言漂移
+      const local = new Date(2026, 0, 5, 9, 8, 7);
+      expect(timeTextOf(local.toISOString())).toBe('01-05 09:08:07');
+    });
+
+    it('空值与非法值返回空串（模板据此整行不显示）', () => {
+      expect(timeTextOf(null)).toBe('');
+      expect(timeTextOf(undefined)).toBe('');
+      expect(timeTextOf('')).toBe('');
+      expect(timeTextOf('not-a-date')).toBe('');
+    });
+  });
+
   describe('progressUnitOf', () => {
     it('证券 = 只，日历/按交易日 = 天', () => {
       expect(progressUnitOf('Security')).toBe('只');

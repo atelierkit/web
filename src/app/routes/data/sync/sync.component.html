@@ -4,6 +4,26 @@
   <nz-alert nzType="error" nzShowIcon [nzMessage]="store.failed()" class="mb-md" />
 }
 
+@if (store.notice()) {
+  <nz-alert
+    nzType="success"
+    nzShowIcon
+    nzCloseable
+    [nzMessage]="store.notice()"
+    (nzOnClose)="store.closeNotice()"
+    class="mb-md"
+  />
+}
+
+@if (!store.realtimeLive()) {
+  <nz-alert
+    nzType="warning"
+    nzShowIcon
+    nzMessage="实时通道未连接，页面已改为每 5 秒自动刷新。"
+    class="mb-md"
+  />
+}
+
 @if (store.loading() && store.cards().length === 0) {
   <div class="py-lg text-center">
     <nz-spin nzSimple />

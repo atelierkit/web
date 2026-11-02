@@ -21,6 +21,15 @@ vi.mock('socket.io-client', () => ({
   io: ioMock,
 }));
 
+/** 取出注册在某个事件上的回调 */
+function handlerOf(event: string): (...args: unknown[]) => void {
+  const call = socketMock.on.mock.calls.find((c) => c[0] === event);
+  if (!call) {
+    throw new Error(`没有注册 ${event} 事件的回调。`);
+  }
+  return call[1] as (...args: unknown[]) => void;
+}
+
 describe('DataRealtime', () => {
   beforeEach(() => {
     ioMock.mockClear();
@@ -29,14 +38,15 @@ describe('DataRealtime', () => {
     socketMock.disconnect.mockClear();
   });
 
-  it('connect 建立连接并订阅 data:changed 信号', () => {
+  it('connect 用显式后端地址建连（不能靠 io() 默认的页面源）', () => {
     const realtime = new DataRealtime();
 
-    realtime.connect(() => undefined);
+    realtime.connect('http://localhost:3000', { onChange: () => undefined });
 
     expect(ioMock).toHaveBeenCalledTimes(1);
-    expect(socketMock.on).toHaveBeenCalledTimes(1);
-    expect(socketMock.on.mock.calls[0][0]).toBe('data:changed');
+    // ⚠ 这条断言是本缺陷的回归守卫：空参 io() 连的是前端页面源，握手必然 404
+    expect(ioMock).toHaveBeenCalledWith('http://localhost:3000', expect.anything());
+    expect(socketMock.on).toHaveBeenCalledWith('data:changed', expect.any(Function));
   });
 
   it('收到信号时把 reason 转交给回调', () => {
@@ -44,27 +54,51 @@ describe('DataRealtime', () => {
     /** 收到的原因 */
     const reasons: Array<DataChangedSignal['reason']> = [];
 
-    realtime.connect((reason: DataChangedSignal['reason']) => reasons.push(reason));
+    realtime.connect('http://localhost:3000', {
+      onChange: (reason: DataChangedSignal['reason']) => reasons.push(reason),
+    });
 
-    // 取出注册时的回调，手动触发一次信号
-    const handler = socketMock.on.mock.calls[0][1] as (signal: DataChangedSignal) => void;
-    handler({ reason: 'finish', at: Date.now() });
+    handlerOf('data:changed')({ reason: 'finish', at: Date.now() });
 
     expect(reasons).toEqual(['finish']);
+  });
+
+  it('连接与断开状态回传给 onStatus（store 据此决定是否兜底轮询）', () => {
+    const realtime = new DataRealtime();
+    /** 状态序列 */
+    const states: boolean[] = [];
+
+    realtime.connect('http://localhost:3000', {
+      onChange: () => undefined,
+      onStatus: (live: boolean) => states.push(live),
+    });
+
+    handlerOf('connect')();
+    handlerOf('disconnect')();
+    handlerOf('connect_error')(new Error('x'));
+
+    expect(states).toEqual([true, false, false]);
+  });
+
+  it('没有传 onStatus 时收到状态事件也不报错', () => {
+    const realtime = new DataRealtime();
+    realtime.connect('http://localhost:3000', { onChange: () => undefined });
+
+    expect(() => handlerOf('connect_error')(new Error('x'))).not.toThrow();
   });
 
   it('重复 connect 不会重复建连接', () => {
     const realtime = new DataRealtime();
 
-    realtime.connect(() => undefined);
-    realtime.connect(() => undefined);
+    realtime.connect('http://localhost:3000', { onChange: () => undefined });
+    realtime.connect('http://localhost:3000', { onChange: () => undefined });
 
     expect(ioMock).toHaveBeenCalledTimes(1);
   });
 
   it('disconnect 断开连接', () => {
     const realtime = new DataRealtime();
-    realtime.connect(() => undefined);
+    realtime.connect('http://localhost:3000', { onChange: () => undefined });
 
     realtime.disconnect();
 

@@ -1,10 +1,14 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { SettingsService } from '@delon/theme';
+import { Subject, of, throwError } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 
-import { DataRealtime, type DataChangedSignal } from './data.realtime';
+import { DataRealtime, type DataChangedSignal, type DataRealtimeHandlers } from './data.realtime';
 import { DataService, type DataSnapshot } from './data.service';
 import { DataStore } from './data.store';
+
+/** 测试用的后端地址（与 assets/config.json 同形：协议相对） */
+const BASE_URL = '//localhost:3000/';
 
 /** 替身 DataService 的错误注入配置 */
 interface ServiceErrors {
@@ -61,23 +65,29 @@ function makeService(
 }
 
 /**
- * 造一个内存替身 DataRealtime（记录 connect 调用并捕获信号回调）
+ * 造一个内存替身 DataRealtime（记录 connect 入参并捕获回调）
  */
 function makeRealtime(): {
-  calls: { connect: number };
+  calls: { connect: number; url: string };
   /** 模拟服务端推来一次「数据变了」信号 */
   emit: (reason: DataChangedSignal['reason']) => void;
+  /** 模拟连接状态变化（false = 握手失败 / 断开） */
+  status: (live: boolean) => void;
   service: DataRealtime;
 } {
-  const calls = { connect: 0 };
+  const calls = { connect: 0, url: '' };
   let handler: ((reason: DataChangedSignal['reason']) => void) | null = null;
+  let statusHandler: ((live: boolean) => void) | null = null;
   return {
     calls,
     emit: (reason: DataChangedSignal['reason']) => handler?.(reason),
+    status: (live: boolean) => statusHandler?.(live),
     service: {
-      connect: vi.fn((cb: (reason: DataChangedSignal['reason']) => void) => {
+      connect: vi.fn((url: string, handlers: DataRealtimeHandlers) => {
         calls.connect++;
-        handler = cb;
+        calls.url = url;
+        handler = handlers.onChange;
+        statusHandler = handlers.onStatus ?? null;
       }),
       disconnect: vi.fn(),
     } as unknown as DataRealtime,
@@ -94,12 +104,18 @@ function emptySnapshot(): DataSnapshot {
  *
  * @param service 替身 DataService
  * @param realtime 替身 DataRealtime
+ * @param baseUrl 运行时配置里的后端地址（传 null 模拟配置缺失）
  */
-function storeOf(service: DataService, realtime: DataRealtime): DataStore {
+function storeOf(
+  service: DataService,
+  realtime: DataRealtime,
+  baseUrl: string | null = BASE_URL,
+): DataStore {
   TestBed.configureTestingModule({
     providers: [
       { provide: DataService, useValue: service },
       { provide: DataRealtime, useValue: realtime },
+      { provide: SettingsService, useValue: { getData: () => baseUrl ?? undefined } },
     ],
   });
   return TestBed.inject(DataStore);
@@ -277,5 +293,142 @@ describe('DataStore', () => {
 
     store.start('BarByDate');
     expect(store.failed()).toBe('请求失败，请稍后重试！');
+  });
+
+  it('connect 用 baseUrl 推导的后端源建连（而不是页面源）', () => {
+    const { service } = makeService();
+    const realtime = makeRealtime();
+    const store = storeOf(service, realtime.service);
+
+    store.connect();
+
+    // ⚠ 回归守卫：曾经空参 io() 连到 :4200（dev）/ nginx :80（生产），实时通道静默失效
+    expect(realtime.calls.url).toBe('http://localhost:3000');
+  });
+
+  it('baseUrl 缺失时不建连、明确提示并转为定时刷新', () => {
+    const { service } = makeService();
+    const realtime = makeRealtime();
+    const store = storeOf(service, realtime.service, null);
+
+    store.connect();
+
+    expect(realtime.calls.connect).toBe(0);
+    expect(store.realtimeLive()).toBe(false);
+    expect(store.failed()).toContain('未配置有效后端地址');
+  });
+
+  it('通道断开时每 5 秒兜底轮询（后端在跑、页面不动不再发生）', () => {
+    vi.useFakeTimers();
+    try {
+      const { service, calls } = makeService();
+      const realtime = makeRealtime();
+      const store = storeOf(service, realtime.service);
+
+      store.connect();
+      expect(calls.snapshot).toBe(1);
+
+      realtime.status(false);
+      expect(store.realtimeLive()).toBe(false);
+
+      // 不到 5 秒不拉
+      vi.advanceTimersByTime(3000);
+      expect(calls.snapshot).toBe(1);
+
+      // 满 5 秒补一次
+      vi.advanceTimersByTime(2000);
+      expect(calls.snapshot).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('被节流挡下的信号在窗口结束时补拉（尾包不丢）', () => {
+    vi.useFakeTimers();
+    try {
+      const { service, calls } = makeService();
+      const realtime = makeRealtime();
+      const store = storeOf(service, realtime.service);
+
+      store.connect();
+      expect(calls.snapshot).toBe(1);
+
+      // 一秒内的进度信号被节流，但会记成「待补」
+      realtime.emit('progress');
+      expect(calls.snapshot).toBe(1);
+
+      vi.advanceTimersByTime(1000);
+      expect(calls.snapshot).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('旧响应后到时丢弃，不覆盖新快照', () => {
+    /** 每次请求的可控响应流 */
+    const pending: Array<Subject<DataSnapshot>> = [];
+    const service = {
+      snapshot: vi.fn(() => {
+        const subject = new Subject<DataSnapshot>();
+        pending.push(subject);
+        return subject.asObservable();
+      }),
+      start: vi.fn(),
+      pause: vi.fn(),
+    } as unknown as DataService;
+    const { service: realtime } = makeRealtime();
+    const store = storeOf(service, realtime);
+
+    store.refresh(true);
+    store.refresh(true);
+
+    const card = (name: string): DataSnapshot => ({
+      cards: [
+        { target: 'Calendar', displayName: name, lastDate: null, recordCount: 0, state: null },
+      ],
+      queue: { queued: 0, running: 0 },
+      recent: [],
+    });
+
+    // 后发的那次先回，先发的那次后回
+    pending[1].next(card('新'));
+    pending[0].next(card('旧'));
+
+    expect(store.cards()[0].displayName).toBe('新');
+  });
+
+  it('start 成功把后端的说明回显给用户', () => {
+    const { service } = makeService();
+    const { service: realtime } = makeRealtime();
+    const store = storeOf(service, realtime);
+
+    store.start('BarByDate');
+
+    expect(store.notice()).toBe('已入队 1 条执行。');
+  });
+
+  it('pause 未命中执行时给出明确回执（而不是静默无反应）', () => {
+    const service = {
+      snapshot: vi.fn(() => of(emptySnapshot())),
+      start: vi.fn(),
+      pause: vi.fn(() => of({ paused: 0 })),
+    } as unknown as DataService;
+    const { service: realtime } = makeRealtime();
+    const store = storeOf(service, realtime);
+
+    store.pause('BarByDate');
+
+    expect(store.notice()).toContain('没有正在执行的任务');
+  });
+
+  it('closeNotice 清空回执', () => {
+    const { service } = makeService();
+    const { service: realtime } = makeRealtime();
+    const store = storeOf(service, realtime);
+
+    store.start('BarByDate');
+    store.closeNotice();
+
+    expect(store.notice()).toBe('');
   });
 });

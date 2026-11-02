@@ -1,7 +1,16 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 
-import { countText, stateTag, stateText, type DataCard, type DataTarget } from '../../data.format';
+import {
+  countText,
+  DATA_STATE,
+  percentOf,
+  stateTag,
+  stateText,
+  timeTextOf,
+  type DataCard,
+  type DataTarget,
+} from '../../data.format';
 
 /**
  * 四张同步状态卡片的唯一实现（仪表板与同步页共用）
@@ -32,11 +41,32 @@ export class DataSyncCardComponent {
   readonly stateText = stateText;
   /** 状态徽标 */
   readonly stateTag = stateTag;
+  /** 更新时刻文案（不依赖 DatePipe：模板里没有 CommonModule 的管道） */
+  readonly timeText = timeTextOf;
 
-  /** 是否可暂停（只有按交易日两类可能 Running） */
+  /** 是否显示进度条（只有执行中且有总量才有意义） */
+  get showProgress(): boolean {
+    const card = this.card();
+    return card.state === DATA_STATE.RUNNING && (card.total ?? 0) > 0;
+  }
+
+  /** 进度百分比 */
+  get percent(): number {
+    return percentOf(this.card().done ?? 0, this.card().total ?? 0);
+  }
+
+  /** 进度文字（`50%（5 / 10）`，总量未知时只显示百分比） */
+  readonly progressFormat = (percent: number): string => {
+    const card = this.card();
+    const total = card.total ?? 0;
+    return total > 0 ? `${percent}%（${card.done ?? 0} / ${total}）` : `${percent}%`;
+  };
+
+  /** 是否可暂停（按交易日两类 + 确实有活跃执行；否则点了也不会有任何效果） */
   get canPause(): boolean {
-    const t = this.card().target;
-    return t === 'BarByDate' || t === 'AdjustFactor';
+    const card = this.card();
+    const byTradeDate = card.target === 'BarByDate' || card.target === 'AdjustFactor';
+    return byTradeDate && (card.state === DATA_STATE.RUNNING || card.state === DATA_STATE.QUEUED);
   }
 
   /** 按钮文案：同步（从未同步）/ 继续（有历史） */

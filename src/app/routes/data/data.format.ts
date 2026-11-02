@@ -34,6 +34,58 @@ export interface DataCard {
   recordCount: number;
   /** 最近一次执行状态（无历史为 null） */
   state: DataState | null;
+  /** 最近一次执行的阶段（失败原因也在这里） */
+  stage?: string | null;
+  /** 最近一次执行的已完成量 */
+  done?: number;
+  /** 最近一次执行的总量（0 = 未知） */
+  total?: number;
+  /** 最近一次执行的开始/结束时刻（ISO 串） */
+  updatedAt?: string | null;
+}
+
+/**
+ * 后端源（socket 通道要连的 origin）
+ *
+ * ⚠ HTTP 请求由拦截器拼 `baseUrl`，socket 不会走拦截器 —— 不显式推导就会连到**前端页面源**，
+ * 表现为握手 404、实时通道静默失效（页面只在进入时刷新一次）。
+ *
+ * @param baseUrl 运行时配置 `assets/config.json` 的 `baseUrl`（可能是 `//host:port/`）
+ * @param href 当前页面地址（协议相对地址要靠它补协议）
+ */
+export function apiOriginOf(baseUrl: string | null | undefined, href: string): string | null {
+  if (typeof baseUrl !== 'string' || baseUrl.trim() === '') {
+    return null;
+  }
+  try {
+    return new URL(baseUrl, href).origin;
+  } catch {
+    return null;
+  }
+}
+
+/** 进度百分比（0~100 的整数；总量未知时给 0，不显示假进度） */
+export function percentOf(done: number, total: number): number {
+  if (!(total > 0) || !(done > 0)) {
+    return 0;
+  }
+  return Math.min(100, Math.round((done / total) * 100));
+}
+
+/** 时间戳 → `MM-dd HH:mm:ss`（本地时区；空值或非法值返回空串，模板据此整行不显示） */
+export function timeTextOf(iso: string | null | undefined): string {
+  if (typeof iso !== 'string' || iso === '') {
+    return '';
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  const pad = (value: number): string => String(value).padStart(2, '0');
+  return (
+    `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+  );
 }
 
 /** 进度量纲（「剩余 N 只 / N 天」的那个字） */

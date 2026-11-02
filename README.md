@@ -220,6 +220,12 @@ docker run -d --name atelierkit-web -p 8080:80 atelierkit/web
    —— 那会得到「第二份镜像」，两页迟早显示不同的数。
 3. **实时进度走 socket.io 信号式**（`data.realtime.ts`）：WS 只收 `data:changed`（载荷只有 reason + at），
    数值一律走 HTTP 快照；前端频率闸门 1s、终态无条件刷新。依赖 `socket.io-client`。
+   - ⚠ **建连地址必须显式传后端 origin**（`apiOriginOf(baseUrl, location.href)`）：socket 不走 HTTP 拦截器，
+     `io()` 空参连的是**前端页面源**（dev 的 `:4200` / 生产 nginx 的 `:80`），握手必然 404 且静默失败。
+     后端 `DataGateway` 相应开了 `cors`，否则跨域 polling 仍会被浏览器拦掉。
+   - ⚠ **必须有兜底轮询**：通道连不上（地址 / CORS / 代理任一处不对）时每 5s 拉一次快照，并在同步页给出提示；
+     只靠实时信号的话，界面会永远停在首屏那一次快照上（「后端在跑、页面不动」）。
+   - 节流是 **leading + trailing**（被挡下的那一次在窗口结束时补拉），且只接受最后发起的响应（旧响应后到即丢弃）。
 4. **纯逻辑抽到 `data.format.ts` / `browser/browser.format.ts`**（量纲、预计完成时间四档格式、涨跌三色、
    日历网格三态、证券标签映射），原因与 `admin.format.ts` 相同：从组件导入测试会把整片页面模块拖进覆盖率分母。
 5. **界面用 ng-zorro/ng-alain 组件**：四卡照 `kong/dashboard` 的 `nz-row + nz-col + nz-card` 写法（不引 `nz-statistic`）；
