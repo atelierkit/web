@@ -40,7 +40,12 @@ export interface DataCard {
   done?: number;
   /** 最近一次执行的总量（0 = 未知） */
   total?: number;
-  /** 最近一次执行的开始/结束时刻（ISO 串） */
+  /**
+   * 最近一次执行的更新时刻（ISO 串）
+   *
+   * 后端取 `finished_at ?? progress_at ?? started_at`：执行中每批进度写库都会刷新，
+   * 所以卡片上的「最后更新」与进度条同步跳动，而不是停在开始那一刻。
+   */
   updatedAt?: string | null;
 }
 
@@ -72,7 +77,11 @@ export function percentOf(done: number, total: number): number {
   return Math.min(100, Math.round((done / total) * 100));
 }
 
-/** 时间戳 → `MM-dd HH:mm:ss`（本地时区；空值或非法值返回空串，模板据此整行不显示） */
+/**
+ * 时间戳 → `YYYY-MM-DD HH:mm:ss`（本地时区；空值或非法值返回空串，模板据此整行不显示）
+ *
+ * ⚠ 必须带年份：这个时间是「进度条最后一次更新」的判据，跨年/跨月时长只给 `MM-dd` 会读错。
+ */
 export function timeTextOf(iso: string | null | undefined): string {
   if (typeof iso !== 'string' || iso === '') {
     return '';
@@ -83,9 +92,25 @@ export function timeTextOf(iso: string | null | undefined): string {
   }
   const pad = (value: number): string => String(value).padStart(2, '0');
   return (
-    `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
     `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
   );
+}
+
+/** 进度条文字（`50%（5 / 10）`；总量未知时只显示百分比，不编造分母） */
+export function progressTextOf(done: number, total: number): string {
+  const percent = percentOf(done, total);
+  return total > 0 ? `${percent}%（${done} / ${total}）` : `${percent}%`;
+}
+
+/**
+ * 当前正在执行的那张卡（没有则 null）
+ *
+ * ⚠ 只返回一条：进度区一次只展示一个任务的进度条。多消费者并发时按传入顺序取第一个，
+ * 数量差异由调用方用「共 N 个执行中」补足 —— 让这一屏同时列四条，读者还要自己找哪条在动。
+ */
+export function runningCardOf(cards: readonly DataCard[]): DataCard | null {
+  return cards.find((card) => card.state === DATA_STATE.RUNNING) ?? null;
 }
 
 /** 进度量纲（「剩余 N 只 / N 天」的那个字） */

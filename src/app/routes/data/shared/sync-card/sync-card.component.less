@@ -8,3 +8,9 @@
 .sync-state-tag {
   border: 0;
 }
+
+// 最后更新时刻：`YYYY-MM-DD HH:mm:ss` 有 19 个字符，四卡并排时每张卡只有 200 多像素，
+// 逐秒跳动时等宽数字才不会左右抖动（比例数字里 `1` 比 `8` 窄，整行会轻微晃）。
+.sync-updated-at {
+  font-variant-numeric: tabular-nums;
+}

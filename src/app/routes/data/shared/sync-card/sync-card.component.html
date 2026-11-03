@@ -14,24 +14,33 @@
     <div>{{ stateText(card().state) }}</div>
   </div>
 
-  @if (showProgress) {
-    <div class="mt-sm">
-      <nz-progress
-        nzSize="small"
-        [nzPercent]="percent"
-        [nzFormat]="progressFormat"
-        [nzShowInfo]="true"
-      />
-      @if (card().stage) {
-        <div class="text-sm">{{ card().stage }}</div>
-      }
-    </div>
-  } @else if (card().stage) {
+  @if (inlineProgress()) {
+    @if (hasProgress) {
+      <div class="mt-sm">
+        <nz-progress
+          nzSize="small"
+          [nzPercent]="percent"
+          [nzFormat]="progressFormat"
+          [nzShowInfo]="true"
+        />
+        @if (card().stage) {
+          <div class="text-sm">{{ card().stage }}</div>
+        }
+      </div>
+    } @else if (card().stage) {
+      <div class="mt-sm text-sm">{{ card().stage }}</div>
+    }
+  } @else if (!isRunning && card().stage) {
+    <!-- 进度条交给外部后，执行中的阶段归进度区；但失败原因 / 暂停说明必须留在卡上，
+         否则同步页里这张卡片只剩一个「失败」徽标，查不到原因（日志表要翻下一页） -->
     <div class="mt-sm text-sm">{{ card().stage }}</div>
   }
 
   @if (timeText(card().updatedAt)) {
-    <div class="mt-sm text-sm">最后更新：{{ timeText(card().updatedAt) }}</div>
+    <div class="mt-sm">
+      <div class="text-sm">最后更新</div>
+      <div class="sync-updated-at">{{ timeText(card().updatedAt) }}</div>
+    </div>
   }
 
   @if (showActions()) {

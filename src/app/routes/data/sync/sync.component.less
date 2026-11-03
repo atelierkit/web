@@ -1,0 +1,67 @@
+// 「同步进度」区：只显示当前正在执行的那一个任务（一行），没有任务时给一行提示。
+//
+// 为什么不用 nz-progress 自带的 info：它只接收一个 `percent`，拿不到「已完成 / 总量」，
+// 而这一屏要的正是 `50%（5 / 10）` —— 自渲染文字才不被百分比信息量限制。
+// 目标名与数值列固定宽度：进度条的起止点因此稳定，不会随目标名长短左右挪。
+.sync-progress {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  &__name {
+    flex: none;
+    width: 88px;
+    font-weight: 500;
+  }
+
+  &__bar {
+    flex: 1 1 auto;
+    // 进度条宿主是块级元素，作为 flex item 必须给下限，否则窄屏会被阶段说明挤成一条线
+    min-width: 140px;
+  }
+
+  &__value {
+    flex: none;
+    width: 132px;
+    // 逐秒刷新的分母/分子位数会变，等宽数字才不左右抖
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  &__stage {
+    overflow: hidden;
+    flex: 0 1 32%;
+    min-width: 0;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // 空状态（「当前无任务执行」/「排队中」）：行高与有进度时接近，任务起止时进度区不跳
+  &__idle {
+    font-size: 13px;
+    line-height: 22px;
+  }
+}
+
+// 窄屏（卡片已经堆成单列）把阶段说明挪到进度条下方，否则一行放不下四项
+@media (max-width: 575.98px) {
+  .sync-progress {
+    flex-wrap: wrap;
+
+    &__bar {
+      flex: 1 1 100%;
+      order: 3;
+    }
+
+    &__value {
+      width: auto;
+      margin-left: auto;
+    }
+
+    &__stage {
+      flex: 1 1 100%;
+      order: 4;
+    }
+  }
+}

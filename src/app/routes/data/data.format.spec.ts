@@ -7,11 +7,14 @@ import {
   countText,
   estimateText,
   percentOf,
+  progressTextOf,
   progressUnitOf,
+  runningCardOf,
   stateTag,
   stateText,
   timeTextOf,
   DATA_STATE,
+  type DataCard,
 } from './data.format';
 
 describe('data.format', () => {
@@ -58,10 +61,10 @@ describe('data.format', () => {
   });
 
   describe('timeTextOf', () => {
-    it('ISO 串按本地时区格式化为 MM-dd HH:mm:ss', () => {
+    it('ISO 串按本地时区格式化为 YYYY-MM-DD HH:mm:ss（带年份，跨年不会误读）', () => {
       // 用本地时间构造，避免测试机时区不同导致断言漂移
       const local = new Date(2026, 0, 5, 9, 8, 7);
-      expect(timeTextOf(local.toISOString())).toBe('01-05 09:08:07');
+      expect(timeTextOf(local.toISOString())).toBe('2026-01-05 09:08:07');
     });
 
     it('空值与非法值返回空串（模板据此整行不显示）', () => {
@@ -69,6 +72,56 @@ describe('data.format', () => {
       expect(timeTextOf(undefined)).toBe('');
       expect(timeTextOf('')).toBe('');
       expect(timeTextOf('not-a-date')).toBe('');
+    });
+  });
+
+  describe('progressTextOf', () => {
+    it('带分母时给 `百分比（已完成 / 总量）`', () => {
+      expect(progressTextOf(5, 10)).toBe('50%（5 / 10）');
+      expect(progressTextOf(10, 10)).toBe('100%（10 / 10）');
+    });
+
+    it('总量未知时只给百分比，不编造分母', () => {
+      expect(progressTextOf(5, 0)).toBe('0%');
+      expect(progressTextOf(0, 0)).toBe('0%');
+    });
+  });
+
+  describe('runningCardOf', () => {
+    const cardOf = (target: DataCard['target'], state: DataCard['state']): DataCard => ({
+      target,
+      displayName: target,
+      lastDate: null,
+      recordCount: 0,
+      state,
+    });
+
+    it('只挑执行中的那一张（终态、排队、未同步都不算）', () => {
+      const cards = [
+        cardOf('Security', DATA_STATE.SUCCEEDED),
+        cardOf('Calendar', DATA_STATE.RUNNING),
+        cardOf('BarByDate', DATA_STATE.QUEUED),
+        cardOf('AdjustFactor', null),
+      ];
+      expect(runningCardOf(cards)?.target).toBe('Calendar');
+    });
+
+    it('没有执行中的任务时返回 null（页面据此显示「当前无任务执行」）', () => {
+      expect(runningCardOf([])).toBeNull();
+      expect(
+        runningCardOf([
+          cardOf('Security', DATA_STATE.FAILED),
+          cardOf('Calendar', DATA_STATE.PAUSED),
+        ]),
+      ).toBeNull();
+    });
+
+    it('多卡同时执行时按顺序取第一条（只显示一条进度条）', () => {
+      const cards = [
+        cardOf('Security', DATA_STATE.RUNNING),
+        cardOf('Calendar', DATA_STATE.RUNNING),
+      ];
+      expect(runningCardOf(cards)?.target).toBe('Security');
     });
   });
 
