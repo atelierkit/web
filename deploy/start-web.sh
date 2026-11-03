@@ -5,7 +5,8 @@
 # 用途：拉镜像（nginx + 静态产物）→ 挂运行时配置重建容器 → 校验配置真的生效。
 #
 # 用法：
-#   bash deploy/start-web.sh                 # 拉取 latest 并重建容器
+#   bash deploy/start-web.sh                 # 拉取 latest；镜像有更新才重建容器
+#   bash deploy/start-web.sh --force         # 镜像没变也重建（改了 config / 挂载 / 端口后用）
 #   bash deploy/start-web.sh sha-1a2b3c4     # 拉取指定标签（回滚 / 灰度用）
 #   TAG=v1.2.0 bash deploy/start-web.sh      # 同上，用环境变量传
 #
@@ -22,7 +23,7 @@
 #   CONFIG_FILE    运行时配置（默认 ./config.json，作为 assets/config.json 只读挂载）
 #   GHCR_USER / GHCR_PAT_FILE   私有包的登录凭据（默认空，公开包不需要）
 #
-# 三条设计取舍（都是踩过的坑）：
+# 四条设计取舍（都是踩过的坑）：
 #   1. 先 pull 成功、再删旧容器：pull 失败时站点不受影响。
 #   2. 启动前校验 CONFIG_FILE 存在且是合法 JSON。两种隐蔽失效都不报错：
 #      a. 宿主机文件缺失时 docker 会在挂载点建一个同名目录 ⇒ 请求 assets/config.json 变 404，
@@ -30,6 +31,8 @@
 #      b. 漏写 -v 时容器不报错，用的是镜像内打包的那份（baseUrl=//localhost:3000/）
 #         ⇒ 页面能开、接口全打到访问者本机，极易被误判成后端故障。
 #   3. 启动后把容器内 /assets/config.json 读出来回显，确认挂载真正生效。
+#   4. 镜像 digest 没变时**默认不重建**：`docker rm -f` 会让站点断几秒，而内容其实一模一样；
+#      确实需要重建（改了 config / 挂载 / 端口）时用 --force。
 #
 # 依赖：docker；可选 python3（校验 JSON 合法性）
 
@@ -55,8 +58,18 @@ CONFIG_TARGET='/usr/share/nginx/html/assets/config.json'
 GHCR_USER="${GHCR_USER:-}"
 GHCR_PAT_FILE="${GHCR_PAT_FILE:-}"
 
-# 镜像标签：命令行参数 > 环境变量 TAG > latest
-TAG="${1:-${TAG:-latest}}"
+# 镜像标签：第一个非选项参数 > 环境变量 TAG > latest
+# 同时支持 -f / --force：镜像没变也重建容器
+TAG="${TAG:-latest}"
+FORCE="${FORCE:-0}"
+for arg in "$@"; do
+  case "$arg" in
+    -f | --force) FORCE=1 ;;
+    # 注：此处还不能用 die() —— 它在下面才定义
+    -*) printf '\033[31m✗\033[0m 未知选项：%s（可用：--force）\n' "$arg" >&2; exit 1 ;;
+    *) TAG="$arg" ;;
+  esac
+done
 IMAGE="${IMAGE_REPO}:${TAG}"
 
 log() { printf '\033[36m→\033[0m %s\n' "$*"; }
@@ -106,8 +119,31 @@ pull_image() {
   docker pull "$image"
 }
 
+# 拉取前先记下本地镜像 ID（首次部署时为空），用于判断「远端是否真的更新了」
+old_image_id="$(docker image inspect --format '{{.Id}}' "$IMAGE" 2>/dev/null || true)"
+
 log "拉取镜像 $IMAGE"
 pull_image "$IMAGE" || die "拉取 $IMAGE 失败，旧容器保持运行（未做任何删除）"
+
+# 拉取后的镜像 ID
+new_image_id="$(docker image inspect --format '{{.Id}}' "$IMAGE")"
+
+# ---------- 镜像没变则跳过重建 ----------
+# `docker rm -f` 会让站点断几秒，镜像内容一模一样时这几秒是白丢的；
+# 但容器若已停止（崩溃 / 被手动 stop）就不能跳过，要往下走重建流程。
+if [[ "$old_image_id" == "$new_image_id" && "$FORCE" != 1 ]]; then
+  if [[ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null || echo false)" == 'true' ]]; then
+    log "镜像已是本地最新（${new_image_id:7:12}），容器 $CONTAINER 正在运行 —— 跳过重建"
+    log "需要强制重建（改过 config / 挂载 / 端口）时加 --force"
+    docker ps --filter "name=^${CONTAINER}$" --format '  {{.Names}}  {{.Image}}  {{.Status}}'
+    exit 0
+  fi
+  warn "镜像已是本地最新（${new_image_id:7:12}），但容器 $CONTAINER 未运行 —— 继续重建"
+fi
+
+if [[ -n "$old_image_id" && "$old_image_id" != "$new_image_id" ]]; then
+  log "镜像已更新：${old_image_id:7:12} → ${new_image_id:7:12}"
+fi
 
 # ---------- 重建容器 ----------
 if docker inspect "$CONTAINER" >/dev/null 2>&1; then
