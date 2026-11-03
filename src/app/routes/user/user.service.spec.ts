@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { SettingsService } from '@delon/theme';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { UserService } from './user.service';
@@ -16,6 +17,14 @@ interface TokenStub {
   clear: ReturnType<typeof vi.fn>;
 }
 
+/** 设置服务替身 */
+interface SettingsStub {
+  /** 当前登录用户，注：与真身一致，读一次拿当前值 */
+  user: Record<string, unknown>;
+  /** 写入当前登录用户 */
+  setUser: ReturnType<typeof vi.fn>;
+}
+
 /**
  * 构造令牌服务替身
  *
@@ -25,18 +34,40 @@ function tokenServiceStub(): TokenStub {
   return { set: vi.fn(), get: vi.fn(() => null), clear: vi.fn() };
 }
 
+/**
+ * 构造设置服务替身
+ *
+ * 注：真身会把用户写进 localStorage，测试里换成可控对象，只关心「合并后写了什么」
+ *
+ * @returns 设置服务替身
+ */
+function settingsServiceStub(): SettingsStub {
+  /** 替身本体 */
+  const stub: SettingsStub = {
+    user: { name: '旧名', avatar: '/static/avatar/a.webp', email: 'a@b.com' },
+    setUser: vi.fn(),
+  };
+  stub.setUser.mockImplementation((value: Record<string, unknown>) => {
+    stub.user = value;
+  });
+  return stub;
+}
+
 describe('UserService', () => {
   let service: UserService;
   let http: HttpTestingController;
   let tokenSrv: TokenStub;
+  let settingsSrv: SettingsStub;
 
   beforeEach(() => {
     tokenSrv = tokenServiceStub();
+    settingsSrv = settingsServiceStub();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: DA_SERVICE_TOKEN, useValue: tokenSrv },
+        { provide: SettingsService, useValue: settingsSrv },
       ],
     });
     service = TestBed.inject(UserService);
@@ -79,6 +110,22 @@ describe('UserService', () => {
     // 注：Content-Type 必须由浏览器补上 multipart boundary，手写会把 boundary 写没
     expect(req.request.headers.has('Content-Type')).toBe(false);
     req.flush({ avatar: '/static/avatar/a.webp' });
+  });
+
+  it('syncProfile 合并写回本地资料，头像与昵称互不覆盖', () => {
+    // 注：页头/侧栏读的就是 SettingsService.user，这里写不进去，界面就不会当场刷新
+    service.syncProfile({ avatar: '/static/avatar/b.webp' });
+    expect(settingsSrv.setUser).toHaveBeenCalledWith({
+      name: '旧名',
+      avatar: '/static/avatar/b.webp',
+      email: 'a@b.com',
+    });
+    service.syncProfile({ name: '新名' });
+    expect(settingsSrv.user).toEqual({
+      name: '新名',
+      avatar: '/static/avatar/b.webp',
+      email: 'a@b.com',
+    });
   });
 
   it('换邮箱走 POST user/email，提交 { email }', () => {

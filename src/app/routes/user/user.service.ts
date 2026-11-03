@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { normalizeToken } from '@core';
 import { DA_SERVICE_TOKEN, ITokenModel, ITokenService } from '@delon/auth';
+import { SettingsService } from '@delon/theme';
 import { OperationResult } from '@shared';
 import { Observable, map } from 'rxjs';
 
@@ -61,6 +62,7 @@ export interface PasswordPayload {
 export class UserService {
   private readonly http = inject(HttpClient);
   private readonly tokenSrv = inject<ITokenService>(DA_SERVICE_TOKEN);
+  private readonly settingsSrv = inject(SettingsService);
 
   /**
    * 获取当前登录用户的资料
@@ -79,6 +81,20 @@ export class UserService {
    */
   update(value: ProfileUpdatePayload): Observable<unknown> {
     return this.http.post('user/update', value);
+  }
+
+  /**
+   * 同步本地登录用户的资料
+   *
+   * 注 1：页头、侧栏与锁屏页都读 `SettingsService.user`（其背后是 signal），
+   *      资料改完必须写回这里，相关组件才会当场刷新 ——
+   *      只更新页面自己的 signal 的话，页头要等整页刷新才变
+   * 注 2：合并而非覆盖，未传的字段保持原值（昵称与头像各自独立修改，谁也不该把对方清空）
+   *
+   * @param patch 变更的字段
+   */
+  syncProfile(patch: Partial<Pick<ProfileUser, 'name' | 'avatar' | 'email'>>): void {
+    this.settingsSrv.setUser({ ...this.settingsSrv.user, ...patch });
   }
 
   /**

@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { SettingsService } from '@delon/theme';
+import { SettingsService, User } from '@delon/theme';
 import {
   LayoutDefaultModule,
   LayoutDefaultOptions,
@@ -117,12 +117,24 @@ export class LayoutBasic {
    * 早于订阅发出的通知会被直接丢掉。所以必须先 `inject` 建立订阅，再在构造函数里补一次通知。
    */
   private readonly layoutSrv = inject(LayoutDefaultService);
-  readonly user = this.settings.user;
   protected options: LayoutDefaultOptions = {
     logoExpanded: `./assets/logo-expanded.svg`,
     logoCollapsed: `./assets/logo-collapsed.svg`,
   };
   protected searchToggleStatus = signal(false);
+
+  /**
+   * 当前登录用户
+   *
+   * 注：侧栏底部的头像、昵称与邮箱都取这里，必须写成 getter —— `SettingsService.user`
+   * 背后是 signal，模板取值即登记依赖；写成字段快照（`readonly user = this.settings.user`）
+   * 只会在构造时求值一次，改完资料侧栏就一直停在旧值，非刷新整页不可
+   *
+   * @returns 当前登录用户
+   */
+  get user(): User {
+    return this.settings.user;
+  }
 
   constructor() {
     // 折叠按钮空白方块的兜底（成因见 `layoutSrv` 的注释）：

@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { apiErrorMessage } from '@core';
 import { SFSchema, SFUISchema } from '@delon/form';
-import { SettingsService } from '@delon/theme';
 import { SHARED_IMPORTS, UserAvatar } from '@shared';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -28,7 +27,6 @@ import { ProfileUser, UserService } from '../user.service';
 export class UserBasicComponent implements OnInit {
   private readonly userSrv = inject(UserService);
   private readonly msgSrv = inject(NzMessageService);
-  private readonly settingsSrv = inject(SettingsService);
 
   /** 表单数据，注：为 null 表示资料尚未就绪，模板据此显示加载态 */
   readonly formData = signal<Record<string, unknown> | null>(null);
@@ -134,9 +132,9 @@ export class UserBasicComponent implements OnInit {
       .subscribe({
         next: () => {
           this.msgSrv.success('信息修改完成');
-          // 页头与用户菜单都读 SettingsService，改完立即同步，不必刷新整页
+          // 页头、侧栏与锁屏都读 SettingsService，改完立即写回，不必刷新整页
           this.nickname.set(name);
-          this.settingsSrv.setUser({ ...this.settingsSrv.user, name });
+          this.userSrv.syncProfile({ name });
           this.load();
         },
         error: (err: unknown) =>
@@ -165,11 +163,9 @@ export class UserBasicComponent implements OnInit {
       /** 上传结果 */
       const result = await firstValueFrom(this.userSrv.uploadAvatar(blob));
       this.avatar.set(result.avatar);
-      // 页头读的是 SettingsService，上传后立即同步，不必刷新整页
-      this.settingsSrv.setUser({
-        ...this.settingsSrv.user,
-        avatar: result.avatar,
-      });
+      // 页头、侧栏与锁屏都读 SettingsService，上传后立即写回，不必刷新整页；
+      // 后端按 UUID 命名，新旧地址必然不同，图片不会被浏览器缓存成旧图
+      this.userSrv.syncProfile({ avatar: result.avatar });
       this.msgSrv.success('头像已更新');
     } catch (err) {
       this.msgSrv.error(apiErrorMessage(err, '头像上传失败，请稍后重试！'));
