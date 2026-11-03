@@ -1,0 +1,18 @@
+@if (formData() === null) {
+  <nz-spin nzSimple class="block py-lg text-center" />
+} @else {
+  <sf #sf [schema]="schema" [ui]="ui" [formData]="formData()!" button="none">
+    <div class="text-right pt-md">
+      <button nz-button type="button" (click)="close()">取消</button>
+      <button
+        nz-button
+        type="button"
+        nzType="primary"
+        (click)="save(sf.value)"
+        [disabled]="!sf.valid"
+      >
+        {{ editable ? '保存' : '创建' }}
+      </button>
+    </div>
+  </sf>
+}

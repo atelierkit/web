@@ -1,0 +1,19 @@
+<div class="mb-md">
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  @for (item of batchActions(); track item.action) {
+    <button
+      nz-button
+      type="button"
+      [nzDanger]="item.danger === true"
+      nz-popconfirm
+      [nzPopconfirmTitle]="item.confirm"
+      nzOkText="确定"
+      nzCancelText="取消"
+      [disabled]="selected().length === 0 || busy()"
+      (nzOnConfirm)="run(selected(), item.action, item.options ?? {})"
+    >
+      {{ item.text }}
+    </button>
+  }
+</div>
+<st [data]="data()" [columns]="columns" [loading]="loading()" (change)="onChange($event)" />

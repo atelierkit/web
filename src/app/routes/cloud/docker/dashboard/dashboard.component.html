@@ -1,0 +1,74 @@
+@if (failed()) {
+  <nz-alert nzType="warning" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+}
+@if (summary(); as data) {
+  <nz-row [nzGutter]="[16, 16]" class="mb-md">
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="容器" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.containers }}</div>
+        <div class="text-sm">
+          运行 {{ data.containersRunning }} · 暂停 {{ data.containersPaused }} · 停止
+          {{ data.containersStopped }}
+        </div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="镜像" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.images }}</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="CPU 核数" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.cpus }}</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="内存总量" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ bytesOf(data.memoryTotal) }}</div>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <nz-card nzTitle="daemon 信息">
+    <nz-row [nzGutter]="[16, 16]">
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">daemon 版本</div>
+        <div>{{ data.version || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">API 版本</div>
+        <div>{{ data.apiVersion || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">主机名</div>
+        <div>{{ data.name || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">操作系统 / 架构</div>
+        <div>{{ data.os || '-' }} / {{ data.arch || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">内核版本</div>
+        <div>{{ data.kernelVersion || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">存储驱动</div>
+        <div>{{ data.driver || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">数据根目录</div>
+        <div>{{ data.dockerRootDir || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">默认运行时</div>
+        <div>{{ data.defaultRuntime || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">Swarm</div>
+        <div>{{ data.swarmActive ? '已启用' : '未启用' }}</div>
+      </nz-col>
+    </nz-row>
+  </nz-card>
+} @else if (loading()) {
+  <nz-spin nzSimple class="py-lg text-center" />
+}

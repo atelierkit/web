@@ -80,6 +80,12 @@ export const MENUS: Menu[] = [
         icon: { type: 'icon', value: 'api' },
         acl: 'admin',
       },
+      {
+        text: 'Docker 宿主机',
+        link: '/cloud/docker',
+        icon: { type: 'icon', value: 'container' },
+        acl: 'admin',
+      },
     ],
   },
   {

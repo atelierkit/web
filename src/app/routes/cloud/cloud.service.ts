@@ -114,6 +114,131 @@ export interface KongPayload {
 }
 
 /**
+ * Docker 宿主机
+ *
+ * 注：`key`（客户端私钥）**永不下发**，详情只回 `hasKey` 告诉页面「已配置」；
+ * 编辑时私钥留空即表示保持原值
+ */
+export interface CloudDocker {
+  /** 实例ID */
+  id: number;
+  /** 实例名称 */
+  name: string;
+  /** 实例说明 */
+  description: string;
+  /** daemon 地址 */
+  endpoint: string;
+  /** 是否启用 TLS 客户端证书 */
+  tls: boolean;
+  /** CA 证书 PEM */
+  ca: string;
+  /** 客户端证书 PEM */
+  cert: string;
+  /** 是否校验证书链与主机名 */
+  verify: boolean;
+  /** 手工指定的 API 版本，空串表示自动探测 */
+  apiVersion: string;
+  /** 状态，true表示启用 */
+  status: boolean;
+  /** 是否已配置客户端私钥 */
+  hasKey: boolean;
+  /** 创建信息 */
+  create?: Partial<CloudAudit>;
+  /** 更新信息 */
+  update?: Partial<CloudAudit>;
+}
+
+/** 宿主机提交信息 */
+export interface DockerPayload {
+  /** 实例名称 */
+  name: string;
+  /** 实例说明 */
+  description: string;
+  /** daemon 地址 */
+  endpoint: string;
+  /** 是否启用 TLS 客户端证书 */
+  tls: boolean;
+  /** CA 证书 PEM */
+  ca?: string;
+  /** 客户端证书 PEM */
+  cert?: string;
+  /**
+   * 客户端私钥 PEM
+   *
+   * 注：新建时启用 TLS 必填；更新时留空表示保持原值（详情不回报文，故不提交即不改）
+   */
+  key?: string;
+  /** 是否校验证书链与主机名 */
+  verify: boolean;
+  /** 手工指定的 API 版本 */
+  apiVersion?: string;
+  /** 是否允许明文连接，注：明文 daemon 没有鉴权，必须由用户显式确认 */
+  allowInsecure?: boolean;
+  /** 状态，true表示启用 */
+  status: boolean;
+}
+
+/** 宿主机概览，注：与后端 `DockerSummary` 一一对应 */
+export interface DockerSummary {
+  /** daemon 版本 */
+  version: string;
+  /** API 版本 */
+  apiVersion: string;
+  /** 操作系统 */
+  os: string;
+  /** CPU 架构 */
+  arch: string;
+  /** 内核版本 */
+  kernelVersion: string;
+  /** 主机名 */
+  name: string;
+  /** 容器总数 */
+  containers: number;
+  /** 运行中的容器数 */
+  containersRunning: number;
+  /** 暂停的容器数 */
+  containersPaused: number;
+  /** 已停止的容器数 */
+  containersStopped: number;
+  /** 镜像总数 */
+  images: number;
+  /** CPU 核数 */
+  cpus: number;
+  /** 内存总量（字节） */
+  memoryTotal: number;
+  /** 存储驱动 */
+  driver: string;
+  /** 数据根目录 */
+  dockerRootDir: string;
+  /** 默认运行时 */
+  defaultRuntime: string;
+  /** swarm 是否启用 */
+  swarmActive: boolean;
+}
+
+/** 宿主机诊断，注：与后端 `DockerDiagnose` 一一对应 */
+export interface DockerDiagnose {
+  /** `_ping` 往返耗时（毫秒） */
+  latencyMs: number;
+  /** `_ping` 的原始响应 */
+  ping: string;
+  /** daemon 版本 */
+  version: string;
+  /** daemon 的 API 版本 */
+  apiVersion: string;
+  /** 本次实际使用的 API 版本 */
+  usedApiVersion: string;
+  /** 实际使用的协议 */
+  protocol: string;
+  /** 是否启用了 TLS 客户端证书 */
+  tls: boolean;
+  /** 是否校验证书链 */
+  verify: boolean;
+  /** 风险提示 */
+  warnings: string[];
+}
+
+/**
  * 云服务（管理端接口）
  *
  * 注：密钥与 KONG 网关站点同属「云服务」一个导航区，接口前缀统一为 `cloud/`；
@@ -240,5 +365,80 @@ export class CloudService {
    */
   kongPlugin(id: number): Observable<string[]> {
     return this.http.get<string[]>(`cloud/kong/plugin/${id}`);
+  }
+
+  /**
+   * 获取 Docker 宿主机清单
+   *
+   * @param operateId 操作序号，注：-1 表示取全量
+   * @returns 宿主机清单，注：不含客户端私钥
+   */
+  dockers(operateId = -1): Observable<CloudDocker[]> {
+    return this.http.get<CloudDocker[]>('cloud/docker/index', {
+      params: { operateId },
+    });
+  }
+
+  /**
+   * 获取宿主机详情
+   *
+   * @param id 宿主机ID
+   * @returns 宿主机详情，注：不含客户端私钥，只有 `hasKey`
+   */
+  docker(id: number): Observable<CloudDocker> {
+    return this.http.get<CloudDocker>(`cloud/docker/show/${id}`);
+  }
+
+  /**
+   * 获取宿主机变更历史
+   *
+   * @param id 宿主机ID
+   * @returns 变更记录
+   */
+  dockerLog(id: number): Observable<CloudDocker[]> {
+    return this.http.get<CloudDocker[]>(`cloud/docker/log/${id}`);
+  }
+
+  /**
+   * 创建宿主机
+   *
+   * @param value 宿主机信息
+   * @returns 新宿主机ID
+   */
+  createDocker(value: DockerPayload): Observable<unknown> {
+    return this.http.post('cloud/docker/create', value);
+  }
+
+  /**
+   * 更新宿主机
+   *
+   * @param id 宿主机ID
+   * @param value 宿主机信息，注：`key` 留空表示保持原值
+   * @returns 宿主机ID
+   */
+  updateDocker(id: number, value: DockerPayload): Observable<unknown> {
+    return this.http.post(`cloud/docker/update/${id}`, value);
+  }
+
+  /**
+   * 获取宿主机概览
+   *
+   * 注：后端把 daemon 的 `/version` 与 `/info` 合并成一份下发，前端一次请求即可渲染仪表板
+   *
+   * @param id 宿主机ID
+   * @returns 概览
+   */
+  dockerSummary(id: number): Observable<DockerSummary> {
+    return this.http.get<DockerSummary>(`cloud/docker/summary/${id}`);
+  }
+
+  /**
+   * 获取宿主机诊断
+   *
+   * @param id 宿主机ID
+   * @returns 诊断结果，注：风险项由后端判定，前端原样展示
+   */
+  dockerDiagnose(id: number): Observable<DockerDiagnose> {
+    return this.http.get<DockerDiagnose>(`cloud/docker/diagnose/${id}`);
   }
 }

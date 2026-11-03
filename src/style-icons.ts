@@ -9,6 +9,7 @@ import {
   ApiOutline,
   AppstoreOutline,
   AuditOutline,
+  ContainerOutline,
   DashboardOutline,
   DatabaseOutline,
   FileProtectOutline,
@@ -25,13 +26,14 @@ import {
 } from '@ant-design/icons-angular/icons';
 
 export const ICONS = [
-  // 侧边菜单：首页 / 个人资料 / 角色 / 令牌 / 密钥 / KONG 网关
+  // 侧边菜单：首页 / 个人资料 / 角色 / 令牌 / 密钥 / KONG 网关 / Docker 宿主机
   HomeOutline,
   IdcardOutline,
   TeamOutline,
   KeyOutline,
   SafetyCertificateOutline,
   ApiOutline,
+  ContainerOutline,
   // 侧边菜单：配置列表 / 操作日志 / 请求日志（`setting` 由 style-icons-auto 注册）
   AuditOutline,
   FileTextOutline,
