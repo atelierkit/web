@@ -24,4 +24,8 @@
       </nz-col>
     }
   </nz-row>
+
+  <!-- 与同步页一致：进度条不放卡片内（1/4 屏宽里既窄又无法横向对比），
+       仪表板虽然不能操作，但「现在跑到哪了」正是这一屏最该回答的问题，所以整块照搬。 -->
+  <data-sync-progress [cards]="store.cards()" [queue]="store.queue()" class="mb-md" />
 }

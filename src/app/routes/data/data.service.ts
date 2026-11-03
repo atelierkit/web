@@ -2,14 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import type { DataCard, DataState, DataTarget } from './data.format';
+import type { DataCard, DataQueue, DataState, DataTarget } from './data.format';
 
 /** 快照结果（后端 `data/sync/snapshot`） */
 export interface DataSnapshot {
   /** 四卡汇总 */
   cards: DataCard[];
   /** 队列计数 */
-  queue: { queued: number; running: number };
+  queue: DataQueue;
   /** 最近活跃执行 */
   recent: RecentRun[];
 }

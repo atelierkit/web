@@ -35,7 +35,6 @@
       <nz-col [nzXs]="24" [nzMd]="6">
         <data-sync-card
           [showActions]="true"
-          [inlineProgress]="false"
           [card]="card"
           (start)="start($event)"
           (pause)="pause($event)"
@@ -44,34 +43,7 @@
     }
   </nz-row>
 
-  <!-- 进度条从四卡里挪出来：卡宽只有 1/4 屏，进度条挤在卡里既窄又无法横向对比。
-       只显示「正在执行」的那一个任务 —— 四项并列时读者要自己找哪条在动，
-       而同一时刻真正在跑的通常只有一个，其余都是历史残留百分比，反而误导。 -->
-  <nz-card nzTitle="同步进度" [nzExtra]="runningTpl" class="mb-md">
-    @if (progressCard(); as card) {
-      <div class="sync-progress">
-        <div class="sync-progress__name">{{ card.displayName }}</div>
-        <nz-progress
-          class="sync-progress__bar"
-          nzSize="small"
-          [nzPercent]="percentOf(card.done ?? 0, card.total ?? 0)"
-          [nzShowInfo]="false"
-        />
-        <div class="sync-progress__value">
-          {{ progressText(card.done ?? 0, card.total ?? 0) }}
-        </div>
-        <div class="sync-progress__stage text-secondary" [title]="card.stage ?? ''">
-          {{ card.stage ?? '—' }}
-        </div>
-      </div>
-    } @else if (store.queue().queued > 0) {
-      <div class="sync-progress__idle text-secondary">
-        有 {{ store.queue().queued }} 个任务排队中，等待开始执行…
-      </div>
-    } @else {
-      <div class="sync-progress__idle text-secondary">当前无任务执行。</div>
-    }
-  </nz-card>
+  <data-sync-progress [cards]="store.cards()" [queue]="store.queue()" class="mb-md" />
 
   <nz-card nzTitle="执行日志" [nzExtra]="queueTpl">
     <st [data]="store.recent()" [columns]="columns" [page]="{ front: true, showSize: true }" />
@@ -85,11 +57,4 @@
   <span class="text-sm">
     排队 {{ store.queue().queued }} · 执行中 {{ store.queue().running }}
   </span>
-</ng-template>
-
-<!-- 并发执行（多消费者）时上面那一条只代表其中之一，这里补个总量，避免「只显示一条」读成「只跑一条」 -->
-<ng-template #runningTpl>
-  @if (store.queue().running > 1) {
-    <span class="text-sm text-secondary">共 {{ store.queue().running }} 个执行中</span>
-  }
 </ng-template>

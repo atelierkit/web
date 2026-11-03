@@ -50,6 +50,19 @@ export interface DataCard {
 }
 
 /**
+ * 队列计数（快照的 `queue` 字段）
+ *
+ * ⚠ `running` 与「四卡里有几张在执行」不是一回事：多消费者并发时同一目标可能有多条执行，
+ * 进度区只能画一条进度条，数量差异要靠这个计数补足。
+ */
+export interface DataQueue {
+  /** 排队中的执行数 */
+  queued: number;
+  /** 执行中的执行数（可能 > 1） */
+  running: number;
+}
+
+/**
  * 后端源（socket 通道要连的 origin）
  *
  * ⚠ HTTP 请求由拦截器拼 `baseUrl`，socket 不会走拦截器 —— 不显式推导就会连到**前端页面源**，
