@@ -239,6 +239,129 @@ export interface DockerDiagnose {
 }
 
 /**
+ * Kubernetes 集群
+ *
+ * 注：`token` 与客户端私钥**永不下发**，详情只回 `hasToken` / `hasKey`；
+ * 编辑时两者留空即表示保持原值（要清空得靠 `clearToken` / `clearCert` 开关）
+ */
+export interface CloudKubernetes {
+  /** 集群ID */
+  id: number;
+  /** 集群名称 */
+  name: string;
+  /** 集群说明 */
+  description: string;
+  /** API Server 地址 */
+  endpoint: string;
+  /** CA 证书 PEM */
+  ca: string;
+  /** 客户端证书 PEM */
+  cert: string;
+  /** 是否校验证书链与主机名 */
+  verify: boolean;
+  /** 默认命名空间 */
+  namespace: string;
+  /** 状态，true表示启用 */
+  status: boolean;
+  /** 是否已配置 Token */
+  hasToken: boolean;
+  /** 是否已配置客户端私钥 */
+  hasKey: boolean;
+  /** 创建信息 */
+  create?: Partial<CloudAudit>;
+  /** 更新信息 */
+  update?: Partial<CloudAudit>;
+}
+
+/** 集群提交信息 */
+export interface KubernetesPayload {
+  /** 集群名称 */
+  name: string;
+  /** 集群说明 */
+  description: string;
+  /** API Server 地址 */
+  endpoint: string;
+  /**
+   * ServiceAccount Token
+   *
+   * 注：新建时与客户端证书二选一（至少给一个）；更新时留空表示保持原值
+   */
+  token?: string;
+  /** CA 证书 PEM */
+  ca?: string;
+  /** 客户端证书 PEM */
+  cert?: string;
+  /** 客户端私钥 PEM，注：更新时留空表示保持原值 */
+  key?: string;
+  /** 是否校验证书链与主机名 */
+  verify: boolean;
+  /** 默认命名空间 */
+  namespace: string;
+  /** 是否清空 Token，注：只在「切换到客户端证书」时需要 */
+  clearToken?: boolean;
+  /** 是否清空客户端证书三件套 */
+  clearCert?: boolean;
+  /** 是否允许明文连接，注：明文会把 Token 暴露在链路上，必须由用户显式确认 */
+  allowInsecure?: boolean;
+  /** 状态，true表示启用 */
+  status: boolean;
+}
+
+/** 集群概览，注：与后端 `KubernetesSummary` 一一对应 */
+export interface KubernetesSummary {
+  /** 集群版本 */
+  version: string;
+  /** 平台 */
+  platform: string;
+  /** Go 版本 */
+  goVersion: string;
+  /** 节点总数 */
+  nodes: number;
+  /** 就绪节点数 */
+  nodesReady: number;
+  /** 命名空间数 */
+  namespaces: number;
+  /** Pod 总数 */
+  pods: number;
+  /** 运行中的 Pod 数 */
+  podsRunning: number;
+  /** 等待中的 Pod 数 */
+  podsPending: number;
+  /** 失败的 Pod 数 */
+  podsFailed: number;
+  /** 已完成的 Pod 数 */
+  podsSucceeded: number;
+  /** 工作负载数 */
+  deployments: number;
+  /** Service 数 */
+  services: number;
+  /** 可分配 CPU 总核数 */
+  cpuCapacity: number;
+  /** 可分配内存总量（字节） */
+  memoryCapacity: number;
+}
+
+/** 集群诊断，注：与后端 `KubernetesDiagnose` 一一对应 */
+export interface KubernetesDiagnose {
+  /** `/healthz` 往返耗时（毫秒） */
+  latencyMs: number;
+  /** `/healthz` 的原始响应 */
+  ping: string;
+  /** 集群版本 */
+  version: string;
+  /** 平台 */
+  platform: string;
+  /** 实际使用的鉴权方式，`token` / `cert` / `anonymous` */
+  authMode: string;
+  /** 实际使用的协议 */
+  protocol: string;
+  /** 是否校验证书链 */
+  verify: boolean;
+  /** 风险提示 */
+  warnings: string[];
+}
+
+/**
  * 云服务（管理端接口）
  *
  * 注：密钥与 KONG 网关站点同属「云服务」一个导航区，接口前缀统一为 `cloud/`；
@@ -440,5 +563,80 @@ export class CloudService {
    */
   dockerDiagnose(id: number): Observable<DockerDiagnose> {
     return this.http.get<DockerDiagnose>(`cloud/docker/diagnose/${id}`);
+  }
+
+  /**
+   * 获取 Kubernetes 集群清单
+   *
+   * @param operateId 操作序号，注：-1 表示取全量
+   * @returns 集群清单，注：不含凭据
+   */
+  kubernetesList(operateId = -1): Observable<CloudKubernetes[]> {
+    return this.http.get<CloudKubernetes[]>('cloud/kubernetes/index', {
+      params: { operateId },
+    });
+  }
+
+  /**
+   * 获取集群详情
+   *
+   * @param id 集群ID
+   * @returns 集群详情，注：不含 Token / 私钥，只有 `hasToken` / `hasKey`
+   */
+  kubernetes(id: number): Observable<CloudKubernetes> {
+    return this.http.get<CloudKubernetes>(`cloud/kubernetes/show/${id}`);
+  }
+
+  /**
+   * 获取集群变更历史
+   *
+   * @param id 集群ID
+   * @returns 变更记录
+   */
+  kubernetesLog(id: number): Observable<CloudKubernetes[]> {
+    return this.http.get<CloudKubernetes[]>(`cloud/kubernetes/log/${id}`);
+  }
+
+  /**
+   * 创建集群
+   *
+   * @param value 集群信息
+   * @returns 新集群ID
+   */
+  createKubernetes(value: KubernetesPayload): Observable<unknown> {
+    return this.http.post('cloud/kubernetes/create', value);
+  }
+
+  /**
+   * 更新集群
+   *
+   * @param id 集群ID
+   * @param value 集群信息，注：`token` / `key` 留空表示保持原值
+   * @returns 集群ID
+   */
+  updateKubernetes(id: number, value: KubernetesPayload): Observable<unknown> {
+    return this.http.post(`cloud/kubernetes/update/${id}`, value);
+  }
+
+  /**
+   * 获取集群概览
+   *
+   * 注：后端把版本、节点、Pod、工作负载、Service 六次探测合并成一份下发
+   *
+   * @param id 集群ID
+   * @returns 概览
+   */
+  kubernetesSummary(id: number): Observable<KubernetesSummary> {
+    return this.http.get<KubernetesSummary>(`cloud/kubernetes/summary/${id}`);
+  }
+
+  /**
+   * 获取集群诊断
+   *
+   * @param id 集群ID
+   * @returns 诊断结果，注：风险项由后端判定，前端原样展示
+   */
+  kubernetesDiagnose(id: number): Observable<KubernetesDiagnose> {
+    return this.http.get<KubernetesDiagnose>(`cloud/kubernetes/diagnose/${id}`);
   }
 }

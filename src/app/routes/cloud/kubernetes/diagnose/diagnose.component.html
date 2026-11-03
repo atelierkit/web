@@ -1,0 +1,47 @@
+@if (loading()) {
+  <nz-spin nzSimple class="py-lg text-center" />
+} @else if (failed()) {
+  <nz-alert nzType="error" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+  <div class="text-right pt-md">
+    <button nz-button type="button" (click)="close()">关闭</button>
+  </div>
+} @else if (result(); as data) {
+  @for (warning of data.warnings; track warning) {
+    <nz-alert nzType="warning" nzShowIcon [nzMessage]="warning" class="mb-sm" />
+  }
+  <nz-card nzTitle="集群信息" nzSize="small">
+    <nz-row [nzGutter]="[16, 16]">
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">healthz 往返</div>
+        <div>{{ data.latencyMs }} 毫秒</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">healthz 响应</div>
+        <div>{{ data.ping || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">集群版本</div>
+        <div>{{ data.version || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">平台</div>
+        <div>{{ data.platform || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">鉴权方式</div>
+        <div>{{ authOf(data.authMode) }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">连接协议</div>
+        <div>{{ protocolOf(data.protocol) }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">证书校验</div>
+        <div>{{ verifyOf(data.verify) }}</div>
+      </nz-col>
+    </nz-row>
+  </nz-card>
+  <div class="text-right pt-md">
+    <button nz-button type="button" (click)="close()">关闭</button>
+  </div>
+}

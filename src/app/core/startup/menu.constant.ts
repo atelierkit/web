@@ -86,6 +86,12 @@ export const MENUS: Menu[] = [
         icon: { type: 'icon', value: 'container' },
         acl: 'admin',
       },
+      {
+        text: 'Kubernetes 集群',
+        link: '/cloud/kubernetes',
+        icon: { type: 'icon', value: 'cluster' },
+        acl: 'admin',
+      },
     ],
   },
   {

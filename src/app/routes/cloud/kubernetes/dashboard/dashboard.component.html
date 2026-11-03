@@ -1,0 +1,71 @@
+@if (failed()) {
+  <nz-alert nzType="warning" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+}
+@if (summary(); as data) {
+  <nz-row [nzGutter]="[16, 16]" class="mb-md">
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="节点" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.nodes }}</div>
+        <div class="text-sm">
+          就绪 {{ data.nodesReady }} · 未就绪 {{ data.nodes - data.nodesReady }}
+        </div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="Pod" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.pods }}</div>
+        <div class="text-sm">
+          运行 {{ data.podsRunning }} · 等待 {{ data.podsPending }} · 失败 {{ data.podsFailed }} ·
+          完成 {{ data.podsSucceeded }}
+        </div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="工作负载 / Service" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">
+          {{ data.deployments }} / {{ data.services }}
+        </div>
+        <div class="text-sm">Deployment {{ data.deployments }} · Service {{ data.services }}</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="命名空间" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ data.namespaces }}</div>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <nz-row [nzGutter]="[16, 16]" class="mb-md">
+    <nz-col [nzSpan]="12">
+      <nz-card nzTitle="可分配 CPU" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ cpuOf(data.cpuCapacity) }}</div>
+        <div class="text-sm">各节点 capacity.cpu 之和</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="12">
+      <nz-card nzTitle="可分配内存" nzHoverable>
+        <div style="font-size: 24px; font-weight: 600">{{ bytesOf(data.memoryCapacity) }}</div>
+        <div class="text-sm">各节点 capacity.memory 之和</div>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <nz-card nzTitle="集群信息">
+    <nz-row [nzGutter]="[16, 16]">
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">集群版本</div>
+        <div>{{ data.version || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">平台</div>
+        <div>{{ data.platform || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <div class="text-sm">Go 版本</div>
+        <div>{{ data.goVersion || '-' }}</div>
+      </nz-col>
+    </nz-row>
+  </nz-card>
+} @else if (loading()) {
+  <nz-spin nzSimple class="py-lg text-center" />
+}

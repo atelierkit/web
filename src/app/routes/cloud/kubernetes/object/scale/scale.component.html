@@ -1,0 +1,18 @@
+<p class="text-sm">
+  正在调整「{{ name }}」（{{ kind }}）的副本数。副本数设为 0 会停掉全部实例，但不删除工作负载。
+</p>
+<nz-input-number
+  class="block"
+  [ngModel]="replicas()"
+  (ngModelChange)="replicas.set($event)"
+  [nzMin]="0"
+  [nzMax]="1000"
+  [nzStep]="1"
+  nzPlaceHolder="目标副本数"
+/>
+<div class="text-right pt-md">
+  <button nz-button type="button" (click)="close()">取消</button>
+  <button nz-button type="button" nzType="primary" [disabled]="invalid" (click)="save()">
+    保存
+  </button>
+</div>

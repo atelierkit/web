@@ -1,0 +1,32 @@
+<div class="mb-md d-flex align-items-center" style="gap: 8px">
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  @if (namespaced) {
+    <nz-select
+      nzShowSearch
+      style="width: 220px"
+      [ngModel]="namespace()"
+      (ngModelChange)="onNamespaceChange($event)"
+    >
+      <nz-option nzValue="" nzLabel="全部命名空间" />
+      @for (item of namespaces(); track item) {
+        <nz-option [nzValue]="item" [nzLabel]="item" />
+      }
+    </nz-select>
+  }
+  @for (item of batchActions(); track item.action) {
+    <button
+      nz-button
+      type="button"
+      [nzDanger]="item.danger === true"
+      nz-popconfirm
+      [nzPopconfirmTitle]="item.confirm"
+      nzOkText="确定"
+      nzCancelText="取消"
+      [disabled]="selected().length === 0 || busy()"
+      (nzOnConfirm)="run(selected(), item.action, item.options ?? {})"
+    >
+      {{ item.text }}
+    </button>
+  }
+</div>
+<st [data]="data()" [columns]="columns" [loading]="loading()" (change)="onChange($event)" />
