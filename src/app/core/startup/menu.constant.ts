@@ -92,6 +92,12 @@ export const MENUS: Menu[] = [
         icon: { type: 'icon', value: 'cluster' },
         acl: 'admin',
       },
+      {
+        text: '远程连接',
+        link: '/cloud/remote',
+        icon: { type: 'icon', value: 'laptop' },
+        acl: 'admin',
+      },
     ],
   },
   {

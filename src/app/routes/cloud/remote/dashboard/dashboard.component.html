@@ -1,0 +1,66 @@
+@if (failed()) {
+  <nz-alert nzType="warning" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+}
+@if (summary(); as data) {
+  <nz-row [nzGutter]="[16, 16]" class="mb-md">
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="发行版" nzHoverable>
+        <div style="font-size: 20px; font-weight: 600">{{ data.osName || '-' }}</div>
+        <div class="text-sm">{{ data.arch || '-' }}</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="内核" nzHoverable>
+        <div style="font-size: 20px; font-weight: 600">{{ data.kernel || '-' }}</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="运行时长" nzHoverable>
+        <div style="font-size: 20px; font-weight: 600">{{ uptimeOf(data.uptime) }}</div>
+        <div class="text-sm">当前用户 {{ data.user || '-' }}</div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="6">
+      <nz-card nzTitle="负载 / CPU" nzHoverable>
+        <div style="font-size: 20px; font-weight: 600">{{ data.load1 }}</div>
+        <div class="text-sm">
+          {{ data.cpus }} 核 · 5 分钟 {{ data.load5 }} · 15 分钟 {{ data.load15 }}
+        </div>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <nz-row [nzGutter]="[16, 16]">
+    <nz-col [nzSpan]="12">
+      <nz-card nzTitle="内存">
+        <nz-progress
+          nzType="line"
+          [nzPercent]="memoryPercent()"
+          [nzStatus]="memoryPercent() >= 90 ? 'exception' : 'normal'"
+        />
+        <div class="text-sm">
+          已用 {{ bytesOf(memoryUsed()) }} / 总量 {{ bytesOf(data.memoryTotal) }} · 可用
+          {{ bytesOf(data.memoryAvailable) }}
+        </div>
+      </nz-card>
+    </nz-col>
+    <nz-col [nzSpan]="12">
+      <nz-card nzTitle="根分区">
+        <nz-progress
+          nzType="line"
+          [nzPercent]="data.diskPercent"
+          [nzStatus]="data.diskPercent >= 90 ? 'exception' : 'normal'"
+        />
+        <div class="text-sm">
+          已用 {{ bytesOf(data.diskUsed) }} / 总量 {{ bytesOf(data.diskTotal) }}
+        </div>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <div class="text-right pt-md">
+    <button nz-button type="button" (click)="fresh()">刷新</button>
+  </div>
+} @else if (loading()) {
+  <nz-spin nzSimple class="py-lg text-center" />
+}

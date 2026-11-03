@@ -1,0 +1,24 @@
+@if (formData() === null) {
+  <nz-spin nzSimple class="block py-lg text-center" />
+} @else {
+  <sf #sf [schema]="schema" [ui]="ui" [formData]="formData()!" button="none">
+    <nz-alert
+      nzType="info"
+      nzShowIcon
+      nzMessage="连接由后端发起：这里填的地址必须是 api 能访问到的地址，不是浏览器能访问的地址。首次连接会记录主机公钥指纹，之后指纹变化会被拒绝。"
+      class="mb-md"
+    />
+    <div class="text-right pt-md">
+      <button nz-button type="button" (click)="close()">取消</button>
+      <button
+        nz-button
+        type="button"
+        nzType="primary"
+        (click)="save(sf.value)"
+        [disabled]="!sf.valid"
+      >
+        {{ editable ? '保存' : '创建' }}
+      </button>
+    </div>
+  </sf>
+}

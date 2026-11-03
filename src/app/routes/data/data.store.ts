@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { apiOriginOf } from '@core';
 import { SettingsService } from '@delon/theme';
 
-import { apiOriginOf, type DataCard } from './data.format';
+import { type DataCard } from './data.format';
 import { DataRealtime } from './data.realtime';
 import { DataService, type DataSnapshot } from './data.service';
 

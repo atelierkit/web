@@ -1,0 +1,6 @@
+<page-header title="远程连接" [action]="actionTpl" [autoBreadcrumb]="false" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="open()">创建</button>
+</ng-template>
+<st #st [data]="data()" [columns]="columns" [loading]="loading()" [scroll]="{ x: '1280px' }" />

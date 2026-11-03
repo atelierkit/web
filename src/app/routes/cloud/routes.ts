@@ -26,14 +26,20 @@ import { KubernetesNodeComponent } from './kubernetes/node/node.component';
 import { KubernetesPodComponent } from './kubernetes/pod/pod.component';
 import { KubernetesServiceComponent } from './kubernetes/service/service.component';
 import { KubernetesStatefulSetComponent } from './kubernetes/statefulset/statefulset.component';
+import { RemoteDashboardComponent } from './remote/dashboard/dashboard.component';
+import { CloudRemoteDetailComponent } from './remote/detail/detail.component';
+import { CloudRemoteComponent } from './remote/remote.component';
+import { RemoteTerminalComponent } from './remote/terminal/terminal.component';
 
 /**
  * 云服务路由
  *
- * 注 1：密钥管理、KONG 网关站点、Docker 宿主机、Kubernetes 集群四个入口；站点的「管理」分别进入
- * `kong/:id`、`docker/:id`、`kubernetes/:id`，其下的标签页由对应的详情组件依据本文件的 `children` 生成导航
- * 注 2：`kong` / `docker` / `kubernetes` 列表页必须 `pathMatch: 'full'` —— 否则 `/cloud/kong/3/dashboard`
+ * 注 1：密钥管理、KONG 网关站点、Docker 宿主机、Kubernetes 集群、远程连接五个入口；
+ * 站点的「管理」分别进入 `kong/:id`、`docker/:id`、`kubernetes/:id`、`remote/:id`，
+ * 其下的标签页由对应的详情组件依据本文件的 `children` 生成导航
+ * 注 2：列表页必须 `pathMatch: 'full'` —— 否则 `/cloud/kong/3/dashboard`
  * 会先命中列表页
+ * 注 3：`remote/:id` 的默认页是「终端」而不是「概览」—— 进这台机器的目的就是用它
  */
 export const routes: Routes = [
   { path: '', redirectTo: 'key', pathMatch: 'full' },
@@ -168,6 +174,31 @@ export const routes: Routes = [
         data: { title: '插件' },
       },
       { path: '**', redirectTo: 'dashboard' },
+    ],
+  },
+  {
+    path: 'remote',
+    pathMatch: 'full',
+    component: CloudRemoteComponent,
+    data: { title: '远程连接' },
+  },
+  {
+    path: 'remote/:id',
+    component: CloudRemoteDetailComponent,
+    data: { title: '远程连接' },
+    children: [
+      { path: '', redirectTo: 'terminal', pathMatch: 'full' },
+      {
+        path: 'terminal',
+        component: RemoteTerminalComponent,
+        data: { title: '终端' },
+      },
+      {
+        path: 'dashboard',
+        component: RemoteDashboardComponent,
+        data: { title: '概览' },
+      },
+      { path: '**', redirectTo: 'terminal' },
     ],
   },
 ];

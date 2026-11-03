@@ -1,4 +1,5 @@
 export * from './asset-url';
+export * from './api-origin';
 export * from './net/default.interceptor';
 export * from './net/device';
 export * from './net/helper';

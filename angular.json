@@ -61,7 +61,7 @@
               },
               "src/assets"
             ],
-            "styles": ["src/styles.less"],
+            "styles": ["node_modules/@xterm/xterm/css/xterm.css", "src/styles.less"],
             "allowedCommonJsDependencies": ["ajv", "ajv-formats", "extend", "file-saver", "mockjs"],
             "stylePreprocessorOptions": {
               "includePaths": ["node_modules/"]

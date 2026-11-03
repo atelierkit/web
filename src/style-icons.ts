@@ -18,6 +18,7 @@ import {
   HomeOutline,
   IdcardOutline,
   KeyOutline,
+  LaptopOutline,
   MenuFoldOutline,
   MenuUnfoldOutline,
   ProfileOutline,
@@ -27,7 +28,7 @@ import {
 } from '@ant-design/icons-angular/icons';
 
 export const ICONS = [
-  // 侧边菜单：首页 / 个人资料 / 角色 / 令牌 / 密钥 / KONG 网关 / Docker 宿主机 / Kubernetes 集群
+  // 侧边菜单：首页 / 个人资料 / 角色 / 令牌 / 密钥 / KONG 网关 / Docker 宿主机 / Kubernetes 集群 / 远程连接
   HomeOutline,
   IdcardOutline,
   TeamOutline,
@@ -36,6 +37,7 @@ export const ICONS = [
   ApiOutline,
   ContainerOutline,
   ClusterOutline,
+  LaptopOutline,
   // 侧边菜单：配置列表 / 操作日志 / 请求日志（`setting` 由 style-icons-auto 注册）
   AuditOutline,
   FileTextOutline,

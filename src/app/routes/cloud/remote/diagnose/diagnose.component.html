@@ -1,0 +1,71 @@
+@if (loading()) {
+  <nz-spin nzSimple class="py-lg text-center" />
+} @else if (failed()) {
+  <nz-alert nzType="error" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+  <div class="text-right pt-md">
+    <button nz-button type="button" (click)="fresh()">重试</button>
+    <button nz-button type="button" (click)="close()">关闭</button>
+  </div>
+} @else if (result(); as data) {
+  @for (warning of data.warnings; track warning) {
+    <nz-alert nzType="warning" nzShowIcon [nzMessage]="warning" class="mb-sm" />
+  }
+
+  <nz-card nzTitle="诊断步骤" nzSize="small" class="mb-md">
+    @for (stage of data.stages; track stage.name) {
+      <div class="diag-row">
+        <nz-tag [nzColor]="stage.ok ? 'green' : 'red'">
+          {{ stage.ok ? '通过' : '失败' }}
+        </nz-tag>
+        <span class="diag-row__name">{{ stage.name }}</span>
+        @if (stage.latencyMs > 0) {
+          <span class="diag-row__latency">{{ stage.latencyMs }} 毫秒</span>
+        }
+        <span class="diag-row__detail">{{ stage.detail }}</span>
+      </div>
+    }
+  </nz-card>
+
+  <nz-card nzTitle="主机身份" nzSize="small">
+    <nz-row [nzGutter]="[16, 16]">
+      <nz-col [nzSpan]="12">
+        <div class="text-sm">已记录指纹</div>
+        <div class="diag-mono">{{ data.fingerprint || '未记录（首次连接将记录当前指纹）' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="12">
+        <div class="text-sm">当前握手指纹</div>
+        <div class="diag-mono">{{ data.currentFingerprint || '-' }}</div>
+      </nz-col>
+      <nz-col [nzSpan]="24">
+        <div class="text-sm">系统信息（uname -a）</div>
+        <div class="diag-mono">{{ data.uname || '-' }}</div>
+      </nz-col>
+    </nz-row>
+  </nz-card>
+
+  @if (canTrust()) {
+    <nz-alert
+      nzType="error"
+      nzShowIcon
+      nzMessage="当前握手到的公钥与记录不一致。若确认目标机重装过系统或更换过主机密钥，可信任新指纹；否则请先排查是否有人在冒充该主机。"
+      class="mt-md"
+    />
+    <div class="text-right pt-md">
+      <button
+        nz-button
+        type="button"
+        nzType="primary"
+        nzDanger
+        [nzLoading]="trusting()"
+        (click)="trust()"
+      >
+        信任新指纹（{{ shortOf(data.currentFingerprint) }}）
+      </button>
+    </div>
+  }
+
+  <div class="text-right pt-md">
+    <button nz-button type="button" (click)="fresh()">重新诊断</button>
+    <button nz-button type="button" (click)="close()">关闭</button>
+  </div>
+}

@@ -239,6 +239,143 @@ export interface DockerDiagnose {
 }
 
 /**
+ * 远程主机（Linux / SSH）
+ *
+ * 注：`password` / `privateKey` / `passphrase` **永不下发**，详情只回 `hasXxx` 告诉页面「已配置」；
+ * 编辑时留空即表示保持原值
+ */
+export interface CloudRemote {
+  /** 主机ID */
+  id: number;
+  /** 主机名称 */
+  name: string;
+  /** 主机说明 */
+  description: string;
+  /** 主机名或 IP */
+  host: string;
+  /** SSH 端口 */
+  port: number;
+  /** 鉴权方式 */
+  authType: 'password' | 'key';
+  /** 登录用户 */
+  username: string;
+  /** 终端字符集 */
+  charset: string;
+  /** 主机公钥指纹，空串表示尚未信任（首连 TOFU） */
+  fingerprint: string;
+  /** SFTP 起始目录 */
+  rootPath: string;
+  /** 状态，true表示启用 */
+  status: boolean;
+  /** 是否已配置密码 */
+  hasPassword: boolean;
+  /** 是否已配置私钥 */
+  hasKey: boolean;
+  /** 是否已配置私钥口令 */
+  hasPassphrase: boolean;
+  /** 创建信息 */
+  create?: Partial<CloudAudit>;
+  /** 更新信息 */
+  update?: Partial<CloudAudit>;
+}
+
+/** 远程主机提交信息 */
+export interface RemotePayload {
+  /** 主机名称 */
+  name: string;
+  /** 主机说明 */
+  description: string;
+  /** 主机名或 IP */
+  host: string;
+  /** SSH 端口 */
+  port: number;
+  /** 鉴权方式 */
+  authType: 'password' | 'key';
+  /** 登录用户 */
+  username: string;
+  /** 登录密码，注：留空表示保持原值（切换鉴权方式时由后端清空另一套） */
+  password?: string;
+  /** 客户端私钥，注：留空表示保持原值 */
+  privateKey?: string;
+  /** 私钥口令，注：留空表示保持原值 */
+  passphrase?: string;
+  /** 终端字符集 */
+  charset: string;
+  /** SFTP 起始目录 */
+  rootPath: string;
+  /** 状态，true表示启用 */
+  status: boolean;
+}
+
+/** 远程主机概览，注：与后端 `RemoteSummary` 一一对应 */
+export interface RemoteSummary {
+  /** 发行版名称 */
+  osName: string;
+  /** 内核版本 */
+  kernel: string;
+  /** CPU 架构 */
+  arch: string;
+  /** 连续运行秒数 */
+  uptime: number;
+  /** CPU 核数 */
+  cpus: number;
+  /** 1 分钟平均负载 */
+  load1: number;
+  /** 5 分钟平均负载 */
+  load5: number;
+  /** 15 分钟平均负载 */
+  load15: number;
+  /** 内存总量（字节） */
+  memoryTotal: number;
+  /** 可用内存（字节） */
+  memoryAvailable: number;
+  /** 根分区总量（字节） */
+  diskTotal: number;
+  /** 根分区已用（字节） */
+  diskUsed: number;
+  /** 根分区使用率（百分比整数） */
+  diskPercent: number;
+  /** 当前登录用户 */
+  user: string;
+}
+
+/** 诊断单阶段，注：后端按「网络可达 → 握手 → 认证 → 命令执行 → 主机身份」顺序下发 */
+export interface RemoteDiagnoseStage {
+  /** 阶段名 */
+  name: string;
+  /** 是否通过 */
+  ok: boolean;
+  /** 耗时（毫秒） */
+  latencyMs: number;
+  /** 附加信息 */
+  detail: string;
+}
+
+/** 远程主机诊断，注：与后端 `RemoteDiagnose` 一一对应 */
+export interface RemoteDiagnose {
+  /** 是否全部通过 */
+  ok: boolean;
+  /** 各阶段结果 */
+  stages: RemoteDiagnoseStage[];
+  /** 已记录的指纹 */
+  fingerprint: string;
+  /** 当前握手到的指纹 */
+  currentFingerprint: string;
+  /** `uname -a` 输出 */
+  uname: string;
+  /** 风险提示 */
+  warnings: string[];
+}
+
+/** 终端票据，注：一次性、60 秒有效，WS 用它换连接 */
+export interface RemoteTicket {
+  /** 票据串 */
+  ticket: string;
+  /** 失效时刻（Unix 毫秒） */
+  expiresAt: number;
+}
+
+/**
  * Kubernetes 集群
  *
  * 注：`token` 与客户端私钥**永不下发**，详情只回 `hasToken` / `hasKey`；
@@ -563,6 +700,105 @@ export class CloudService {
    */
   dockerDiagnose(id: number): Observable<DockerDiagnose> {
     return this.http.get<DockerDiagnose>(`cloud/docker/diagnose/${id}`);
+  }
+
+  /**
+   * 获取远程主机清单
+   *
+   * @param operateId 操作序号，注：-1 表示取全量
+   * @returns 主机清单，注：不含登录凭据
+   */
+  remotes(operateId = -1): Observable<CloudRemote[]> {
+    return this.http.get<CloudRemote[]>('cloud/remote/index', {
+      params: { operateId },
+    });
+  }
+
+  /**
+   * 获取远程主机详情
+   *
+   * @param id 主机ID
+   * @returns 主机详情，注：不含凭据，只有 `hasXxx`
+   */
+  remote(id: number): Observable<CloudRemote> {
+    return this.http.get<CloudRemote>(`cloud/remote/show/${id}`);
+  }
+
+  /**
+   * 获取远程主机变更历史
+   *
+   * @param id 主机ID
+   * @returns 变更记录
+   */
+  remoteLog(id: number): Observable<CloudRemote[]> {
+    return this.http.get<CloudRemote[]>(`cloud/remote/log/${id}`);
+  }
+
+  /**
+   * 创建远程主机
+   *
+   * @param value 主机信息
+   * @returns 新主机ID
+   */
+  createRemote(value: RemotePayload): Observable<unknown> {
+    return this.http.post('cloud/remote/create', value);
+  }
+
+  /**
+   * 更新远程主机
+   *
+   * @param id 主机ID
+   * @param value 主机信息，注：凭据留空表示保持原值
+   * @returns 主机ID
+   */
+  updateRemote(id: number, value: RemotePayload): Observable<unknown> {
+    return this.http.post(`cloud/remote/update/${id}`, value);
+  }
+
+  /**
+   * 获取远程主机概览
+   *
+   * @param id 主机ID
+   * @returns 概览
+   */
+  remoteSummary(id: number): Observable<RemoteSummary> {
+    return this.http.get<RemoteSummary>(`cloud/remote/summary/${id}`);
+  }
+
+  /**
+   * 获取远程主机诊断
+   *
+   * @param id 主机ID
+   * @returns 分阶段诊断结果，注：风险项由后端判定，前端原样展示
+   */
+  remoteDiagnose(id: number): Observable<RemoteDiagnose> {
+    return this.http.get<RemoteDiagnose>(`cloud/remote/diagnose/${id}`);
+  }
+
+  /**
+   * 申请终端票据
+   *
+   * 注：WS 不受后端全局守卫保护，故终端连接必须先在这里拿到一次性票据 ——
+   * 令牌与 admin 角色在这一步校验，WS 只认票据
+   *
+   * @param id 主机ID
+   * @param cols 终端列数
+   * @param rows 终端行数
+   * @returns 票据
+   */
+  remoteTicket(id: number, cols: number, rows: number): Observable<RemoteTicket> {
+    return this.http.post<RemoteTicket>('cloud/remote/ticket', { id, cols, rows });
+  }
+
+  /**
+   * 信任主机的新指纹
+   *
+   * @param id 主机ID
+   * @param fingerprint 当前握手到的指纹
+   * @returns 主机ID
+   */
+  trustRemote(id: number, fingerprint: string): Observable<unknown> {
+    return this.http.post('cloud/remote/trust', { id, fingerprint });
   }
 
   /**

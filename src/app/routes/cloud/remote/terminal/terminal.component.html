@@ -1,0 +1,33 @@
+<nz-card [nzBordered]="false" [nzTitle]="titleTpl" [nzExtra]="extraTpl">
+  <ng-template #titleTpl>
+    <span>终端</span>
+    @if (host(); as info) {
+      <span class="terminal__target">
+        {{ info.username }}@{{ info.host }}:{{ info.port }} · {{ charsetOf(info.charset) }}
+      </span>
+    }
+  </ng-template>
+  <ng-template #extraTpl>
+    <button nz-button type="button" (click)="reconnect()">重新连接</button>
+    <button nz-button type="button" (click)="clear()">清屏</button>
+  </ng-template>
+
+  @if (failed()) {
+    <nz-alert nzType="error" nzShowIcon [nzMessage]="failed()" class="mb-md" />
+  }
+
+  <div class="terminal" (click)="focus()">
+    <div #screen class="terminal__screen"></div>
+    @if (status() !== 'open') {
+      <div class="terminal__mask">
+        <nz-spin nzSimple />
+        <div class="terminal__hint">{{ hint() }}</div>
+      </div>
+    }
+  </div>
+
+  <div class="terminal__tip">
+    Ctrl+Shift+C / Ctrl+Shift+V 复制粘贴；<kbd>Ctrl</kbd>+<kbd>C</kbd> 会发给远端进程。 会话空闲 30
+    分钟或超过 8 小时将由服务端自动断开。
+  </div>
+</nz-card>
