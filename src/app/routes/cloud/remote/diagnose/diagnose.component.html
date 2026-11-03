@@ -43,7 +43,20 @@
     </nz-row>
   </nz-card>
 
-  @if (canTrust()) {
+  @if (data.fingerprint === '') {
+    <!-- 注：未记录 ≠ 不一致，别用红色告警吓人 —— 首连 TOFU 本来就会走到这里 -->
+    <nz-alert
+      nzType="info"
+      nzShowIcon
+      nzMessage="该主机尚未记录指纹，首次连接成功时会自动记录当前指纹；也可以现在预先信任。"
+      class="mt-md"
+    />
+    <div class="text-right pt-md">
+      <button nz-button type="button" [nzLoading]="trusting()" (click)="trust()">
+        预先信任当前指纹（{{ shortOf(data.currentFingerprint) }}）
+      </button>
+    </div>
+  } @else if (canTrust()) {
     <nz-alert
       nzType="error"
       nzShowIcon
