@@ -376,6 +376,22 @@ export interface RemoteTicket {
 }
 
 /**
+ * 私钥预检结果
+ *
+ * 注：**不含私钥明文** —— 浏览器本来就有原文，后端没有理由再绕一圈回传
+ */
+export interface RemoteKeyInspect {
+  /** 原始格式，注：`pkcs8` 会在保存时被转成传统 PEM */
+  format: 'openssh' | 'pem' | 'pkcs8';
+  /** 保存时是否会被转换 */
+  converted: boolean;
+  /** 私钥自身是否带口令 */
+  encrypted: boolean;
+  /** 私钥对应公钥的指纹，注：可与本机 `ssh-keygen -l -f 私钥` 的结果对照 */
+  fingerprint: string;
+}
+
+/**
  * Kubernetes 集群
  *
  * 注：`token` 与客户端私钥**永不下发**，详情只回 `hasToken` / `hasKey`；
@@ -799,6 +815,24 @@ export class CloudService {
    */
   trustRemote(id: number, fingerprint: string): Observable<unknown> {
     return this.http.post('cloud/remote/trust', { id, fingerprint });
+  }
+
+  /**
+   * 预检私钥文件内容
+   *
+   * 注 1：选完文件立刻调，把「格式是否受支持、要不要口令、指纹是多少」当场告诉用户，
+   * 不必等到点保存才吃一个 422
+   * 注 2：真正的格式转换在保存时由后端做（同一套函数），这里只取识别结果
+   *
+   * @param content 私钥文件内容
+   * @param passphrase 私钥口令，空串表示无口令
+   * @returns 识别结果，注：不含私钥明文
+   */
+  inspectRemoteKey(content: string, passphrase: string): Observable<RemoteKeyInspect> {
+    return this.http.post<RemoteKeyInspect>('cloud/remote/key/inspect', {
+      content,
+      passphrase,
+    });
   }
 
   /**

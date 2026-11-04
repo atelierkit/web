@@ -7,6 +7,8 @@ import {
   chunksOf,
   errorTextOf,
   fingerprintText,
+  keyFormatText,
+  keyInspectText,
   trustedText,
   uptimeText,
   usagePercent,
@@ -99,6 +101,42 @@ describe('remote.format', () => {
     it('未登记的错误码带出后端文案，不吞线索', () => {
       expect(errorTextOf('UNKNOWN', '磁盘满了')).toBe('磁盘满了');
       expect(errorTextOf('UNKNOWN')).toBe('连接失败，请稍后重试。');
+    });
+  });
+
+  describe('keyFormatText / keyInspectText', () => {
+    it('格式映射成用户认得的名字', () => {
+      expect(keyFormatText('openssh')).toBe('OpenSSH');
+      expect(keyFormatText('pkcs8')).toBe('PKCS#8');
+      expect(keyFormatText('pem')).toContain('PEM');
+      expect(keyFormatText('')).toBe('未知格式');
+    });
+
+    it('PKCS#8 明说「保存时自动转换」，用户不必自己找命令', () => {
+      /** 预检结果 */
+      const text = keyInspectText({
+        format: 'pkcs8',
+        converted: true,
+        encrypted: false,
+        fingerprint: 'SHA256:abc',
+      });
+      expect(text).toContain('PKCS#8');
+      expect(text).toContain('自动转换');
+      expect(text).toContain('口令一栏留空');
+      expect(text).toContain('SHA256:abc');
+    });
+
+    it('加密私钥提示去填口令，且不出现「留空即可」这种相反的指引', () => {
+      /** 预检结果 */
+      const text = keyInspectText({
+        format: 'openssh',
+        converted: false,
+        encrypted: true,
+        fingerprint: 'SHA256:def',
+      });
+      expect(text).toContain('带口令');
+      expect(text).not.toContain('留空即可');
+      expect(text).not.toContain('自动转换');
     });
   });
 

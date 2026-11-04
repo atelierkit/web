@@ -8,6 +8,8 @@
 
 import type { STColumnTag } from '@delon/abc/st';
 
+import type { RemoteKeyInspect } from '../cloud.service';
+
 /**
  * 鉴权方式 → 文案
  *
@@ -133,6 +135,47 @@ export function fingerprintText(fingerprint: string): string {
  */
 export function trustedText(fingerprint: string): string {
   return (fingerprint ?? '').trim() === '' ? '未记录' : '已记录';
+}
+
+/**
+ * 私钥格式 → 文案
+ *
+ * @param format 后端识别到的原始格式
+ * @returns 展示文案
+ */
+export function keyFormatText(format: string): string {
+  if (format === 'openssh') {
+    return 'OpenSSH';
+  }
+  if (format === 'pkcs8') {
+    return 'PKCS#8';
+  }
+  if (format === 'pem') {
+    return 'PEM（传统格式）';
+  }
+  return format || '未知格式';
+}
+
+/**
+ * 私钥预检结果 → 一句人话
+ *
+ * 注：指纹给的是**完整值**，不缩成 `SHA256:abc12345…xyz9` ——
+ * 用户要拿它与本机 `ssh-keygen -l -f 私钥文件` 的输出逐字符对照
+ *
+ * @param info 后端预检结果
+ * @returns 展示文案
+ */
+export function keyInspectText(info: RemoteKeyInspect): string {
+  /** 片段，注：用分号串起来，一行能读完又不会糊成一片 */
+  const parts = [`已识别为 ${keyFormatText(info.format)} 格式`];
+  if (info.converted) {
+    parts.push('保存时会自动转换成可用的 PEM 格式，无需手动处理');
+  }
+  parts.push(
+    info.encrypted ? '该私钥带口令，请填写「私钥口令」' : '该私钥未设口令，口令一栏留空即可',
+  );
+  parts.push(`指纹 ${info.fingerprint}`);
+  return `${parts.join('；')}。`;
 }
 
 /**

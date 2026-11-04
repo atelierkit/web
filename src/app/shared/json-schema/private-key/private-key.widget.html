@@ -1,0 +1,42 @@
+<sf-item-wrap
+  [id]="id"
+  [schema]="schema"
+  [ui]="ui"
+  [showError]="showError"
+  [error]="error"
+  [showTitle]="schema.title"
+>
+  <div class="d-flex flex-wrap align-items-center" style="gap: 8px">
+    <button nz-button type="button" nzSize="small" (click)="pick()">选择私钥文件</button>
+    @if (fileName()) {
+      <span class="text-secondary">
+        {{ fileName() }}（{{ sizeText() }}），保存时会自动整理成可用的格式
+      </span>
+    } @else if (hasContent()) {
+      <span class="text-secondary">已填写私钥内容</span>
+    }
+    <button nz-button type="button" nzType="link" nzSize="small" (click)="togglePaste()">
+      {{ pasting() ? '收起粘贴' : '或手动粘贴' }}
+    </button>
+    @if (hasContent()) {
+      <button nz-button type="button" nzType="link" nzSize="small" nzDanger (click)="clear()">
+        清除
+      </button>
+    }
+  </div>
+  @if (pasting()) {
+    <textarea
+      nz-input
+      class="mt-sm"
+      rows="6"
+      spellcheck="false"
+      placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
+      [value]="text()"
+      (input)="onInput($event)"
+    ></textarea>
+  }
+  @if (localError()) {
+    <nz-alert nzType="error" nzShowIcon class="mt-sm" [nzMessage]="localError()" />
+  }
+  <input #picker type="file" style="display: none" (change)="onFile($event)" />
+</sf-item-wrap>
