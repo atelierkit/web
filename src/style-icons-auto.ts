@@ -4,26 +4,26 @@
 
 import {
   ArrowDownOutline,
-  CopyrightOutline,
   FullscreenExitOutline,
   FullscreenOutline,
   LockOutline,
   LogoutOutline,
   MailOutline,
   SettingOutline,
+  SmileOutline,
   ToolOutline,
   UserOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const ICONS_AUTO = [
   ArrowDownOutline,
-  CopyrightOutline,
   FullscreenExitOutline,
   FullscreenOutline,
   LockOutline,
   LogoutOutline,
   MailOutline,
   SettingOutline,
+  SmileOutline,
   ToolOutline,
   UserOutline,
 ];

@@ -2,10 +2,13 @@
 #
 # - 单元测试走浏览器模式（@angular/build:unit-test + Playwright/Chromium），
 #   新机器若报找不到浏览器，先执行一次：npx playwright install chromium
+# - 图标注册检查用 Node 脚本（浏览器里读不到文件系统），漏注册会在运行时抛
+#   「the icon xxx-o does not exist or is not registered」
 # - 应急绕过：`git commit --no-verify`；绕过的提交在 CI 里仍会被 lint 检查拦下。
 # 注：husky 9 起钩子就是普通 shell 脚本，由 .husky/_/h 用 `sh -e` 执行，
 # 不再需要 shebang 与 source _/husky.sh（那两行在 husky 10 会被移除）。
 export NODE_OPTIONS="--max-old-space-size=4096"
 npx --no-install tsc -p tsconfig.app.json --noEmit
+node scripts/check-icons.mjs
 npx --no-install lint-staged
 npx --no-install ng test --watch=false

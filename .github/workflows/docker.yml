@@ -53,6 +53,11 @@ jobs:
         # 只跑 TS 侧 lint；stylelint 带 --fix，不适合在 CI 里改文件
         run: yarn lint:ts
 
+      - name: 图标注册检查
+        # 与 pre-commit 钩子一致：模板 / TS 字符串里引用的图标必须已注册，
+        # 漏注册会在运行时抛「the icon xxx-o does not exist or is not registered」
+        run: node scripts/check-icons.mjs
+
       - name: 安装浏览器
         # 单元测试跑在真实 Chromium 里（@angular/build:unit-test + Playwright）
         run: npx --no-install playwright install --with-deps chromium
