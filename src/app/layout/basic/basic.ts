@@ -25,11 +25,6 @@ import { HeaderUser } from './widgets/user';
       [content]="contentTpl"
       [customError]="null"
     >
-      <layout-default-header-item direction="left" hidden="mobile">
-        <a layout-default-header-item-trigger routerLink="/passport/lock">
-          <nz-icon nzType="lock" />
-        </a>
-      </layout-default-header-item>
       <layout-default-header-item direction="left" hidden="pc">
         <div
           layout-default-header-item-trigger

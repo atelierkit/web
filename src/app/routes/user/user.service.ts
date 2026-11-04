@@ -86,7 +86,7 @@ export class UserService {
   /**
    * 同步本地登录用户的资料
    *
-   * 注 1：页头、侧栏与锁屏页都读 `SettingsService.user`（其背后是 signal），
+   * 注 1：页头与侧栏都读 `SettingsService.user`（其背后是 signal），
    *      资料改完必须写回这里，相关组件才会当场刷新 ——
    *      只更新页面自己的 signal 的话，页头要等整页刷新才变
    * 注 2：合并而非覆盖，未传的字段保持原值（昵称与头像各自独立修改，谁也不该把对方清空）
@@ -139,19 +139,6 @@ export class UserService {
    */
   changePassword(value: PasswordPayload): Observable<OperationResult> {
     return this.http.post<OperationResult>('user/password', value);
-  }
-
-  /**
-   * 屏幕锁定解锁
-   *
-   * 注：用户ID由后端从令牌里取，前端只传密码；密码错误时后端返回 400 而非 401，
-   * 避免被拦截器当成登录过期踢回登录页。成功后令牌保持不变，直接跳回首页即可
-   *
-   * @param password 登录密码
-   * @returns 业务操作结果
-   */
-  unlock(password: string): Observable<OperationResult> {
-    return this.http.post<OperationResult>('user/unlock', { password });
   }
 
   /**

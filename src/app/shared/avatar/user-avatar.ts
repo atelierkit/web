@@ -15,7 +15,7 @@ import { avatarColorOf, avatarTextOf } from '../utils/avatar';
 /**
  * 用户头像
  *
- * 注 1：三处页头/侧栏/锁屏都用这一个组件，避免各写一遍 `nz-avatar` 时漏掉回退逻辑
+ * 注 1：页头与侧栏共用这一个组件，避免各写一遍 `nz-avatar` 时漏掉回退逻辑
  * 注 2：没有头像或图片加载失败时回退到「名字首字符 + 稳定配色」——
  *      `nz-avatar` 在 `nzSrc` 为空时三个渲染分支都不命中，页头会留一个空白圆块
  * 注 3：地址拼接交给 `assetUrl`，后端下发的 `/static/...` 是「后端源」的路径，

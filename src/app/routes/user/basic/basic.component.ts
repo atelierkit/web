@@ -132,7 +132,7 @@ export class UserBasicComponent implements OnInit {
       .subscribe({
         next: () => {
           this.msgSrv.success('信息修改完成');
-          // 页头、侧栏与锁屏都读 SettingsService，改完立即写回，不必刷新整页
+          // 页头与侧栏都读 SettingsService，改完立即写回，不必刷新整页
           this.nickname.set(name);
           this.userSrv.syncProfile({ name });
           this.load();
@@ -163,7 +163,7 @@ export class UserBasicComponent implements OnInit {
       /** 上传结果 */
       const result = await firstValueFrom(this.userSrv.uploadAvatar(blob));
       this.avatar.set(result.avatar);
-      // 页头、侧栏与锁屏都读 SettingsService，上传后立即写回，不必刷新整页；
+      // 页头与侧栏都读 SettingsService，上传后立即写回，不必刷新整页；
       // 后端按 UUID 命名，新旧地址必然不同，图片不会被浏览器缓存成旧图
       this.userSrv.syncProfile({ avatar: result.avatar });
       this.msgSrv.success('头像已更新');
