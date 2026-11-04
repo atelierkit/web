@@ -5,6 +5,7 @@ import {
   changePercentText,
   countText,
   estimateText,
+  isActiveState,
   percentOf,
   progressTextOf,
   progressUnitOf,
@@ -59,6 +60,22 @@ describe('data.format', () => {
     it('总量未知时只给百分比，不编造分母', () => {
       expect(progressTextOf(5, 0)).toBe('0%');
       expect(progressTextOf(0, 0)).toBe('0%');
+    });
+  });
+
+  describe('isActiveState', () => {
+    it('排队中 / 执行中算活跃（「继续」按钮据此禁用）', () => {
+      expect(isActiveState(DATA_STATE.QUEUED)).toBe(true);
+      expect(isActiveState(DATA_STATE.RUNNING)).toBe(true);
+    });
+
+    it('终态与未同步都不算活跃（含已暂停：暂停后要能重新点「继续」）', () => {
+      expect(isActiveState(DATA_STATE.DRAFT)).toBe(false);
+      expect(isActiveState(DATA_STATE.SUCCEEDED)).toBe(false);
+      expect(isActiveState(DATA_STATE.FAILED)).toBe(false);
+      expect(isActiveState(DATA_STATE.SKIPPED)).toBe(false);
+      expect(isActiveState(DATA_STATE.PAUSED)).toBe(false);
+      expect(isActiveState(null)).toBe(false);
     });
   });
 

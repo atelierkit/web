@@ -97,6 +97,17 @@ export function progressTextOf(done: number, total: number): string {
 }
 
 /**
+ * 是否处于活跃执行（排队中 / 执行中）
+ *
+ * ⚠ 与后端 `data/sync/sync.types.ts` 的 `isActive` 同一口径（后端那条「部分唯一索引」的谓词）：
+ * 该类型已有活跃执行时再点「继续」，后端只会把它挡下、返回「N 条跳过」，按钮据此禁用。
+ * ⚠「已暂停」不在活跃集合里 —— 暂停后重新点「继续」正是重新入队的入口。
+ */
+export function isActiveState(state: DataState | null): boolean {
+  return state === DATA_STATE.QUEUED || state === DATA_STATE.RUNNING;
+}
+
+/**
  * 当前正在执行的那张卡（没有则 null）
  *
  * ⚠ 只返回一条：进度区一次只展示一个任务的进度条。多消费者并发时按传入顺序取第一个，

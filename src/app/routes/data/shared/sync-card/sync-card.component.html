@@ -29,7 +29,14 @@
 
   @if (showActions()) {
     <div class="mt-md">
-      <button nz-button nzType="primary" nzSize="small" (click)="start.emit(card().target)">
+      <!-- 已有活跃执行（排队中/执行中）时禁用：再点后端也只会把它挡下 -->
+      <button
+        nz-button
+        nzType="primary"
+        nzSize="small"
+        [disabled]="!canStart"
+        (click)="start.emit(card().target)"
+      >
         {{ actionText }}
       </button>
       @if (canPause) {

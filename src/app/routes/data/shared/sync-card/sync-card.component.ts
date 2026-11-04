@@ -4,6 +4,7 @@ import { SHARED_IMPORTS } from '@shared';
 import {
   countText,
   DATA_STATE,
+  isActiveState,
   stateTag,
   stateText,
   timeTextOf,
@@ -56,6 +57,16 @@ export class DataSyncCardComponent {
     const card = this.card();
     const byTradeDate = card.target === 'BarByDate' || card.target === 'AdjustFactor';
     return byTradeDate && (card.state === DATA_STATE.RUNNING || card.state === DATA_STATE.QUEUED);
+  }
+
+  /**
+   * 是否可发起「同步/继续」
+   *
+   * ⚠ 该类型已有活跃执行（排队中/执行中）时必须禁用：再点一次后端也不会入队
+   * （同一任务只允许一条活跃执行），只会回一句「N 条已跳过」—— 按钮能点就是误导。
+   */
+  get canStart(): boolean {
+    return !isActiveState(this.card().state);
   }
 
   /** 按钮文案：同步（从未同步）/ 继续（有历史） */
