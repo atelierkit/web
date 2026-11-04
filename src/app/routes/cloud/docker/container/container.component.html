@@ -1,0 +1,39 @@
+<div class="mb-md">
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  @for (item of batchActions(); track item.action) {
+    <button
+      nz-button
+      type="button"
+      [nzDanger]="item.danger === true"
+      nz-popconfirm
+      [nzPopconfirmTitle]="item.confirm"
+      nzOkText="确定"
+      nzCancelText="取消"
+      [disabled]="selected().length === 0 || busy()"
+      (nzOnConfirm)="run(selected(), item.action, item.options ?? {})"
+    >
+      {{ item.text }}
+    </button>
+  }
+</div>
+<st [data]="data()" [columns]="columns" [loading]="loading()" (change)="onChange($event)" />
+
+<nz-drawer
+  [nzVisible]="logTarget() !== null"
+  [nzTitle]="logTitle()"
+  nzPlacement="right"
+  nzWidth="78%"
+  [nzMaskClosable]="false"
+  (nzOnClose)="closeLog()"
+>
+  <ng-container *nzDrawerContent>
+    @if (logTarget(); as target) {
+      <docker-log
+        [dockerId]="dockerId"
+        [containerId]="textOf(target['id'])"
+        [name]="textOf(target['name'])"
+        [state]="textOf(target['state'])"
+      />
+    }
+  </ng-container>
+</nz-drawer>

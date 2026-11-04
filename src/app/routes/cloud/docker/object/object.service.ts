@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 import type {
   DockerAction,
   DockerActionOptions,
+  DockerLogQuery,
+  DockerLogSnapshot,
   DockerObject,
   DockerObjectType,
 } from './object.types';
@@ -81,6 +83,28 @@ export class DockerObjectService {
       action,
       force: options.force,
       timeout: options.timeout,
+    });
+  }
+
+  /**
+   * 获取容器日志快照
+   *
+   * 注 1：只用于「打开抽屉时的首屏」—— 实时跟随走 socket.io（`/docker-log`），
+   * 两者分工明确：快照给历史，通道给增量
+   * 注 2：`tail=0` 合法（不取历史），但首屏必须给正数，否则抽屉打开是空白
+   *
+   * @param dockerId 宿主机ID
+   * @param id 容器ID
+   * @param query 查询参数
+   * @returns 日志快照
+   */
+  logs(dockerId: number, id: string, query: DockerLogQuery = {}): Observable<DockerLogSnapshot> {
+    return this.http.post<DockerLogSnapshot>('cloud/docker/object/logs', {
+      dockerId,
+      id,
+      tail: query.tail,
+      since: query.since,
+      timestamps: query.timestamps,
     });
   }
 }

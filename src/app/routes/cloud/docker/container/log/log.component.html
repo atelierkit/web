@@ -1,0 +1,116 @@
+<div class="log-toolbar">
+  <nz-select class="tail" nzSize="small" [ngModel]="tail()" (ngModelChange)="reload($event)">
+    @for (item of tailOptions; track item) {
+      <nz-option [nzValue]="item" [nzLabel]="'最近 ' + item + ' 行'" />
+    }
+  </nz-select>
+
+  <button
+    nz-button
+    nzSize="small"
+    nzType="primary"
+    [disabled]="followState() === 'connecting' || followState() === 'blocked'"
+    (click)="toggleFollow()"
+  >
+    @switch (followState()) {
+      @case ('live') {
+        暂停
+      }
+      @case ('connecting') {
+        连接中…
+      }
+      @case ('paused') {
+        继续跟随
+      }
+      @case ('blocked') {
+        容器未运行
+      }
+      @default {
+        开始跟随
+      }
+    }
+  </button>
+
+  <button nz-button nzSize="small" (click)="reload(tail())">刷新快照</button>
+  <button nz-button nzSize="small" (click)="copy()">复制</button>
+  <button nz-button nzSize="small" (click)="download()">下载</button>
+  <button nz-button nzSize="small" (click)="clear()">清屏</button>
+</div>
+
+<div class="log-filter">
+  <label nz-checkbox [ngModel]="showStdout()" (ngModelChange)="showStdout.set($event)">
+    stdout
+  </label>
+  <label nz-checkbox [ngModel]="showStderr()" (ngModelChange)="showStderr.set($event)">
+    stderr
+  </label>
+  <label nz-checkbox [ngModel]="showTimestamp()" (ngModelChange)="showTimestamp.set($event)">
+    时间戳
+  </label>
+  <input
+    nz-input
+    class="keyword"
+    nzSize="small"
+    placeholder="过滤关键字（区分大小写不敏感）"
+    [ngModel]="keyword()"
+    (ngModelChange)="keyword.set($event)"
+  />
+</div>
+
+<div #scroller class="log-body" (scroll)="onScroll()">
+  @if (loading()) {
+    <div class="log-empty">正在加载日志…</div>
+  } @else if (error() !== '') {
+    <div class="log-empty log-fail">{{ error() }}</div>
+  } @else if (visible().length === 0) {
+    <div class="log-empty">没有匹配的日志行。</div>
+  } @else {
+    @if (filtered().length > visible().length) {
+      <div class="log-more">
+        <button nz-button nzType="link" nzSize="small" (click)="loadEarlier()">
+          加载更早的日志（还有 {{ filtered().length - visible().length }} 行）
+        </button>
+      </div>
+    }
+    @for (line of visible(); track $index) {
+      <div class="log-line" [class.log-err]="line.stream === 'stderr'">
+        @if (showTimestamp() && line.ts !== '') {
+          <span class="log-ts" [title]="line.ts">{{ clockOf(line.ts) }}</span>
+        }
+        <span class="log-text" [title]="lineTextOf(line)">
+          @for (chunk of chunksOf(line.text); track $index) {
+            @if (chunk.hit) {
+              <mark>{{ chunk.text }}</mark>
+            } @else {
+              {{ chunk.text }}
+            }
+          }
+        </span>
+        @if (line.truncated) {
+          <span class="log-flag">（本行过长，已截断）</span>
+        }
+      </div>
+    }
+  }
+</div>
+
+<div class="log-foot">
+  <span>共 {{ lines().length }} 行 · 错误 {{ errorCount() }}</span>
+  @if (tty()) {
+    <span class="log-hint">TTY 模式，无法区分 stdout / stderr</span>
+  }
+  @if (dropped()) {
+    <span class="log-hint log-warn">输出过快，已丢弃部分早期数据</span>
+  }
+  @switch (followState()) {
+    @case ('live') {
+      <span class="log-live">跟随中</span>
+    }
+    @case ('paused') {
+      <span class="log-hint">已暂停（连接已断开）</span>
+    }
+  }
+  @if (!atBottom()) {
+    <button nz-button nzSize="small" nzType="link" (click)="toBottom()">回到底部 ↓</button>
+  }
+</div>

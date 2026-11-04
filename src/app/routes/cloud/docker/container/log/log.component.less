@@ -1,0 +1,104 @@
+// 注：日志面板刻意与终端页保持同一套深色底 —— 长文本在深色下更易读，
+// 且两处都是「原始输出」类内容，视觉一致比跟随亮色主题更重要
+.log-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+
+  .tail {
+    width: 132px;
+  }
+}
+
+.log-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+
+  .keyword {
+    width: 240px;
+  }
+}
+
+.log-body {
+  overflow: auto;
+  height: calc(100vh - 300px);
+  min-height: 240px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #d4d4d4;
+  background: #1e1e1e;
+
+  .log-line {
+    display: flex;
+    gap: 8px;
+  }
+
+  .log-err {
+    color: #ff7875;
+  }
+
+  .log-ts {
+    flex: 0 0 auto;
+    color: #7f7f7f;
+  }
+
+  .log-text {
+    flex: 1 1 auto;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+
+  .log-flag {
+    flex: 0 0 auto;
+    font-size: 11px;
+    color: #d4a017;
+  }
+
+  mark {
+    padding: 0 1px;
+    border-radius: 2px;
+    color: #1e1e1e;
+    background: #d4a017;
+  }
+
+  .log-empty,
+  .log-more {
+    padding: 8px 0;
+    color: #9d9d9d;
+    text-align: center;
+  }
+
+  .log-fail {
+    color: #ff7875;
+  }
+}
+
+.log-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgb(0 0 0 / 45%);
+
+  .log-hint {
+    color: rgb(0 0 0 / 45%);
+  }
+
+  .log-warn {
+    color: #d48806;
+  }
+
+  .log-live {
+    color: #389e0d;
+  }
+}
