@@ -21,10 +21,12 @@ import { UserService } from '../user.service';
  * 注 1：有效期是「多久不访问就失效」，保存后立即生效，并作为下次登录的默认档位
  * 注 2：保存接口会返回新令牌，服务层已把本地登录态替换掉，所以刷新后「当前过期时间」才是真的
  * 注 3：档位白名单与后端 `TOKEN_VALIDS` 一致，前端拦一次非法值，避免白跑一趟接口
+ * 注 4：表单区宽度与居中由 `../form-layout.less` 的 `.user-form` 决定（四个页签共用）
  */
 @Component({
   selector: 'user-valid',
   templateUrl: './valid.component.html',
+  styleUrl: './valid.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [...SHARED_IMPORTS],
 })

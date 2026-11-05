@@ -17,10 +17,12 @@ import { ProfileUser, UserService } from '../user.service';
  * 注 3：表单为 `null` 时模板显示加载态，取数失败时置空对象，避免一直转圈
  * 注 4：头像不再让用户填地址 —— 走上传，前端先裁成 256×256 的正方形再提交，
  *      否则用户传一张 4MB 的手机原图，页头加载会明显拖慢
+ * 注 5：表单区宽度与居中由 `../form-layout.less` 的 `.user-form` 决定（四个页签共用）
  */
 @Component({
   selector: 'user-basic',
   templateUrl: './basic.component.html',
+  styleUrl: './basic.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [...SHARED_IMPORTS, UserAvatar, NzUploadModule],
 })

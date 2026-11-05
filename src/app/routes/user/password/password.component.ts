@@ -16,10 +16,13 @@ import { UserService } from '../user.service';
  * 注 2：后端会先校验原密码，再作废旧会话、保留当前令牌 —— 成功文案里的「已退出 N 个其它会话」
  * 直接取后端 `msg`，前端不自己拼
  * 注 3：从未设置过密码的历史账号会被后端拒（409），提示用户去登录页用邮件验证码设置
+ * 注 4：表单区宽度与居中由 `../form-layout.less` 的 `.user-form` 决定（四个页签共用），
+ * 模板里不再套栅格 —— 栅格居中依赖响应式断点，宽屏下会出现整块贴左的情况
  */
 @Component({
   selector: 'user-password',
   templateUrl: './password.component.html',
+  styleUrl: './password.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [...SHARED_IMPORTS],
 })

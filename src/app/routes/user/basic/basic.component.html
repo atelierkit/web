@@ -1,40 +1,38 @@
 @if (formData() === null) {
   <nz-spin nzSimple class="block py-lg text-center" />
 } @else {
-  <div nz-row nzJustify="center">
-    <div nz-col nzXs="24" nzMd="20" nzLg="16" nzXl="12">
-      <div class="text-center mb-lg">
-        <div class="mb-sm">
-          <user-avatar [src]="avatar()" [name]="nickname()" [username]="username()" [size]="96" />
-        </div>
-        <nz-upload
-          nzAccept="image/png,image/jpeg,image/webp"
-          [nzBeforeUpload]="beforeUpload"
-          [nzShowUploadList]="false"
-          [nzDisabled]="uploading()"
-        >
-          <button nz-button type="button" [nzLoading]="uploading()">更换头像</button>
-        </nz-upload>
-        <div class="text-secondary mt-sm" style="font-size: 12px">
-          支持 PNG / JPEG / WebP，上传后自动裁为正方形（256×256）
-        </div>
+  <div class="user-form">
+    <div class="text-center mb-lg">
+      <div class="mb-sm">
+        <user-avatar [src]="avatar()" [name]="nickname()" [username]="username()" [size]="96" />
       </div>
-      <sf #sf mode="edit" [schema]="schema" [ui]="ui" [formData]="formData()!" button="none">
-        <div class="text-center">
-          <button
-            nz-button
-            type="button"
-            nzType="primary"
-            nzSize="large"
-            [nzLoading]="saving()"
-            [disabled]="!sf.valid || saving()"
-            (click)="save(sf.value)"
-          >
-            修改
-          </button>
-          <button nz-button type="button" nzSize="large" routerLink="/home">返回首页</button>
-        </div>
-      </sf>
+      <nz-upload
+        nzAccept="image/png,image/jpeg,image/webp"
+        [nzBeforeUpload]="beforeUpload"
+        [nzShowUploadList]="false"
+        [nzDisabled]="uploading()"
+      >
+        <button nz-button type="button" [nzLoading]="uploading()">更换头像</button>
+      </nz-upload>
+      <div class="text-secondary mt-sm" style="font-size: 12px">
+        支持 PNG / JPEG / WebP，上传后自动裁为正方形（256×256）
+      </div>
     </div>
+    <sf #sf mode="edit" [schema]="schema" [ui]="ui" [formData]="formData()!" button="none">
+      <div class="text-center">
+        <button
+          nz-button
+          type="button"
+          nzType="primary"
+          nzSize="large"
+          [nzLoading]="saving()"
+          [disabled]="!sf.valid || saving()"
+          (click)="save(sf.value)"
+        >
+          修改
+        </button>
+        <button nz-button type="button" nzSize="large" routerLink="/home">返回首页</button>
+      </div>
+    </sf>
   </div>
 }

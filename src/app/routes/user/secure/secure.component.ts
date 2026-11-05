@@ -14,10 +14,12 @@ import { UserService } from '../user.service';
  * 注 1：提交后并不会立即改绑 —— 后端只发一封激活邮件，必须点邮件里的链接（`/passport/activate/:code`）
  * 才算改完，所以成功后这里切到「请激活新邮箱」的结果页
  * 注 2：激活链接 30 分钟内有效，文案由后端缓存有效期决定，前端只做提示
+ * 注 3：只有表单区套 `.user-form` 收窄居中（见 `../form-layout.less`），成功态的结果页仍按满宽展示
  */
 @Component({
   selector: 'user-secure',
   templateUrl: './secure.component.html',
+  styleUrl: './secure.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [...SHARED_IMPORTS, NzResultModule],
 })
