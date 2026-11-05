@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   authText,
+  bandwidthText,
   bytesText,
   charsetText,
   chunksOf,
@@ -40,6 +41,28 @@ describe('remote.format', () => {
 
     it('没见过的取值不显示成「已停用」（取不到 ≠ 停用）', () => {
       expect(netStateText('')).toBe('未知');
+    });
+  });
+
+  describe('bandwidthText', () => {
+    it('速率带双工模式（真机 enp1s0 是 1000 Mb/s 全双工）', () => {
+      expect(bandwidthText(1000, 'full', 'up')).toBe('1000 Mb/s · 全双工');
+      expect(bandwidthText(100, 'half', 'up')).toBe('100 Mb/s · 半双工');
+    });
+
+    it('双工未知（虚拟设备 / 部分无线驱动）时只给速率，不硬塞「未知双工」', () => {
+      expect(bandwidthText(2500, 'unknown', 'up')).toBe('2500 Mb/s');
+      expect(bandwidthText(866, '', 'up')).toBe('866 Mb/s');
+    });
+
+    it('速率为 0 时按链路状态区分「未连接」与「未知速率」', () => {
+      // 注：物理口网线没插时内核读 speed 返回 EINVAL，不能说成 0 带宽
+      expect(bandwidthText(0, '', 'down')).toBe('未连接');
+      expect(bandwidthText(0, '', 'unknown')).toBe('未知速率');
+    });
+
+    it('非法速率不打印 NaN', () => {
+      expect(bandwidthText(Number.NaN, 'full', 'up')).toBe('未知速率');
     });
   });
 

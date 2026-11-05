@@ -37,6 +37,33 @@ export function charsetText(value: string): string {
 }
 
 /**
+ * 链路带宽 → 文案
+ *
+ * 注 1：速率为 0 不等于「0 带宽」—— 物理网口在网线未插时内核读 `speed` 会返回 EINVAL，
+ * 此时该说「未连接」；而 `unknown`（取不到链路状态）才说「未知速率」
+ * 注 2：`duplex` 为 `unknown`（虚拟设备 / 部分无线驱动）时只给速率，不硬塞「未知双工」
+ *
+ * @param speedMbps 协商速率（Mb/s），取不到为 0
+ * @param duplex 双工模式
+ * @param state 链路状态
+ * @returns 如 `1000 Mb/s · 全双工` / `未连接`
+ */
+export function bandwidthText(speedMbps: number, duplex: string, state: string): string {
+  if (Number.isFinite(speedMbps) && speedMbps > 0) {
+    /** 速率部分 */
+    const speed = `${Math.round(speedMbps)} Mb/s`;
+    if (duplex === 'full') {
+      return `${speed} · 全双工`;
+    }
+    if (duplex === 'half') {
+      return `${speed} · 半双工`;
+    }
+    return speed;
+  }
+  return state === 'down' ? '未连接' : '未知速率';
+}
+
+/**
  * 网络接口状态 → 文案
  *
  * 注：`unknown` 单列一档 —— 主机上取不到链路信息（只有 `/proc/net/dev` 的精简系统）时

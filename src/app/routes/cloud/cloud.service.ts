@@ -340,6 +340,12 @@ export interface RemoteNetworkInterface {
   mtu: number;
   /** 地址（带前缀长度），IPv4 在前 */
   addresses: string[];
+  /** 是否物理网口，注：只有物理网口才有链路带宽（虚拟设备的 speed 是内核编的假值） */
+  physical: boolean;
+  /** 链路协商速率（Mb/s），注：物理网口且链路 up 时才有值，取不到为 0 */
+  speedMbps: number;
+  /** 双工模式：`full` / `half` / `unknown`，取不到为空串 */
+  duplex: string;
   /** 累计接收字节 */
   rxBytes: number;
   /** 累计发送字节 */

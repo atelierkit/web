@@ -88,6 +88,11 @@
               </span>
               <span class="net-item__meta">{{ item.mac || '无 MAC' }}</span>
               <span class="net-item__meta">MTU {{ item.mtu || '-' }}</span>
+              @if (item.physical) {
+                <span class="net-item__meta">
+                  {{ bandwidthOf(item.speedMbps, item.duplex, item.state) }}
+                </span>
+              }
             </div>
             <div class="net-item__addr">
               @for (address of item.addresses; track address) {
