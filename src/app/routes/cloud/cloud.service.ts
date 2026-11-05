@@ -307,6 +307,24 @@ export interface RemotePayload {
   status: boolean;
 }
 
+/** 磁盘挂载点，注：与后端 `RemoteDiskMount` 一一对应 */
+export interface RemoteDiskMount {
+  /** 设备名 */
+  filesystem: string;
+  /** 挂载点 */
+  mountPoint: string;
+  /** 文件系统类型，取不到时为空串 */
+  type: string;
+  /** 总量（字节） */
+  total: number;
+  /** 已用（字节） */
+  used: number;
+  /** 剩余可用（字节） */
+  available: number;
+  /** 使用率（百分比整数） */
+  percent: number;
+}
+
 /** 远程主机概览，注：与后端 `RemoteSummary` 一一对应 */
 export interface RemoteSummary {
   /** 发行版名称 */
@@ -329,12 +347,8 @@ export interface RemoteSummary {
   memoryTotal: number;
   /** 可用内存（字节） */
   memoryAvailable: number;
-  /** 根分区总量（字节） */
-  diskTotal: number;
-  /** 根分区已用（字节） */
-  diskUsed: number;
-  /** 根分区使用率（百分比整数） */
-  diskPercent: number;
+  /** 全部挂载点，注：`/` 在首位，其余按挂载点升序；已剔除伪文件系统 */
+  disks: RemoteDiskMount[];
   /** 当前登录用户 */
   user: string;
 }

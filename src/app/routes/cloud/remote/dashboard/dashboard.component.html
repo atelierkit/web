@@ -31,7 +31,7 @@
   </nz-row>
 
   <nz-row [nzGutter]="[16, 16]">
-    <nz-col [nzSpan]="12">
+    <nz-col [nzSpan]="8">
       <nz-card nzTitle="内存">
         <nz-progress
           nzType="line"
@@ -44,16 +44,29 @@
         </div>
       </nz-card>
     </nz-col>
-    <nz-col [nzSpan]="12">
-      <nz-card nzTitle="根分区">
-        <nz-progress
-          nzType="line"
-          [nzPercent]="data.diskPercent"
-          [nzStatus]="data.diskPercent >= 90 ? 'exception' : 'normal'"
-        />
-        <div class="text-sm">
-          已用 {{ bytesOf(data.diskUsed) }} / 总量 {{ bytesOf(data.diskTotal) }}
-        </div>
+    <nz-col [nzSpan]="16">
+      <nz-card nzTitle="磁盘挂载">
+        @for (item of data.disks; track item.mountPoint) {
+          <div class="disk-item">
+            <div class="disk-item__head">
+              <span class="disk-item__mount">{{ item.mountPoint }}</span>
+              <span class="disk-item__type">{{ item.type || '未知类型' }}</span>
+              <span class="disk-item__size">
+                已用 {{ bytesOf(item.used) }} / {{ bytesOf(item.total) }}（{{ item.percent }}%）
+              </span>
+            </div>
+            <nz-progress
+              nzType="line"
+              [nzPercent]="item.percent"
+              [nzShowInfo]="false"
+              [nzStrokeWidth]="6"
+              [nzStatus]="item.percent >= 90 ? 'exception' : 'normal'"
+            />
+            <div class="disk-item__device">{{ item.filesystem }}</div>
+          </div>
+        } @empty {
+          <div class="text-sm">未取到挂载信息（账号可能无权读取磁盘用量）。</div>
+        }
       </nz-card>
     </nz-col>
   </nz-row>
