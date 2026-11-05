@@ -2,11 +2,99 @@
   <nz-spin nzSimple class="py-lg text-center" />
 } @else {
   <nz-card nzTitle="网关概览（GET / 与 GET /status）" nzSize="small">
-    <pre class="mb0">{{ summary() }}</pre>
+    @if (summaryFailed()) {
+      <nz-alert nzType="warning" nzShowIcon [nzMessage]="summaryFailed()" />
+    } @else if (summary(); as data) {
+      <form nz-form nzLayout="horizontal">
+        <nz-row [nzGutter]="[16, 0]">
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">Kong 版本</nz-form-label>
+              <nz-form-control [nzSpan]="16">{{ data.version || '-' }}</nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">版本类型</nz-form-label>
+              <nz-form-control [nzSpan]="16">{{ editionOf(data.edition) }}</nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">主机名</nz-form-label>
+              <nz-form-control [nzSpan]="16">{{ data.hostname || '-' }}</nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">Lua 版本</nz-form-label>
+              <nz-form-control [nzSpan]="16">{{ data.luaVersion || '-' }}</nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">数据库</nz-form-label>
+              <nz-form-control [nzSpan]="16">{{ dbOf(data.dbReachable) }}</nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">节点ID</nz-form-label>
+              <nz-form-control [nzSpan]="16">
+                <span style="word-break: break-all">{{ data.nodeId || '-' }}</span>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">可用插件数</nz-form-label>
+              <nz-form-control [nzSpan]="16">{{ data.pluginCount }}</nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">已启用插件数</nz-form-label>
+              <nz-form-control [nzSpan]="16">{{ data.enabledCount }}</nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">活跃连接</nz-form-label>
+              <nz-form-control [nzSpan]="16">{{ data.connectionsActive }}</nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="8">累计请求数</nz-form-label>
+              <nz-form-control [nzSpan]="16">
+                {{ data.totalRequests.toLocaleString() }}
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </form>
+    }
   </nz-card>
+
   <nz-card nzTitle="已启用插件（GET /plugins/enabled）" nzSize="small" class="mt-md">
-    <pre class="mb0">{{ plugin() }}</pre>
+    @if (pluginFailed()) {
+      <nz-alert nzType="warning" nzShowIcon [nzMessage]="pluginFailed()" />
+    } @else if (plugins().length) {
+      <nz-list nzSize="small" nzBordered="false">
+        @for (name of plugins(); track name) {
+          <nz-list-item>
+            <div style="display: flex; align-items: center; gap: 12px">
+              <span class="text-secondary" style="width: 24px">{{ $index + 1 }}</span>
+              <span style="word-break: break-all">{{ name }}</span>
+            </div>
+          </nz-list-item>
+        }
+      </nz-list>
+    } @else {
+      <nz-empty nzNotFoundImage="simple" nzNotFoundContent="网关未启用任何插件" />
+    }
   </nz-card>
+
   <div class="text-right pt-md">
     <button nz-button type="button" (click)="close()">关闭</button>
   </div>
