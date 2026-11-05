@@ -1,19 +1,12 @@
 import { Routes } from '@angular/router';
 
-import { LayoutPassport } from '../../layout';
-import { PassportActivateComponent } from './activate/activate.component';
 import { CallbackComponent } from './callback.component';
+import { LayoutPassport } from '../../layout';
 import { UserLoginComponent } from './login/login.component';
 import { PassportResetComponent } from './reset/reset.component';
 import { SetupComponent } from './setup/setup.component';
 
 export const routes: Routes = [
-  // 邮箱激活，注：独立页面 —— 不进 LayoutPassport，那个布局进页面即清令牌，会把点邮件链接的用户登出
-  {
-    path: 'passport/activate/:code',
-    component: PassportActivateComponent,
-    data: { title: '激活新邮箱' },
-  },
   // passport
   {
     path: 'passport',

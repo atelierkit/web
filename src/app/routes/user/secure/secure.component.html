@@ -1,9 +1,6 @@
-@if (sent()) {
-  <nz-result nzStatus="success" nzTitle="请激活新邮箱">
-    <div nz-result-content>
-      新邮箱激活邮件已发送到 {{ email() }}，邮件有效期为 30
-      分钟。请及时登录新邮箱，点击邮件中的链接激活账号；激活前原邮箱仍然有效。
-    </div>
+@if (done()) {
+  <nz-result nzStatus="success" nzTitle="邮箱更换成功">
+    <div nz-result-content>绑定邮箱已更新为 {{ target() }}，后续找回密码与通知都会发到该地址。</div>
     <div nz-result-extra>
       <button nz-button type="button" nzType="primary" nzSize="large" routerLink="/home">
         返回首页
@@ -12,24 +9,123 @@
   </nz-result>
 } @else {
   <div class="user-form">
-    @if (message()) {
-      <nz-alert nzType="error" [nzMessage]="message()" [nzShowIcon]="true" class="mb-lg" />
+    @if (sent()) {
+      <nz-alert nzType="success" [nzShowIcon]="true" class="mb-lg" [nzMessage]="notice()" />
+    } @else {
+      <nz-alert
+        nzType="info"
+        [nzShowIcon]="true"
+        class="mb-lg"
+        [nzMessage]="
+          current()
+            ? '当前绑定邮箱：' + current() + '。更换后原邮箱立即失效，验证码会发到新邮箱。'
+            : '当前账号尚未绑定邮箱，验证码会发到新邮箱。'
+        "
+      />
     }
-    <sf #sf mode="edit" [schema]="schema" [ui]="ui" [formData]="formData()" button="none">
-      <div class="text-center">
-        <button
-          nz-button
-          type="button"
-          nzType="primary"
-          nzSize="large"
-          [nzLoading]="saving()"
-          [disabled]="!sf.valid || saving()"
-          (click)="submit(sf.value)"
-        >
-          更换
-        </button>
-        <button nz-button type="button" nzSize="large" routerLink="/home">返回首页</button>
-      </div>
-    </sf>
+    @if (error()) {
+      <nz-alert nzType="error" [nzMessage]="error()" [nzShowIcon]="true" class="mb-lg" />
+    }
+    <form nz-form [formGroup]="form" (ngSubmit)="sent() ? submit() : sendCode()" role="form">
+      @if (sent()) {
+        <nz-form-item>
+          <nz-form-control>
+            <nz-input-wrapper>
+              <nz-icon nzInputPrefix nzType="mail" />
+              <input nz-input nzSize="large" [value]="target()" readonly />
+            </nz-input-wrapper>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-control [nzErrorTip]="codeErrorTip">
+            <div class="code-row">
+              <nz-input-wrapper>
+                <nz-icon nzInputPrefix nzType="safety-certificate" />
+                <input
+                  nz-input
+                  nzSize="large"
+                  formControlName="code"
+                  maxlength="6"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  placeholder="6 位验证码"
+                />
+              </nz-input-wrapper>
+              <button
+                nz-button
+                type="button"
+                nzSize="large"
+                [nzLoading]="sending()"
+                [disabled]="sending() || countdown() > 0"
+                (click)="sendCode()"
+              >
+                {{ countdown() > 0 ? countdown() + ' 秒后重发' : '重新发送' }}
+              </button>
+            </div>
+            <ng-template #codeErrorTip let-i>
+              @if (i.errors?.required) {
+                请输入验证码！
+              }
+              @if (i.errors?.pattern) {
+                验证码为 6 位数字！
+              }
+            </ng-template>
+          </nz-form-control>
+        </nz-form-item>
+      } @else {
+        <nz-form-item>
+          <nz-form-control [nzErrorTip]="emailErrorTip">
+            <nz-input-wrapper>
+              <nz-icon nzInputPrefix nzType="mail" />
+              <input
+                nz-input
+                nzSize="large"
+                type="email"
+                formControlName="email"
+                autocomplete="email"
+                placeholder="新邮箱地址"
+              />
+            </nz-input-wrapper>
+            <ng-template #emailErrorTip let-i>
+              @if (i.errors?.required) {
+                请输入新邮箱！
+              }
+              @if (i.errors?.email) {
+                邮箱格式不正确！
+              }
+            </ng-template>
+          </nz-form-control>
+        </nz-form-item>
+      }
+      <nz-form-item>
+        <div class="text-center">
+          @if (sent()) {
+            <button
+              nz-button
+              type="submit"
+              nzType="primary"
+              nzSize="large"
+              [nzLoading]="saving()"
+              [disabled]="saving()"
+            >
+              确认更换
+            </button>
+            <button nz-button type="button" nzSize="large" (click)="back()">上一步</button>
+          } @else {
+            <button
+              nz-button
+              type="submit"
+              nzType="primary"
+              nzSize="large"
+              [nzLoading]="sending()"
+              [disabled]="sending() || countdown() > 0"
+            >
+              {{ countdown() > 0 ? countdown() + ' 秒后可重新发送' : '发送验证码' }}
+            </button>
+            <button nz-button type="button" nzSize="large" routerLink="/home">返回首页</button>
+          }
+        </div>
+      </nz-form-item>
+    </form>
   </div>
 }

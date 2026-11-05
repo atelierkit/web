@@ -1,2 +1,14 @@
 // 表单区宽度与居中见 `../form-layout.less`（四个页签共用）
 @import '../form-layout.less';
+
+// 验证码行：输入框占满剩余宽度，重发按钮固定在右侧
+// 注：`min-width: 0` 必留 —— flex 子项默认 `min-width: auto`，长 placeholder 会把按钮挤出去
+.code-row {
+  display: flex;
+  gap: 12px;
+
+  nz-input-wrapper {
+    flex: 1;
+    min-width: 0;
+  }
+}

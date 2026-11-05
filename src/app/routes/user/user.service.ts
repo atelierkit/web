@@ -117,13 +117,27 @@ export class UserService {
   /**
    * 申请更换绑定邮箱
    *
-   * 注：后端只发送激活邮件，新邮箱在点击邮件链接（`passport/activate`）后才生效
+   * 注 1：验证码发到**新邮箱**，本接口只证明这个地址能收信，不会改绑
+   * 注 2：拿到验证码后再调 `confirmEmail` 才真正落库；在此之前原邮箱一直有效
    *
    * @param email 新邮箱
-   * @returns 用户ID
+   * @returns 业务操作结果
    */
-  changeEmail(email: string): Observable<unknown> {
-    return this.http.post('user/email', { email });
+  sendEmailCode(email: string): Observable<OperationResult> {
+    return this.http.post<OperationResult>('user/email', { email });
+  }
+
+  /**
+   * 确认更换绑定邮箱
+   *
+   * 注：验证码与邮箱必须与发送时一致 —— 期间改过邮箱就得重新取码
+   *
+   * @param email 新邮箱
+   * @param code 邮箱验证码
+   * @returns 业务操作结果
+   */
+  confirmEmail(email: string, code: string): Observable<OperationResult> {
+    return this.http.post<OperationResult>('user/email/confirm', { email, code });
   }
 
   /**

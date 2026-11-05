@@ -128,12 +128,22 @@ describe('UserService', () => {
     });
   });
 
-  it('换邮箱走 POST user/email，提交 { email }', () => {
-    service.changeEmail('new@example.com').subscribe();
+  it('换邮箱第一步走 POST user/email，提交 { email } 获取验证码', () => {
+    let result: { code: number; msg: string } | undefined;
+    service.sendEmailCode('new@example.com').subscribe((res) => (result = res));
     const req = http.expectOne('user/email');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ email: 'new@example.com' });
-    req.flush(1);
+    req.flush({ code: 0, msg: '验证码已发送至new@example.com，有效期2分钟，请及时使用！' });
+    expect(result?.msg).toContain('验证码已发送');
+  });
+
+  it('换邮箱第二步走 POST user/email/confirm，提交 { email, code }', () => {
+    service.confirmEmail('new@example.com', '123456').subscribe();
+    const req = http.expectOne('user/email/confirm');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'new@example.com', code: '123456' });
+    req.flush({ code: 0, msg: '绑定邮箱已修改为new@example.com！' });
   });
 
   it('改密走 POST user/password，提交原密码与新密码，并回传后端的提示文案', () => {
