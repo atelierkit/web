@@ -31,7 +31,7 @@ export class DataRealtime {
   /**
    * 连接并订阅信号
    *
-   * @param url 后端源（形如 `http://host:3000`），由 `apiOriginOf` 从 baseUrl 推导
+   * @param url 后端源（形如 `http://host:80`），由 `apiOriginOf` 从 baseUrl 推导
    * @param handlers 信号与连接状态回调
    */
   connect(url: string, handlers: DataRealtimeHandlers): void {

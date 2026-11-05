@@ -62,7 +62,7 @@ yarn build          # 产物：dist/web/browser
 ```
 
 - Node **24**（仓库 `.nvmrc` 为 `24.20.0`；Angular CLI 要求 ≥ 22.22.3）、yarn **1.22**。
-- 开发态用 `yarn start`（默认 http://localhost:4200），需先启动后端 `atelierkit/api`（默认 3000 端口），
+- 开发态用 `yarn start`（默认 http://localhost:4200），需先启动后端 `atelierkit/api`（默认 80 端口），
   否则初始化状态与登录接口都会连接失败。
 
 #### 1.2 nginx 站点
@@ -112,15 +112,17 @@ server {
   }
 
   # 仅「同源反代」路线需要下面两段；直连路线可以删掉
+  # ⚠ 后端容器内默认监听 80，而本 nginx 已占用宿主机 80 ⇒ api 需映射到别的宿主机端口
+  #   （如 `-p 8080:80`），下面两条 proxy_pass 的端口就是宿主机侧的端口
   location /api/ {
-    proxy_pass http://127.0.0.1:3000/;      # 末尾带 /：用前缀换掉 URL 前缀
+    proxy_pass http://127.0.0.1:8080/;      # 末尾带 /：用前缀换掉 URL 前缀
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
 
   location /socket.io/ {
-    proxy_pass http://127.0.0.1:3000;       # ⚠ 末尾不能带 /：带斜杠会剥掉 /socket.io/ 前缀，握手 404
+    proxy_pass http://127.0.0.1:8080;       # ⚠ 末尾不能带 /：带斜杠会剥掉 /socket.io/ 前缀，握手 404
     proxy_http_version 1.1;                 # WebSocket 升级要求 1.1（默认 1.0 只能走长轮询）
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection $connection_upgrade;
@@ -139,7 +141,7 @@ server {
 ```jsonc
 // dist/web/browser/assets/config.json（源文件在 src/assets/config.json）
 {
-  "baseUrl": "//localhost:3000/"
+  "baseUrl": "//localhost:80/"
 }
 ```
 
@@ -149,11 +151,11 @@ server {
 | 场景 | `baseUrl` 写法 | 反代层要求 |
 | --- | --- | --- |
 | 同机反代 | `/api/` | nginx 必须同时提供 `/api/`（末尾带 `/`）与 `/socket.io/`（末尾不带 `/`），见 §1.2 |
-| 跨机直连 | `//192.0.2.10:3000/` | 无（后端已 `enableCors`，浏览器直连） |
+| 跨机直连 | `//192.0.2.10:80/` | 无（后端已 `enableCors`，浏览器直连） |
 | 独立域名 | `https://api.example.com/` | 无 |
 
 > 文档里的 `192.0.2.10` 属 RFC 5737 文档专用地址段，仅作占位，请替换成你实际的后端地址
-> （局域网写 `//<后端IP>:3000/`，公网写 `https://<域名>/`）。
+> （局域网写 `//<后端IP>:80/`，公网写 `https://<域名>/`）。
 
 - **应用名称与说明不在这个文件里**：由管理员在后台「配置 → 应用配置」（`/admin/app`）维护，
   经 `GET passport/app` 读取后写入页头与浏览器标题；未配置时前端退回内置名称「管理平台」。
@@ -203,7 +205,7 @@ docker run -d --name atelierkit-web --restart always \
 
 1. **镜像不含 `/api/` 与 `/socket.io/` 反代。** 它只托管静态文件，后端通常在后端容器里。要么把 `baseUrl` 填成完整后端地址（直连），
    要么在**宿主** nginx 上做那两条反代、再指到本容器（§3 给了网关容器的写法）。
-2. **漏写 `-v` 不会报错，但后端地址会变回镜像里那份。** 镜像内打包的是 `assets/config.json`（`baseUrl=//localhost:3000/`），
+2. **漏写 `-v` 不会报错，但后端地址会变回镜像里那份。** 镜像内打包的是 `assets/config.json`（`baseUrl=//localhost:80/`），
    页面能打开、接口全打到访问者本机，极易被误判为后端故障。
 3. **宿主机文件缺失时 Docker 会建一个同名目录**，`/assets/config.json` 变成 404，前端直接提示「未配置有效后端地址」。
    部署前先确认文件存在：`docker exec atelierkit-web cat /usr/share/nginx/html/assets/config.json`。
@@ -232,7 +234,8 @@ docker run -d --name atelierkit-web --network atelierkit --restart always \
   atelierkit/web
 ```
 
-`config.json` 里的 `baseUrl` 填后端的可达地址，例如 `{"baseUrl":"//192.0.2.10:3000/"}`（后端容器需把 3000 映射到宿主机）。
+`config.json` 里的 `baseUrl` 填后端的可达地址，例如 `{"baseUrl":"//192.0.2.10:80/"}`（后端容器内默认监听 80，
+需映射到宿主机 80；该端口已被占用时改映射到别的端口，`baseUrl` 跟着改）。
 前端与后端不同源，靠后端的 `enableCors({ origin: true })` 放行；socket.io 的连接地址由 `baseUrl` 推导，同样跨域，
 后端 `DataGateway` 已开 `cors`。
 
@@ -270,14 +273,15 @@ http {
     }
 
     location /api/ {
-      proxy_pass http://atelierkit-api:3000/;   # 服务名按 api README 里的容器名改；末尾带 /
+      proxy_pass http://atelierkit-api:80/;     # 服务名按 api README 里的容器名改；末尾带 /
+      # 指向容器名的写法走 docker 网络，端口用「容器内」端口（api 默认 80），不是宿主机映射端口
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
     location /socket.io/ {
-      proxy_pass http://atelierkit-api:3000;    # 末尾不带 /：保留 /socket.io/ 前缀
+      proxy_pass http://atelierkit-api:80;      # 末尾不带 /：保留 /socket.io/ 前缀
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection $connection_upgrade;

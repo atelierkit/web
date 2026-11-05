@@ -44,7 +44,7 @@ export interface DockerLogChannelHandlers {
 
 /** 建连参数 */
 export interface DockerLogChannelOptions extends DockerLogChannelHandlers {
-  /** 后端源，如 `http://192.168.1.3:3000` */
+  /** 后端源，如 `http://192.168.1.3:80` */
   origin: string;
   /** 登录令牌，注：WS 不走 HTTP 拦截器，必须显式带上 */
   token: string;
