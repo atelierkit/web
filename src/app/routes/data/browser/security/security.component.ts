@@ -11,15 +11,18 @@ import {
   securitiesPageTotal,
   sortHint,
 } from '../browser.format';
+import { DataSecuritySuggestComponent } from '../security-suggest.component';
 
 /**
  * 证券清单页签（7 列 + 三态排序 + 服务端分页）
+ *
+ * 关键字栏带联想：候选取自 `data/security/suggest`，选中后回填**规范代码**并立即查询。
  */
 @Component({
   selector: 'data-security',
   templateUrl: './security.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [...SHARED_IMPORTS],
+  imports: [...SHARED_IMPORTS, DataSecuritySuggestComponent],
 })
 export class DataSecurityComponent implements OnInit {
   private readonly dataSrv = inject(DataService);

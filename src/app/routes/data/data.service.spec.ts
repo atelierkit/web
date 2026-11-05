@@ -43,4 +43,12 @@ describe('DataService', () => {
     expect(req.request.body).toEqual({ target: 'AdjustFactor' });
     req.flush({ paused: 1 });
   });
+
+  it('证券联想走 GET data/security/suggest，关键字作为查询参数', () => {
+    service.suggest('浦发').subscribe();
+    const req = http.expectOne((r) => r.url === 'data/security/suggest');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('keyword')).toBe('浦发');
+    req.flush([]);
+  });
 });

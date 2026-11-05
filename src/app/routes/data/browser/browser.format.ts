@@ -189,5 +189,10 @@ export function toNumber(value: string | null): number | null {
 
 /** 证券行是否可「查看 K 线」（只有股票/指数有意义，实际浏览页 K 线页签是独立输入） */
 export function securityDisplayType(row: SecurityRow): string {
-  return SECURITY_TYPE_TAGS[row.type]?.text ?? row.type;
+  return securityTypeLabel(row.type);
+}
+
+/** 类型枚举名 → 中文名（未知取值原样返回，联想候选用它） */
+export function securityTypeLabel(type: string): string {
+  return SECURITY_TYPE_TAGS[type]?.text ?? type;
 }

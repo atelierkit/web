@@ -5,6 +5,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { changeColorClass, changePercentText } from '../../data.format';
 import { DataService, type BarRow } from '../../data.service';
 import { TRADE_STATUS_TAGS, barCountText, toNumber } from '../browser.format';
+import { DataSecuritySuggestComponent } from '../security-suggest.component';
 
 /** K 线单次查询上限（与后端一致） */
 const BAR_ROW_LIMIT = 5000;
@@ -13,12 +14,13 @@ const BAR_ROW_LIMIT = 5000;
  * K 线页签（单只证券 + 日期区间，10 列，前端分页 500/页）
  *
  * ⚠ 原始不复权、只有日线；`truncated` 由服务端给出（超过 5000 根保留最近 5000 并警告）。
+ * 证券代码栏带联想：选中后只回填代码（不自动查 —— 查询要带日期区间，由用户点「查询」）。
  */
 @Component({
   selector: 'data-bar',
   templateUrl: './bar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [...SHARED_IMPORTS],
+  imports: [...SHARED_IMPORTS, DataSecuritySuggestComponent],
 })
 export class DataBarComponent implements OnInit {
   private readonly dataSrv = inject(DataService);

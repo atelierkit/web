@@ -80,6 +80,18 @@ export interface SecurityQuery {
   size?: number;
 }
 
+/** 证券联想的一个候选 */
+export interface SecurityOption {
+  /** 规范代码（`sh.600000`） */
+  code: string;
+  /** 名称 */
+  name: string;
+  /** 类型（落库枚举名） */
+  type: string;
+  /** 交易所（落库枚举名） */
+  market: string;
+}
+
 /** 日历日 */
 export interface CalendarDay {
   calendarDate: string;
@@ -140,6 +152,11 @@ export class DataService {
     return this.http.get<SecurityPageResult>('data/security', {
       params: query as Record<string, string | number>,
     });
+  }
+
+  /** 证券联想（代码 / 六位数字 / 名称片段，服务端按相关度排好序、最多 12 条） */
+  suggest(keyword: string): Observable<SecurityOption[]> {
+    return this.http.get<SecurityOption[]>('data/security/suggest', { params: { keyword } });
   }
 
   /** 交易日历（一次整年） */

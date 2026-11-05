@@ -5,6 +5,8 @@ import {
   buildYearGrid,
   nextSort,
   securitiesPageTotal,
+  securityDisplayType,
+  securityTypeLabel,
   sortHint,
   toNumber,
 } from './browser.format';
@@ -95,6 +97,33 @@ describe('browser.format', () => {
     it('正常数值解析', () => {
       expect(toNumber('1.5')).toBe(1.5);
       expect(toNumber('-0.5')).toBe(-0.5);
+    });
+  });
+
+  describe('securityTypeLabel', () => {
+    it('落库枚举名翻成中文（联想候选与列表共用同一份映射）', () => {
+      expect(securityTypeLabel('Stock')).toBe('股票');
+      expect(securityTypeLabel('Fund')).toBe('ETF/基金');
+      expect(securityTypeLabel('Index')).toBe('指数');
+      expect(securityTypeLabel('Bond')).toBe('可转债');
+    });
+
+    it('未知取值原样返回，不显示空标签', () => {
+      expect(securityTypeLabel('Foo')).toBe('Foo');
+    });
+
+    it('securityDisplayType 与它一致（同一个口径）', () => {
+      expect(
+        securityDisplayType({
+          code: 'sh.600000',
+          name: '浦发银行',
+          type: 'Stock',
+          market: 'Shanghai',
+          listDate: '1999-11-10',
+          status: 'Listed',
+          delistDate: null,
+        }),
+      ).toBe('股票');
     });
   });
 });

@@ -1,0 +1,24 @@
+<nz-input-wrapper>
+  @if (loading()) {
+    <nz-icon nzInputSuffix nzType="loading" />
+  }
+  <input
+    nz-input
+    type="text"
+    [nzAutocomplete]="auto"
+    [value]="value()"
+    [placeholder]="placeholder()"
+    [style.width]="width()"
+    (input)="onInput($event)"
+    (keydown.enter)="onEnter($event)"
+  />
+</nz-input-wrapper>
+<nz-autocomplete #auto nzBackfill [nzWidth]="320" (selectionChange)="onPick($event)">
+  @for (opt of options(); track opt.code) {
+    <nz-auto-option [nzValue]="opt.code">
+      <span class="suggest-code">{{ opt.code }}</span>
+      <span>{{ opt.name }}</span>
+      <span class="text-secondary text-sm"> · {{ typeLabel(opt.type) }}</span>
+    </nz-auto-option>
+  }
+</nz-autocomplete>

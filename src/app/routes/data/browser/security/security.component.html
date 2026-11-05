@@ -1,11 +1,10 @@
 <div class="mb-md d-flex" style="gap: 8px">
-  <input
-    nz-input
-    placeholder="关键字（代码或名称）"
+  <data-security-suggest
     [value]="query().keyword ?? ''"
-    (keyup.enter)="search()"
-    (input)="onKeyword($any($event.target).value)"
-    style="width: 240px"
+    placeholder="关键字（代码或名称）"
+    (valueChange)="onKeyword($event)"
+    (picked)="search()"
+    (submitted)="search()"
   />
   <nz-select
     nzAllowClear

@@ -1,11 +1,10 @@
 <div class="mb-md d-flex" style="gap: 8px; flex-wrap: wrap">
-  <input
-    nz-input
-    placeholder="证券代码（sh.600000）"
+  <data-security-suggest
     [value]="code()"
-    (input)="code.set($any($event.target).value)"
-    (keyup.enter)="query()"
-    style="width: 180px"
+    placeholder="证券代码（sh.600000）"
+    width="180px"
+    (valueChange)="code.set($event)"
+    (submitted)="query()"
   />
   <input
     nz-input
