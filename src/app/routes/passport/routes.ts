@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 
-import { CallbackComponent } from './callback.component';
 import { LayoutPassport } from '../../layout';
 import { UserLoginComponent } from './login/login.component';
 import { PassportResetComponent } from './reset/reset.component';
@@ -31,6 +30,4 @@ export const routes: Routes = [
       },
     ],
   },
-  // 单页不包裹Layout
-  { path: 'passport/callback/:type', component: CallbackComponent },
 ];
