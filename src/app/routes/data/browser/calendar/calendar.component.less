@@ -38,12 +38,49 @@
   background: #fff7e6; // 无记录 = 未同步（淡橙），区别于休市
 }
 
-// 图例色块
+// 图例：容器负责排版，色块由 ::before 绘制
+// ⚠ 盒子尺寸不要直接写在 .cal-legend 上 —— 模板里文字与该类同处一个 span，
+//   容器一旦被压成 12px 宽，中文就会逐字换行排成竖排（2026-11-05 修）。
 .cal-legend {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
   margin-right: 4px;
-  border-radius: 2px;
-  vertical-align: middle;
+  font-size: 12px;
+  color: #595959; // 文字统一灰色，状态只由色块表达
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    flex: none;
+    box-sizing: border-box;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+
+  // 清掉格子状态类带过来的底色与字色（span 同时挂了 cal-open 等类）
+  &.cal-open,
+  &.cal-closed,
+  &.cal-unsynced {
+    font-weight: 400;
+    color: #595959;
+    background: transparent;
+  }
+
+  // 淡色块在白底上几乎不可见，统一加一圈同色系描边
+  &.cal-open::before {
+    border: 1px solid #91caff;
+    background: #e6f7ff;
+  }
+
+  &.cal-closed::before {
+    border: 1px solid #d9d9d9;
+    background: #f5f5f5;
+  }
+
+  &.cal-unsynced::before {
+    border: 1px solid #ffd591;
+    background: #fff7e6;
+  }
 }
