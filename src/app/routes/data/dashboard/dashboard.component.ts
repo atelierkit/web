@@ -9,10 +9,10 @@ import { DataSyncProgressComponent } from '../shared/sync-progress/sync-progress
  * 行情仪表板（`/data/dashboard`）
  *
  * 页面本体就三块：标题 + 帮助、四张只读卡、同步进度。
- * 与桌面端三条约束一一对应：两页共用 `data.store`、共用 `sync-card`（`showActions=false`）、
+ * 三条约束：两页共用 `data.store`、共用 `sync-card`（`showActions=false`）、
  * 共用进度区（`data-sync-progress`）；只显示错误文案不显示动作文案。
  *
- * ⚠ 失败态必须给重试按钮 —— 桌面端靠启动流程广播自动重读，web 没有那个广播，
+ * ⚠ 失败态必须给重试按钮 —— 本页没有「启动流程广播」这类自动重读机制，
  * 不给重试页面会永远停在错误态。
  */
 @Component({

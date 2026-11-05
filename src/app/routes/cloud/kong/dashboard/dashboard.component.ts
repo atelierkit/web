@@ -11,8 +11,8 @@ import { dbText, editionText } from '../kong.format';
  *
  * 注 1：数据来自网关的 `/`（版本、插件清单）与 `/status`（连接数、数据库可达性），
  * 后端把两者合并成一份概览下发（`cloud/kong/summary/:id`），前端不用发两次请求
- * 注 2：旧私有项目读的是 `/default/license/report`，那是**企业版专属**接口，
- * 社区版恒为 404（本机 Kong 3.9.4 社区版实测）⇒ 已整页改写，不再依赖许可报告
+ * 注 2：`/default/license/report` 是**企业版专属**接口，
+ * 社区版恒为 404（Kong 3.9.4 社区版实测）⇒ 概览不读许可报告
  */
 @Component({
   selector: 'kong-dashboard',

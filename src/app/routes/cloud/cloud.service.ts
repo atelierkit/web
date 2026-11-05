@@ -673,7 +673,7 @@ export class CloudService {
    * 获取网关概览
    *
    * 注：后端把 Kong 的 `/`（版本、插件）与 `/status`（连接、数据库）合并成一份下发；
-   * 旧私有项目读的 `/default/license/report` 是企业版专属接口，社区版恒为 404
+   * `/default/license/report` 是企业版专属接口，社区版恒为 404，故不读它
    *
    * @param id 站点ID
    * @returns 概览

@@ -14,7 +14,7 @@ import { TencentDnsEditComponent, type DnsEditData } from './edit/edit.component
  * 解析记录组件
  *
  * 注：列表总数取 `RecordCountInfo.TotalCount` —— `DescribeRecordList` 没有顶层 `TotalCount`，
- * 旧私有项目取 `res.TotalCount` 恒为 undefined，分页器一直是 0 条
+ * 读它恒为 undefined，分页器会一直是 0 条
  */
 @Component({
   selector: 'tencent-dns',

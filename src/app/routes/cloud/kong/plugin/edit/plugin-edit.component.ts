@@ -10,7 +10,7 @@ import type { KongObject, KongObjectType } from '../../object/object.types';
  * KONG 插件编辑弹窗
  *
  * 注 1：只支持 `cors` 与 `redirect` 两类插件的配置表单 —— 其余插件的 config 结构各不相同，
- * 没有通用表单可做（旧私有项目也是只做这两个）
+ * 没有通用表单可做
  * 注 2：`cors` / `redirect` 两份子表单按所选插件名互斥显示（`visibleIf`），提交时再按名字收进
  * `config`，见 `payload()`
  */

@@ -11,8 +11,7 @@ import { AdminSettingListComponent } from './setting/list/list.component';
  * 管理员路由
  *
  * 注 1：页面挂在主布局（`LayoutBasic`）下，导航由侧边菜单提供
- * 注 2：旧私有项目的 `admin/task` 与 `admin/dashboard` **不迁移** —— 前者表格列是用户字段却调
- * `kong/*`（站点）接口、后端也没有任务接口；后者根本没挂路由，且功能已被 `cloud/kong/dashboard` 取代
+ * 注 2：本模块只有配置与日志两类页面；密钥与 KONG / Docker / Kubernetes / 远程连接在「云服务」分组（`/cloud/*`）
  */
 export const routes: Routes = [
   { path: '', redirectTo: 'list', pathMatch: 'full' },

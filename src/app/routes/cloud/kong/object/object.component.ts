@@ -14,7 +14,7 @@ import type { KongAction, KongObject, KongObjectEditData, KongObjectType } from 
  * KONG 对象列表的抽象基类
  *
  * 注 1：路由 / 服务 / 用户 / 上游 / 证书 / 插件六个页面除了「业务列」与「取数方式」外完全一样，
- * 故把列表、翻页、批量删除与操作列收在基类里，子类只写差异（这也是旧私有项目的做法）
+ * 故把列表、翻页、批量删除与操作列收在基类里，子类只写差异
  * 注 2：列定义在 `ngOnInit` 里拼 —— 操作列要引用子类提供的编辑弹窗组件，字段初始化阶段拿不到
  * 注 3：模板不写在基类上；各子类用 `templateUrl` 指向同一份 `object.component.html`
  */

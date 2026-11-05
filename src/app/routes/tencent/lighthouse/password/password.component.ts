@@ -21,7 +21,7 @@ export interface PasswordData {
 /**
  * 重置实例密码组件
  *
- * 注：旧私有项目用 `window.prompt` 收密码（无法校验、也没有输入掩码），这里换成表单弹窗
+ * 注：用表单弹窗收密码 —— `window.prompt` 无法校验、也没有输入掩码
  */
 @Component({
   selector: 'tencent-password',

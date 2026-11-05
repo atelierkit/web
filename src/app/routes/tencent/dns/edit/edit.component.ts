@@ -47,8 +47,7 @@ const DEFAULT_VALUE: Record<string, unknown> = {
 /**
  * 解析记录编辑组件
  *
- * 注 1：回显走 `DescribeRecord`（`RecordInfo`），不是列表接口 —— 旧项目用列表接口取详情，
- * 拿不到值只能退回默认表单
+ * 注 1：回显走 `DescribeRecord`（`RecordInfo`），不是列表接口 —— 列表接口拿不到单条值，只能退回默认表单
  * 注 2：`RecordInfo.Enabled` 是 1 / 0，而提交时腾讯云要 `Status: ENABLE / DISABLE`，
  * 两者在 `save()` 里转换
  */

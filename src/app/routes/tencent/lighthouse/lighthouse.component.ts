@@ -26,8 +26,7 @@ import { TencentPasswordComponent, type PasswordData } from './password/password
 /**
  * 轻量应用服务器组件
  *
- * 注 1：旧私有项目把地域做成布局里的二级导航（`service-layout`），开源仓库没有那套组件，
- * 这里改成页头右侧的地域下拉；地址仍是 `lighthouse/:region`，切地域等于换地址
+ * 注 1：地域不是布局里的二级导航，而是页头右侧的下拉；地址仍是 `lighthouse/:region`，切地域等于换地址
  * 注 2：直接访问 `/lighthouse`（没有地域）时，用地域清单的第一项补全地址
  */
 @Component({

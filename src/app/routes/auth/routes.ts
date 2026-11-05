@@ -7,8 +7,7 @@ import { AuthUserComponent } from './user/user.component';
 /**
  * 访问控制路由
  *
- * 注：页面挂在主布局（`LayoutBasic`）下，导航由侧边菜单提供；
- * 旧私有项目的分类 / 产品两个页面不迁移
+ * 注：页面挂在主布局（`LayoutBasic`）下，导航由侧边菜单提供；本模块只有用户 / 角色 / 令牌三页
  */
 export const routes: Routes = [
   { path: '', redirectTo: 'user', pathMatch: 'full' },

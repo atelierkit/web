@@ -157,7 +157,7 @@ export function stateText(state: DataState | null): string {
 /**
  * 状态 → 徽标颜色
  *
- * ⚠ 六态 vs zorro 五色：桌面端状态有六种，ng-zorro 语义色只有五种
+ * ⚠ 六态 vs zorro 五色：同步状态有六种，ng-zorro 语义色只有五种
  * （default/processing/success/error/warning），有一态必须用自定义色，
  * 不许把两态合并 —— 合并后「排队」与「已跳过」看起来一样，语义就丢了。
  * 这里「未同步」用 default、「已跳过」用自定义色（#8c8c8c 灰）区分。

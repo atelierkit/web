@@ -114,7 +114,7 @@ export interface AuthToken {
   id: string;
   /** 令牌随机码 */
   code: string;
-  /** 设备标识，注：改造前的令牌没有该字段；`unreported` 表示客户端未上报 */
+  /** 设备标识，注：库里没有该字段的令牌为 undefined；`unreported` 表示客户端未上报 */
   device?: string;
   /** 有效期（分钟），0 表示长期有效 */
   valid: string;

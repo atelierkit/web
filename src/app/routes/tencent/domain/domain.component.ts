@@ -14,7 +14,7 @@ import { TencentDomainEditComponent, type DomainEditData } from './edit/edit.com
  * 域名解析组件
  *
  * 注：列表总数取 `DomainCountInfo.DomainTotal` —— 腾讯云的 `DescribeDomainList` **没有**顶层
- * `TotalCount`，旧私有项目取 `res.TotalCount` 恒为 undefined，分页器一直是 0 条
+ * `TotalCount`，读它恒为 undefined，分页器会一直是 0 条
  */
 @Component({
   selector: 'tencent-domain',

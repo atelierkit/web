@@ -337,8 +337,7 @@ export interface TencentKong {
  *
  * 注 1：接口前缀统一为 `tencent/`，全部要求管理员角色（后端 `@Allow('admin')`）
  * 注 2：`id` 一律是**云服务密钥ID**（页面路由里的 `:id`），不是腾讯云的资源 ID
- * 注 3：旧私有项目用 `_HttpClient` 直接拼 URL，这里把接口收在一个服务里，
- * 页面只关心入参与响应类型
+ * 注 3：接口收在这一个服务里（`HttpClient` + 明确的响应类型），页面只关心入参与响应类型，不在组件里拼 URL
  */
 @Injectable({ providedIn: 'root' })
 export class TencentService {

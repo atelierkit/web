@@ -9,8 +9,7 @@ import { USER_TABS, tabIndexOf } from '../user.format';
 /**
  * 账号管理布局组件
  *
- * 注 1：旧私有项目用 `@brand` 的 `service-layout`（侧边二级导航），开源仓库里没有 `@brand`，
- * 这里改用与 KONG 详情页 / 腾讯云一致的「页头 + 标签页」范式
+ * 注 1：用与 KONG 详情页 / 腾讯云一致的「页头 + 标签页」范式（本仓库没有侧边二级导航组件）
  * 注 2：页头由布局统一提供，子页面不要再写 `page-header`，否则会出现两条页头
  */
 @Component({

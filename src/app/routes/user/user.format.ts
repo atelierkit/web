@@ -72,7 +72,7 @@ export function cropRectOf(width: number, height: number): AvatarCrop {
 /**
  * 用户启用状态文案
  *
- * 注：旧私有项目用 -1 / 1 / 0 三个数字表示状态，本仓库改为布尔值
+ * 注：后端用布尔值表示启用状态，这里只负责映射文案
  *
  * @param status 启用状态，true表示启用
  * @returns 展示文案

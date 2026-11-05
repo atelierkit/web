@@ -26,10 +26,10 @@ interface ProbeResult<T> {
  * KONG 网关诊断组件
  *
  * 注 1：把后端探测到的「网关概览」与「已启用插件」只读展示 ——
- * 概览按表单样式逐项排布，插件清单按列表样式逐行排布（原先是一整段 JSON 文本）
+ * 概览按表单样式逐项排布，插件清单按列表样式逐行排布
  * 注 2：请求由后端发起（浏览器跨域访问不到网关的 Admin API）
- * 注 3：概览来自网关的 `/` 与 `/status`，社区版也支持；旧私有项目探的
- * `/default/license/report` 是企业版专属，社区版恒为 404，故不再展示
+ * 注 3：概览来自网关的 `/` 与 `/status`，社区版也支持；
+ * `/default/license/report` 是企业版专属、社区版恒为 404，故不展示
  */
 @Component({
   selector: 'cloud-kong-diagnose',

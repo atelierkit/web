@@ -19,8 +19,7 @@ import { TencentService } from '../tencent.service';
 /**
  * 腾讯云布局组件
  *
- * 注 1：旧私有项目用 `@brand` 的 `service-layout`（侧边二级导航 + 地域子菜单），
- * 开源仓库里没有 `@brand`，这里改用与 KONG 详情页一致的「页头 + 标签页」范式
+ * 注 1：用与 KONG 详情页一致的「页头 + 标签页」范式（本仓库没有侧边二级导航组件）
  * 注 2：地域不再进导航 —— 轻量服务器页内自带地域下拉，地址仍然是 `lighthouse/:region`
  */
 @Component({

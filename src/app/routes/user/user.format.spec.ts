@@ -24,7 +24,7 @@ describe('user.format', () => {
     expect(tabIndexOf('/home')).toBe(0);
   });
 
-  it('启用状态用中文文案展示（旧项目是 -1/0/1 三个数字）', () => {
+  it('启用状态用中文文案展示', () => {
     expect(userStatusLabel(true)).toBe('启用');
     expect(userStatusLabel(false)).toBe('禁用');
   });

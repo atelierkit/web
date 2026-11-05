@@ -11,16 +11,17 @@
 
 ## 功能
 
-- 私有文件与数据管理：文件浏览、上传下载、分享链接生成
-- 服务器运维：仪表盘、进程与服务管理
-- 下载中心：下载任务列表、进度展示、暂停 / 限速操作
-- 用户与权限：登录、角色与令牌管理界面（`/auth/user`、`/auth/role`、`/auth/token`，入口仅管理员可见）
-- 云服务：云厂商访问密钥管理（`/cloud/key`）与 KONG 网关站点管理 / 诊断（`/cloud/kong`），入口仅管理员可见
-- 腾讯云：SSL 证书（申请 / 续期 / 部署到 KONG / 吊销）、域名与解析记录、轻量服务器（启停 / 重置密码）
-  与防火墙规则（`/tencent/:id`，入口是密钥列表里「服务商为腾讯云」那条的「管理」），入口仅管理员可见
-- 管理员：系统配置（`/admin/list`、`/admin/app`、`/admin/icp`）、操作日志（`/admin/operate`）与
-  请求日志（`/admin/req`），入口仅管理员可见
-- （规划中）家庭物联网：设备管理界面
+| 分组 | 页面 | 入口 |
+| --- | --- | --- |
+| 行情数据 | 仪表板（默认落地页）、数据同步、数据浏览 | 侧边「行情数据」，登录即可看（写操作由后端拦） |
+| 账号管理 | 基本资料、更换邮箱、修改密码、登录有效期 | 侧边「账号管理」，任何登录用户可用 |
+| 访问控制 | 用户管理 `/auth/user`、角色管理 `/auth/role`、令牌管理 `/auth/token` | 侧边「访问控制」，仅管理员 |
+| 云服务 | 密钥管理 `/cloud/key`；KONG 网关 `/cloud/kong`、Docker 宿主机 `/cloud/docker`、Kubernetes 集群 `/cloud/kubernetes`、远程连接 `/cloud/remote` | 侧边「云服务」，仅管理员 |
+| 腾讯云 | 证书、域名与解析记录、CDN、轻量服务器与防火墙 `/tencent/:id` | 密钥列表里「服务商为腾讯云」那条的「管理」 |
+| 管理员 | 系统配置 `/admin/list`、`/admin/app`、`/admin/icp`，邮件配置，操作日志 `/admin/operate`，请求日志 `/admin/req` | 侧边「管理员」，仅管理员 |
+
+- 云服务四类站点（KONG / Docker / Kubernetes / 远程连接）同一套「站点列表 + 站点详情标签页」的组织方式，详情页含各自的概览、资源页与变更历史。
+- 远程连接的详情页默认落在「终端」（浏览器内 SSH），不是概览页。
 
 ## 技术栈
 
@@ -82,7 +83,7 @@ server {
   root /var/www/atelierkit/web;
   index index.html;
 
-  # 上传文件上限（下载中心 / 文件管理用得到）
+  # 上传文件上限（头像；nginx 默认只有 1m，偏小的值会让稍大的图片直接被拦成 413）
   client_max_body_size 500m;
 
   gzip on;
@@ -90,7 +91,7 @@ server {
   gzip_comp_level 5;
   gzip_types text/plain text/css application/javascript application/json image/svg+xml;
 
-  # SPA 兜底：前端用 hash 路由，刷新任意地址都要回 index.html
+  # SPA 兜底：history 路由（`environment.useHash = false`），刷新任意地址都要回 index.html
   location / {
     try_files $uri $uri/ /index.html;
   }
@@ -436,7 +437,7 @@ spec:
 3. 提交 `POST /passport/setup`，**成功即返回令牌并自动登录进首页**，不需要再输一次密码。
 4. 初始化完成后该页永久关闭，再访问会被送回登录页。
 
-日常登录只有**用户名 + 密码**（已移除邮箱验证码、手机验证码与自助注册入口；账号由管理员创建）。
+日常登录只有**用户名 + 密码**（没有邮箱验证码、手机验证码与自助注册入口；账号由管理员创建）。
 令牌以 `token: <用户ID>:<随机码>` 请求头传递，失效时自动跳回登录页。
 
 登录时还会随请求体上报**设备标识**（本地存储键 `atelierkit.device`，首次访问时生成），后端据此划分会话：
@@ -466,51 +467,48 @@ spec:
 ## 腾讯云页面（`/tencent/:id`）
 
 `id` 是**云服务密钥ID**（`cloud/key` 里的记录），页面数据全部由后端代取，浏览器不接触访问密钥。
-旧私有项目（`web`）的同一模块已整体迁入，**与旧实现的差异是有意为之**：
+几条实现约定：
 
-1. **不再依赖 `@brand`**：旧布局用了 `service-layout`（侧边二级导航 + 地域子菜单）与 `page-bar`，
-   本仓库没有这套组件 —— 现在布局是 `page-header` + 标签页（与 `/cloud/kong/:id` 一致），
-   地域改成轻量服务器页头右侧的下拉（地址仍是 `lighthouse/:region`）。
-2. **接口收在一个服务里**：旧的 `_HttpClient` 直接拼 URL、散落在各页面；现在统一走
-   `routes/tencent/tencent.service.ts`（`HttpClient` + 明确的响应类型）。
-3. **弹窗用 `NzModalService` + `NZ_MODAL_DATA`**：旧的 `ModalHelper.createStatic` 与 `modal-header/footer`
-   模板块不再使用，按钮放在表单底部（`text-right pt-md`）。
-4. **分页总数按接口实际字段取**（旧代码一律读顶层 `TotalCount`，DNS 与域名两页的分页器因此恒为 0）：
-   证书 / 实例 / 防火墙用 `TotalCount`，域名用 `DomainCountInfo.DomainTotal`，解析记录用 `RecordCountInfo.TotalCount`。
-5. **证书有效期不再在前端解 PEM**：KONG 证书对象的 `start` / `end` 由后端用 `crypto.X509Certificate`
+1. **布局是 `page-header` + 标签页**（与 `/cloud/kong/:id` 一致），地域做成轻量服务器页头右侧的下拉
+   （地址仍是 `lighthouse/:region`）—— 本仓库没有侧边二级导航那一套组件，不要为单个模块再引入。
+2. **接口收在一个服务里**：`routes/tencent/tencent.service.ts`（`HttpClient` + 明确的响应类型），
+   页面只关心入参与响应类型，不在组件里拼 URL。
+3. **弹窗用 `NzModalService` + `NZ_MODAL_DATA`**：按钮放在表单底部（`text-right pt-md`），不用模板块拼 header/footer。
+4. **分页总数按接口实际字段取**：证书 / 实例 / 防火墙用 `TotalCount`，域名用 `DomainCountInfo.DomainTotal`，
+   解析记录用 `RecordCountInfo.TotalCount`（这两个接口没有顶层 `TotalCount`，读错分页器恒为 0）。
+5. **证书有效期不在前端解 PEM**：KONG 证书对象的 `start` / `end` 由后端用 `crypto.X509Certificate`
    解析补上（秒级时间戳），前端用 `formatDateTime(at, 's')` 直接格式化。
 6. **纯逻辑抽到 `tencent.format.ts`**（状态标签、续期判定 `canRenew`、规则转换 `rulePayload`、标签页下标 `tabIndexOf`）：
    覆盖率口径只统计「被 spec 加载过的文件」，从 `*.component.ts` 导入测试会把整片页面模块拖进分母（见 `vitest.config.ts` 注释）。
 
 ## 管理员页面（`/admin/*`）
 
-侧边栏「管理员」分组同样带 `acl: 'admin'`，后端三个控制器（`admin/setting`、`admin/operate`、`admin/req`）全部 `@Allow('admin')`。
+侧边栏「管理员」分组同样带 `acl: 'admin'`，后端四个控制器（`admin/setting`、`admin/email`、`admin/operate`、`admin/req`）全部 `@Allow('admin')`。
 
 | 页面 | 路由 | 后端接口 |
 | --- | --- | --- |
 | 配置列表 | `/admin/list` | `GET admin/setting/index` |
 | 应用配置 | `/admin/app` | `GET admin/setting/show/app`、`POST admin/setting/create`、`POST admin/setting/update/app` |
 | 备案配置 | `/admin/icp` | 同上，编码换成 `icp` |
+| 邮件配置 | `/admin/email` | `GET admin/email`、`POST admin/email`、`POST admin/email/test` |
 | 操作日志 | `/admin/operate` | `POST admin/operate/index`、`GET admin/operate/options` |
 | 请求日志 | `/admin/req` | `POST admin/req/index`、`GET admin/req/{url,user,controller}`、`GET admin/req/action/:controller` |
 
-迁移自旧私有项目（`web` 的 `routes/admin`），与旧实现的差异**是有意为之**：
+实现约定：
 
-1. **`admin/task` 与 `admin/dashboard` 不迁移**：前者表格列是用户字段（id / 邮箱 / 昵称 / 头像 / 角色），却调
-   `kong/index`、`kong/show/:id`、`kong/create`（站点接口），后端也没有任务接口 —— 是从 Kong 页面复制的残骸；
-   后者（`AdminKongDashboardComponent`）根本没挂在路由里，功能已被 `/cloud/kong/:id/dashboard` 取代。
-2. **不再依赖 `@brand`**：旧布局用的 `service-layout` / `page-bar` / `ListComponent` / `PageListComponent` 本仓库都没有，
-   现在是 `page-header` + `nz-card` + `sf` + `st`，服务端分页由页面自己管（`pi` / `ps` / `total` 三个 signal +
+1. **本模块只有配置与日志两类页面**：密钥与各站点管理在「云服务」分组（`/cloud/*`），不要在这里再放一份入口。
+2. **布局是 `page-header` + `nz-card` + `sf` + `st`**，服务端分页由页面自己管（`pi` / `ps` / `total` 三个 signal +
    `[page]="{ front: false }"` —— `front` 忘了关就会变成「只在当前页数据里翻页」，第 2 页永远是空的）。
-3. **接口收在 `admin.service.ts`**：旧页面用 `_HttpClient` 直接拼 URL；现在统一 `HttpClient` + 明确的响应类型。
+3. **接口收在 `admin.service.ts`**：`HttpClient` + 明确的响应类型，不在组件里拼 URL。
    两个日志接口在服务内先过 `cleanQuery`：剔除 `undefined` / `null` / 空串，但**保留 `0` 与 `false`** ——
    `userId=0` 是「系统操作」、`success=false` 是「只看异常请求」，按真值剔除就等于没筛选。
 4. **纯逻辑抽到 `admin.format.ts`**（标签映射、`resultFilter`、`cleanQuery`、`isSlow`、`buildReqQuery`、两个详情字段组装），
    原因与 `tencent.format.ts` 相同：覆盖率只统计被 spec 加载过的文件，从 `*.component.ts` 导入测试会把整片页面模块拖进分母。
 5. **重置查询条件要连回写变量一起清**：`sf` 的 `formData` 是单向输入，用户输入靠 `(formChange)` 回写进 signal；
    只调 `sf.reset()` 而不清 signal，重置后仍按上一次的条件查。
-6. **配置未创建时按 404 判「新建」**：旧实现把任何加载失败都当成新建，网络抖动时会拿一份空表单去覆盖已有配置
-   （只靠后端「主键已使用」兜底）；现在只有 404 才转新建态，其它错误只提示。
+6. **配置未创建时按 404 判「新建」**：只有 404 才转新建态，其它错误（网络抖动 / 5xx）只提示，
+   否则会拿一份空表单去覆盖已有配置。
+7. **邮件配置的授权码只回 `***`**：页面提交时留空或提交掩码都表示「不修改」，与后端「留空即不改」对齐。
 
 ## 行情数据页面（`/data/*`）
 
@@ -522,7 +520,7 @@ spec:
 | 数据同步 | `/data/sync` | `GET data/sync/snapshot`、`POST data/sync/{start,pause}` |
 | 数据浏览 | `/data/browser` | `GET data/{security,calendar,bar}` |
 
-照 almanac 桌面端（WinUI 3）的语义重实现，**与桌面端共用卡片组件与状态源**是硬约束：
+按「仪表板 / 数据同步 / 数据浏览」三页组织，**三页共用同一套卡片组件与状态源**是硬约束：
 
 1. **四张同步卡只有一份实现**（`data/shared/sync-card/`），`showActions` 用 `input.required<boolean>()`（漏传编译报错）；
    仪表板传 `false`（连按钮都不渲染）、同步页传 `true`。**不许**仪表板另抄一份简化版卡片。
@@ -552,9 +550,8 @@ spec:
 | --- | --- | --- |
 | `428` | 系统尚未初始化 | 正常会自动跳创建页；若没跳，检查 `config.json` 的 `baseUrl` 是否指向正确后端 |
 | `403` | 初始化凭据无效或来源不被允许 | 核对后端 `SETUP_TOKEN` 与表单里的「初始化凭据」是否一致 |
-| `409` | 已完成初始化 / 用户名已被占用 | 前者直接去登录；后者换用户名 |
+| `409` | 已完成初始化 / 用户名已被占用 / 账号尚未设密 | 初始化：直接去登录；重名：换用户名；未设密：走「忘记密码」 |
 | `401` | 用户名或密码不正确 | 页面内联提示，不会跳转 |
-| `410` | 自助注册已关闭 | 账号需由管理员创建 |
 | 网络错误（`status 0`） | 后端未启动 / `baseUrl` 写错 / 跨域被拦 | 先在浏览器直接访问 `baseUrl + passport/init` 验证 |
 
 > 顶栏的「清理本地缓存」会清掉本地令牌与本地设置，登录状态异常时可先用它再刷新。
@@ -585,7 +582,7 @@ yarn test-coverage
 `coverage.thresholds`（当前 92/90/78/88：行/语句/分支/函数），不达标直接失败（CI 跑的就是这条）。
 
 当前承诺的是 **core 层**：`passport.service`、`refresh-token`、`helper`、`setup.guard`、`start-page.guard` 为 100%，
-`startup.service` 约 95%、`default.interceptor` 约 82%，整体约 **95% 行 / 98% 函数 / 85% 分支**。
+`startup.service` 约 95%、`default.interceptor` 约 82%，整体约 **93% 行 / 89% 函数 / 89% 分支**（实测口径：被 49 个 spec 加载的 60 个源文件）。
 访问控制部分的 `auth.service`（含接口路径 / 方法 / 提交体）与 `utils/token` 为 100%。
 页面组件尚未补 TestBed 用例，`@angular/build:unit-test` 只统计被用例加载过的文件，所以它们在报告里不出现
 （注：在该配置里写 `coverage.include` 会与 builder 冲突、覆盖率被算成 0%，不要加）。

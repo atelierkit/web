@@ -47,7 +47,7 @@ export class KongServiceEditComponent extends KongObjectEditComponent {
    * 详情 → 表单值
    *
    * 注：Kong 的 `url` 只是写入用的简写字段，读回来的是拆开的 `protocol` / `host` / `port` / `path`，
-   * 这里拼回一个完整地址给表单（与旧私有项目一致）
+   * 这里拼回一个完整地址给表单
    *
    * @param row 详情
    * @returns 表单初值
@@ -72,7 +72,7 @@ export class KongServiceEditComponent extends KongObjectEditComponent {
       connect_timeout: value['connect_timeout'],
       read_timeout: value['read_timeout'],
       write_timeout: value['write_timeout'],
-      // 注：表单里有「重试次数」，旧私有项目的 params() 漏了它（改了不生效），这里补上
+      // 注：表单里有「重试次数」，提交时必须带上，否则改了不生效
       retries: value['retries'],
       enabled: value['enabled'],
     });

@@ -34,7 +34,7 @@ export interface SslDeployData {
  *
  * 注 1：证书的公私钥由后端找腾讯云现取，前端只提交证书ID与站点ID
  * 注 2：已部署证书的到期时间取 KONG 证书对象的 `end`（后端用 PEM 解析后补上的**秒级**时间戳），
- * 旧私有项目在前端用 `validity()` 解 PEM，现在不需要了
+ * 前端不解 PEM
  */
 @Component({
   selector: 'tencent-ssl-deploy',

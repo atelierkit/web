@@ -76,7 +76,7 @@ export interface EmailSettingView {
   value: EmailSettingForm;
   /** 是否已设置授权码 */
   hasPassword: boolean;
-  /** `.env` 里是否还留着 SMTP 参数，注：仅作迁移提示 */
+  /** `.env` 里是否还留着 SMTP 参数，注：仅用于提示，运行时不读它 */
   envDetected: boolean;
   /** 更新信息 */
   update?: Partial<AdminAudit>;
