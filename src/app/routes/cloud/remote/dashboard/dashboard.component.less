@@ -44,3 +44,88 @@
     margin: 2px 0;
   }
 }
+
+// 网络信息卡片
+.net-label {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(0 0 0 / 65%);
+
+  // 注：网关与 DNS 之间用一条虚线分开，避免两段地址糊成一片
+  &--gap {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgb(0 0 0 / 8%);
+  }
+}
+
+.net-item {
+  & + & {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgb(0 0 0 / 8%);
+  }
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: baseline;
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+  &__state {
+    padding: 0 6px;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 18px;
+    color: rgb(0 0 0 / 45%);
+    background: rgb(0 0 0 / 4%);
+
+    // 注：只有「已启用」标绿；「已停用」是常态（多网卡机器上大半网口没插线），不要标红
+    &--up {
+      color: #389e0d;
+      background: #f6ffed;
+    }
+
+    // 注：「未知」= 主机上取不到链路信息，用琥珀色提示「这条结论没拿到」，与灰掉的「已停用」区分
+    &--unknown {
+      color: #d48806;
+      background: #fffbe6;
+    }
+  }
+
+  &__meta {
+    font-size: 12px;
+    color: rgb(0 0 0 / 45%);
+    word-break: break-all;
+  }
+
+  &__addr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 0;
+  }
+
+  &__ip {
+    padding: 0 6px;
+    border-radius: 2px;
+    font-family: ui-monospace, sfmono-regular, consolas, monospace;
+    font-size: 12px;
+    word-break: break-all;
+    background: rgb(0 0 0 / 4%);
+  }
+
+  &__value {
+    font-family: ui-monospace, sfmono-regular, consolas, monospace;
+    font-size: 13px;
+    word-break: break-all;
+  }
+}

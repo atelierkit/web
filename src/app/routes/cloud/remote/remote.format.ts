@@ -37,6 +37,25 @@ export function charsetText(value: string): string {
 }
 
 /**
+ * 网络接口状态 → 文案
+ *
+ * 注：`unknown` 单列一档 —— 主机上取不到链路信息（只有 `/proc/net/dev` 的精简系统）时
+ * 显示「未知」，不能画成「已停用」：那是把「没查到」当成结论
+ *
+ * @param state `up` / `down` / `unknown`
+ * @returns 展示文案
+ */
+export function netStateText(state: string): string {
+  if (state === 'up') {
+    return '已启用';
+  }
+  if (state === 'down') {
+    return '已停用';
+  }
+  return '未知';
+}
+
+/**
  * 字节数 → 可读体积
  *
  * @param size 字节数

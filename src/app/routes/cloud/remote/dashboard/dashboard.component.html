@@ -71,6 +71,61 @@
     </nz-col>
   </nz-row>
 
+  <nz-card nzTitle="网络信息" class="mt-md">
+    <nz-row [nzGutter]="[16, 16]">
+      <nz-col [nzSpan]="15">
+        <div class="net-label">网络接口</div>
+        @for (item of data.interfaces; track item.name) {
+          <div class="net-item">
+            <div class="net-item__head">
+              <span class="net-item__name">{{ item.name }}</span>
+              <span
+                class="net-item__state"
+                [class.net-item__state--up]="item.state === 'up'"
+                [class.net-item__state--unknown]="item.state === 'unknown'"
+              >
+                {{ netStateOf(item.state) }}
+              </span>
+              <span class="net-item__meta">{{ item.mac || '无 MAC' }}</span>
+              <span class="net-item__meta">MTU {{ item.mtu || '-' }}</span>
+            </div>
+            <div class="net-item__addr">
+              @for (address of item.addresses; track address) {
+                <span class="net-item__ip">{{ address }}</span>
+              } @empty {
+                <span class="net-item__meta">无 IP 地址</span>
+              }
+            </div>
+            <div class="net-item__meta">
+              累计接收 {{ bytesOf(item.rxBytes) }} · 累计发送 {{ bytesOf(item.txBytes) }}
+            </div>
+          </div>
+        } @empty {
+          <div class="text-sm">未取到网络接口信息（主机可能没有 ip 命令，或账号受限）。</div>
+        }
+      </nz-col>
+      <nz-col [nzSpan]="9">
+        <div class="net-label">默认网关</div>
+        @for (gateway of data.gateways; track gateway.via + '|' + gateway.device) {
+          <div class="net-item__value">
+            {{ gateway.via || '无网关地址' }}
+            @if (gateway.device) {
+              <span class="net-item__meta">经由 {{ gateway.device }}</span>
+            }
+          </div>
+        } @empty {
+          <div class="net-item__meta">未取到默认路由</div>
+        }
+        <div class="net-label net-label--gap">DNS 服务器</div>
+        @for (server of data.dnsServers; track server) {
+          <div class="net-item__value">{{ server }}</div>
+        } @empty {
+          <div class="net-item__meta">未取到 DNS 配置</div>
+        }
+      </nz-col>
+    </nz-row>
+  </nz-card>
+
   <div class="text-right pt-md">
     <button nz-button type="button" (click)="fresh()">刷新</button>
   </div>

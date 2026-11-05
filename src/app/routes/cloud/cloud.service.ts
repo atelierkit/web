@@ -325,6 +325,35 @@ export interface RemoteDiskMount {
   percent: number;
 }
 
+/** 网络接口链路状态，注：`unknown` = 主机上取不到链路信息（精简系统只有 `/proc/net/dev`） */
+export type RemoteLinkState = 'up' | 'down' | 'unknown';
+
+/** 网络接口，注：与后端 `RemoteNetworkInterface` 一一对应 */
+export interface RemoteNetworkInterface {
+  /** 接口名 */
+  name: string;
+  /** 链路状态 */
+  state: RemoteLinkState;
+  /** MAC 地址，无 MAC 的接口为空串 */
+  mac: string;
+  /** 最大传输单元，取不到时 0 */
+  mtu: number;
+  /** 地址（带前缀长度），IPv4 在前 */
+  addresses: string[];
+  /** 累计接收字节 */
+  rxBytes: number;
+  /** 累计发送字节 */
+  txBytes: number;
+}
+
+/** 默认网关，注：与后端 `RemoteGateway` 一一对应 */
+export interface RemoteGateway {
+  /** 网关地址，点对点链路可能为空串 */
+  via: string;
+  /** 出口接口 */
+  device: string;
+}
+
 /** 远程主机概览，注：与后端 `RemoteSummary` 一一对应 */
 export interface RemoteSummary {
   /** 发行版名称 */
@@ -349,6 +378,12 @@ export interface RemoteSummary {
   memoryAvailable: number;
   /** 全部挂载点，注：`/` 在首位，其余按挂载点升序；已剔除伪文件系统 */
   disks: RemoteDiskMount[];
+  /** 网络接口，注：已剔除回环与 `veth*`（容器两侧的成对设备），按接口名升序 */
+  interfaces: RemoteNetworkInterface[];
+  /** 默认网关 */
+  gateways: RemoteGateway[];
+  /** DNS 服务器，注：systemd-resolved 环境下是上游地址而非 `127.0.0.53` */
+  dnsServers: string[];
   /** 当前登录用户 */
   user: string;
 }

@@ -4,7 +4,7 @@ import { apiErrorMessage } from '@core';
 import { SHARED_IMPORTS } from '@shared';
 
 import { CloudService, type RemoteSummary } from '../../cloud.service';
-import { bytesText, uptimeText, usagePercent } from '../remote.format';
+import { bytesText, netStateText, uptimeText, usagePercent } from '../remote.format';
 
 /**
  * 远程主机概览
@@ -13,6 +13,8 @@ import { bytesText, uptimeText, usagePercent } from '../remote.format';
  * 注 2：内存按「已用 / 总量」画进度条 —— 只看总量没有意义
  * 注 3：磁盘列出**全部挂载点**（后端已剔除 tmpfs / squashfs 等伪文件系统、`/` 置顶），
  * 不再只显示根分区：数据盘常常单独挂在 `/data` 一类路径上，只看 `/` 会漏掉真正要关注的那块
+ * 注 4：网络卡片给出接口状态 / MAC / 地址 / 累计流量与默认网关、DNS；
+ * 后端已剔除回环与 `veth*`（容器成对设备，一台宿主机能列出几十个）
  */
 @Component({
   selector: 'remote-dashboard',
@@ -40,6 +42,8 @@ export class RemoteDashboardComponent implements OnInit {
   readonly uptimeOf = uptimeText;
   /** 使用率 */
   readonly percentOf = usagePercent;
+  /** 网口状态文案 */
+  readonly netStateOf = netStateText;
 
   /** 页面初始化 */
   ngOnInit(): void {

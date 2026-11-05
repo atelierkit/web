@@ -9,6 +9,7 @@ import {
   fingerprintText,
   keyFormatText,
   keyInspectText,
+  netStateText,
   trustedText,
   uptimeText,
   usagePercent,
@@ -27,6 +28,18 @@ describe('remote.format', () => {
       expect(charsetText('utf-8')).toBe('UTF-8');
       expect(charsetText('gb18030')).toBe('GB18030');
       expect(charsetText('')).toBe('UTF-8');
+    });
+  });
+
+  describe('netStateText', () => {
+    it('三档状态各自有文案', () => {
+      expect(netStateText('up')).toBe('已启用');
+      expect(netStateText('down')).toBe('已停用');
+      expect(netStateText('unknown')).toBe('未知');
+    });
+
+    it('没见过的取值不显示成「已停用」（取不到 ≠ 停用）', () => {
+      expect(netStateText('')).toBe('未知');
     });
   });
 
