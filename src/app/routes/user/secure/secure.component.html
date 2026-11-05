@@ -1,6 +1,8 @@
 @if (done()) {
   <nz-result nzStatus="success" nzTitle="邮箱更换成功">
-    <div nz-result-content>绑定邮箱已更新为 {{ target() }}，后续找回密码与通知都会发到该地址。</div>
+    <div nz-result-content class="text-center">
+      绑定邮箱已更新为 {{ target() }}，后续找回密码与通知都会发到该地址。
+    </div>
     <div nz-result-extra>
       <button nz-button type="button" nzType="primary" nzSize="large" routerLink="/home">
         返回首页
