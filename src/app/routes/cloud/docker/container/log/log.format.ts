@@ -1,3 +1,4 @@
+import { type AnsiStyle, type LogLevel, ansiSpansOf, cssOf, levelOf, stripAnsi } from './log.ansi';
 import type { DockerLogLine } from '../../object/object.types';
 
 /**
@@ -75,12 +76,17 @@ export function clockOf(ts: string): string {
 /**
  * 行 → 单行文本
  *
+ * 注：返回的是**剥离 ANSI 后**的纯文本 —— 悬停提示、复制、下载都走这里，
+ * 带 `\x1b[32m` 的原文粘到别处只会是乱码
+ *
  * @param line 日志行
  * @param withTimestamp 是否带上原始时间戳
  * @returns 文本
  */
 export function lineTextOf(line: DockerLogLine, withTimestamp = true): string {
-  return withTimestamp && line.ts !== '' ? `${line.ts} ${line.text}` : line.text;
+  /** 正文 */
+  const text = stripAnsi(line.text);
+  return withTimestamp && line.ts !== '' ? `${line.ts} ${text}` : text;
 }
 
 /**
@@ -152,6 +158,73 @@ export function chunksOf(text: string, keyword: string): LogTextChunk[] {
     chunks.push({ text: text.slice(start), hit: false });
   }
   return chunks.length === 0 ? [{ text, hit: false }] : chunks;
+}
+
+/**
+ * 渲染分片
+ *
+ * 注：一个分片 = 一段样式一致的文本，模板用 `<span [ngStyle]>` 渲染；
+ * 关键字高亮是**同一层**的标记，不再单独包 `<mark>`，否则样式与高亮会互相覆盖
+ */
+export interface LogSpan {
+  /** 片段文本 */
+  text: string;
+  /** 是否命中关键字 */
+  hit: boolean;
+  /** 内联样式，`null` 表示用面板默认色 */
+  css: Record<string, string> | null;
+  /** 原文样式，注：仅用于测试与判断，模板不直接读 */
+  style: AnsiStyle | null;
+}
+
+/** 待渲染的一行 */
+export interface DockerLogRow {
+  /** 原始行 */
+  line: DockerLogLine;
+  /** 分片 */
+  spans: LogSpan[];
+  /** 语义级别，注：仅当本行没有 ANSI 样式时给出，避免覆盖程序自己的配色 */
+  level: LogLevel;
+}
+
+/**
+ * 行 → 渲染分片
+ *
+ * 注 1：ANSI 的样式可以跨行继承（某行以 `\x1b[31m` 开头却没在行尾重置时，
+ * 后续行都该是红的 —— 多行堆栈就是这么来的），所以这里按顺序逐行传递样式
+ * 注 2：级别只在「本行没有任何 ANSI 样式」时兜底 —— 程序自己上过色说明它有自己的
+ * 语义，再用关键字覆盖只会打架
+ *
+ * @param lines 日志行
+ * @param keyword 关键字
+ * @returns 渲染行
+ */
+export function renderRowsOf(lines: readonly DockerLogLine[], keyword: string): DockerLogRow[] {
+  /** 上一行遗留的样式 */
+  let carry: AnsiStyle | null = null;
+  return lines.map((line) => {
+    /** 解析结果 */
+    const parsed = ansiSpansOf(line.text, carry);
+    carry = parsed.carry;
+    /** 是否做过格式化 */
+    const styled = parsed.spans.some((piece) => piece.style !== null);
+    /** 分片 */
+    const spans: LogSpan[] = [];
+    /** 纯文本，注：用于级别判定 */
+    let plain = '';
+    for (const piece of parsed.spans) {
+      plain += piece.text;
+      for (const chunk of chunksOf(piece.text, keyword)) {
+        spans.push({
+          text: chunk.text,
+          hit: chunk.hit,
+          css: cssOf(piece.style, chunk.hit),
+          style: piece.style,
+        });
+      }
+    }
+    return { line, spans, level: styled ? '' : levelOf(plain) };
+  });
 }
 
 /**

@@ -34,15 +34,31 @@
   font-size: 12px;
   line-height: 1.65;
   color: #d4d4d4;
+  tab-size: 4;
   background: #1e1e1e;
 
   .log-line {
     display: flex;
     gap: 8px;
+    min-height: 1.2em;
   }
 
   .log-err {
     color: #ff7875;
+  }
+
+  // 注：级别兜底只在「程序自己没上色」时生效 —— 原文带 ANSI 的行由内联样式决定颜色，
+  // 这几条 class 会被覆盖，从而不会盖掉程序自己的配色
+  .log-lv-error {
+    color: #ff7875;
+  }
+
+  .log-lv-warn {
+    color: #e2c08d;
+  }
+
+  .log-lv-debug {
+    color: #8f8f8f;
   }
 
   .log-ts {
@@ -62,7 +78,8 @@
     color: #d4a017;
   }
 
-  mark {
+  // 注：命中关键字时不再套用原文颜色（见 `cssOf`），否则绿字叠在黄底上看不清
+  .hit {
     padding: 0 1px;
     border-radius: 2px;
     color: #1e1e1e;

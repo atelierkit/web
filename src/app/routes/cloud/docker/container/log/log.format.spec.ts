@@ -9,6 +9,7 @@ import {
   lastTsOf,
   lineTextOf,
   mergeOf,
+  renderRowsOf,
   trimOf,
 } from './log.format';
 import type { DockerLogLine } from '../../object/object.types';
@@ -50,6 +51,13 @@ describe('lineTextOf', () => {
 
   it('没有时间戳的行不拼多余的空格', () => {
     expect(lineTextOf(lineOf('hello'))).toBe('hello');
+  });
+
+  it('剥离 ANSI 序列（复制、下载、悬停提示都要纯文本）', () => {
+    /** 带颜色的行 */
+    const line = lineOf('\u001b[32mOK\u001b[0m \u001b[2Kdone');
+    expect(lineTextOf(line, false)).toBe('OK done');
+    expect(lineTextOf(line)).toBe('OK done');
   });
 });
 
@@ -126,6 +134,54 @@ describe('chunksOf', () => {
       { text: 'script', hit: true },
       { text: '>', hit: false },
     ]);
+  });
+});
+
+describe('renderRowsOf', () => {
+  it('有颜色时切出多段并带上内联样式', () => {
+    /** 结果 */
+    const rows = renderRowsOf([lineOf('\u001b[32mINFO\u001b[0m started')], '');
+    expect(rows[0].spans.map((span) => span.text)).toEqual(['INFO', ' started']);
+    expect(rows[0].spans[0].css).toEqual({ color: '#0dbc79' });
+    expect(rows[0].spans[1].css).toBeNull();
+  });
+
+  it('颜色跨行继承（多行堆栈整体染红）', () => {
+    /** 结果 */
+    const rows = renderRowsOf([lineOf('\u001b[31mError: boom'), lineOf('    at main')], '');
+    expect(rows[1].spans[0].css).toEqual({ color: '#cd3131' });
+  });
+
+  it('没有 ANSI 的行按级别兜底着色', () => {
+    /** 结果 */
+    const rows = renderRowsOf([lineOf('ERROR conn refused'), lineOf('plain line')], '');
+    expect(rows[0].level).toBe('error');
+    expect(rows[1].level).toBe('');
+    // 注：兜底只给级别，不改写样式 —— 具体颜色由 .log-lv-* 决定
+    expect(rows[0].spans[0].css).toBeNull();
+  });
+
+  it('程序自己上过色的行不再套级别（避免覆盖原文配色）', () => {
+    /** 结果 */
+    const rows = renderRowsOf([lineOf('\u001b[35mERROR boom\u001b[0m')], '');
+    expect(rows[0].level).toBe('');
+  });
+
+  it('关键字命中与 ANSI 样式在同一层合并', () => {
+    /** 结果 */
+    const rows = renderRowsOf([lineOf('\u001b[32mGET /health 200\u001b[0m')], 'health');
+    expect(rows[0].spans.map((span) => [span.text, span.hit])).toEqual([
+      ['GET /', false],
+      ['health', true],
+      [' 200', false],
+    ]);
+    // 命中段不套原文颜色，交给高亮样式
+    expect(rows[0].spans[1].css).toBeNull();
+    expect(rows[0].spans[0].css).toEqual({ color: '#0dbc79' });
+  });
+
+  it('空行不产生分片（模板仍占一行）', () => {
+    expect(renderRowsOf([lineOf('')], '')[0].spans).toEqual([]);
   });
 });
 

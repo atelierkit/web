@@ -19,13 +19,14 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { DockerLogChannel, type DockerLogStatus } from './log.channel';
 import {
   LOG_RENDER_MAX,
-  chunksOf,
   clockOf,
   downloadTextOf,
   filterOf,
   lastTsOf,
   lineTextOf,
   mergeOf,
+  renderRowsOf,
+  type DockerLogRow,
 } from './log.format';
 import { stateColor, stateText } from '../../docker.format';
 import { DockerObjectService } from '../../object/object.service';
@@ -124,6 +125,14 @@ export class DockerLogComponent implements OnInit, OnDestroy {
     const rows = this.filtered();
     return rows.slice(Math.max(0, rows.length - this.rendered()));
   });
+
+  /**
+   * 渲染行（含 ANSI 分片）
+   *
+   * 注：只对可视区算 —— 5000 行全量解析没必要，DOM 本来也只渲染尾部 800 行；
+   * 样式继承（颜色跨行）从可视区首行开始建立，故上翻加载更早时会整体重算一次
+   */
+  readonly rows = computed<DockerLogRow[]>(() => renderRowsOf(this.visible(), this.keyword()));
 
   /** stderr 行数 */
   readonly errorCount = computed(
@@ -344,16 +353,6 @@ export class DockerLogComponent implements OnInit, OnDestroy {
    */
   protected clockOf(ts: string): string {
     return clockOf(ts);
-  }
-
-  /**
-   * 关键字分片
-   *
-   * @param text 正文
-   * @returns 分片
-   */
-  protected chunksOf(text: string): ReturnType<typeof chunksOf> {
-    return chunksOf(text, this.keyword());
   }
 
   /**

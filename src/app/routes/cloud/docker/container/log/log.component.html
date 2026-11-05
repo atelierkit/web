@@ -72,21 +72,23 @@
         </button>
       </div>
     }
-    @for (line of visible(); track $index) {
-      <div class="log-line" [class.log-err]="line.stream === 'stderr'">
-        @if (showTimestamp() && line.ts !== '') {
-          <span class="log-ts" [title]="line.ts">{{ clockOf(line.ts) }}</span>
+    @for (row of rows(); track $index) {
+      <div
+        class="log-line"
+        [class.log-err]="row.line.stream === 'stderr'"
+        [class.log-lv-error]="row.level === 'error'"
+        [class.log-lv-warn]="row.level === 'warn'"
+        [class.log-lv-debug]="row.level === 'debug'"
+      >
+        @if (showTimestamp() && row.line.ts !== '') {
+          <span class="log-ts" [title]="row.line.ts">{{ clockOf(row.line.ts) }}</span>
         }
-        <span class="log-text" [title]="lineTextOf(line)">
-          @for (chunk of chunksOf(line.text); track $index) {
-            @if (chunk.hit) {
-              <mark>{{ chunk.text }}</mark>
-            } @else {
-              {{ chunk.text }}
-            }
+        <span class="log-text" [title]="lineTextOf(row.line)">
+          @for (span of row.spans; track $index) {
+            <span [class.hit]="span.hit" [style]="span.css">{{ span.text }}</span>
           }
         </span>
-        @if (line.truncated) {
+        @if (row.line.truncated) {
           <span class="log-flag">（本行过长，已截断）</span>
         }
       </div>
