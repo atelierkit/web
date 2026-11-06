@@ -1,0 +1,107 @@
+<nz-spin [nzSpinning]="loading()">
+  @if (state(); as s) {
+    <nz-card nzTitle="申请状态" nzSize="small">
+      <table class="kv">
+        <tbody>
+          <tr>
+            <th>当前状态</th>
+            <td>
+              <nz-tag [nzColor]="stateTag[s.type]?.color">
+                {{ stateTag[s.type]?.text ?? s.type }}
+              </nz-tag>
+            </td>
+          </tr>
+          <tr>
+            <th>申请域名</th>
+            <td>{{ data.domain || '-' }}</td>
+          </tr>
+          @if (s.certId > 0) {
+            <tr>
+              <th>证书ID</th>
+              <td>{{ s.certId }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </nz-card>
+
+    @if (s.type === 'domain_verify' && s.record; as r) {
+      <nz-card nzTitle="DNS 验证记录" nzSize="small">
+        <table class="kv">
+          <tbody>
+            <tr>
+              <th>记录类型</th>
+              <td>{{ r.type }}</td>
+            </tr>
+            <tr>
+              <th>主机记录</th>
+              <td>
+                <code>{{ r.domain }}</code>
+                <button nz-button type="link" nzSize="small" (click)="copy(r.domain)">复制</button>
+              </td>
+            </tr>
+            <tr>
+              <th>记录值</th>
+              <td>
+                <code class="break-all">{{ r.value }}</code>
+                <button nz-button type="link" nzSize="small" (click)="copy(r.value)">复制</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="probe-bar">
+          <button nz-button type="button" [nzLoading]="probing()" (click)="checkDns()">
+            检测 DNS 是否生效
+          </button>
+          @if (probe(); as p) {
+            <nz-tag [nzColor]="dnsTag[p.status]?.color">{{ dnsTag[p.status]?.text }}</nz-tag>
+          }
+        </div>
+
+        @if (probe(); as p) {
+          <nz-alert
+            [nzType]="dnsAlertType(p.status)"
+            nzShowIcon
+            [nzMessage]="dnsText(p.status)"
+            [nzDescription]="nsText(p.ns)"
+          />
+          @if (p.existing.length > 0) {
+            <div class="probe-existing">
+              当前已存在的同类记录：
+              @for (item of p.existing; track item) {
+                <code class="break-all">{{ item }}</code>
+              }
+            </div>
+          }
+        }
+        <p class="text-muted">
+          注：本地 DNS
+          的查询结果仅供参考，阿里云侧的验证进度以「当前状态」为准；记录添加后通常几分钟内生效。
+        </p>
+      </nz-card>
+    }
+
+    @if (s.type === 'certificate') {
+      <nz-card nzTitle="证书已签发" nzSize="small">
+        <div class="probe-bar">
+          <button nz-button type="button" (click)="download()">下载证书</button>
+          <button nz-button type="button" nzType="primary" (click)="deploy()">部署到 KONG</button>
+        </div>
+        <p class="text-muted">下载得到的是 PEM 包，含证书与私钥，请妥善保管。</p>
+      </nz-card>
+    }
+
+    @if (s.type === 'verify_fail') {
+      <nz-alert
+        nzType="error"
+        nzShowIcon
+        nzMessage="审核失败"
+        nzDescription="请检查域名与联系人信息后重新申请。失败的订单可以在阿里云控制台删除（不消耗额度）再重试。"
+      />
+    }
+  }
+</nz-spin>
+<div class="modal-footer">
+  <button nz-button type="button" (click)="close()">关闭</button>
+</div>

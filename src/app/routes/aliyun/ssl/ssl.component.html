@@ -1,0 +1,24 @@
+<page-header title="证书" [action]="actionTpl" [autoBreadcrumb]="false" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="upload()">上传证书</button>
+</ng-template>
+@if (empty() && !loading()) {
+  <nz-alert
+    nzType="info"
+    nzShowIcon
+    nzMessage="该账号暂无证书"
+    nzDescription="可以到「订单」页用未使用的额度申请证书，或点右上角「上传证书」导入外部证书。"
+  />
+} @else {
+  <st
+    [data]="data()"
+    [columns]="columns"
+    [ps]="ps()"
+    [pi]="pi()"
+    [total]="total()"
+    [page]="page"
+    [loading]="loading()"
+    (change)="change($event)"
+  />
+}

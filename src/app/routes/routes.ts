@@ -53,6 +53,12 @@ export const routes: Routes = [
         data: { title: '腾讯云' },
         loadChildren: () => import('./tencent/routes').then((m) => m.routes),
       },
+      // 阿里云（证书 / 订单 / 联系人），注：与腾讯云同一个入口范式，不放侧边菜单
+      {
+        path: 'aliyun',
+        data: { title: '阿里云' },
+        loadChildren: () => import('./aliyun/routes').then((m) => m.routes),
+      },
     ],
   },
   // passport

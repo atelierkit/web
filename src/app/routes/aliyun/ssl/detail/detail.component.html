@@ -1,0 +1,103 @@
+<nz-spin [nzSpinning]="loading()">
+  @if (detail(); as d) {
+    <nz-card nzTitle="证书信息" nzSize="small">
+      <table class="kv">
+        <tbody>
+          <tr>
+            <th>证书ID</th>
+            <td>{{ d.certId }}</td>
+            <th>名称</th>
+            <td>{{ d.name || '-' }}</td>
+          </tr>
+          <tr>
+            <th>主域名</th>
+            <td>{{ d.commonName || '-' }}</td>
+            <th>状态</th>
+            <td>{{ d.status || '-' }}</td>
+          </tr>
+          <tr>
+            <th>绑定域名</th>
+            <td colspan="3">
+              @for (item of d.sans; track item) {
+                <nz-tag>{{ item }}</nz-tag>
+              } @empty {
+                -
+              }
+            </td>
+          </tr>
+          <tr>
+            <th>颁发机构</th>
+            <td colspan="3">{{ d.issuer || '-' }}</td>
+          </tr>
+          <tr>
+            <th>签发时间</th>
+            <td>{{ dateOf(d.startAt) || '-' }}</td>
+            <th>到期时间</th>
+            <td>{{ dateOf(d.endAt) || '-' }}</td>
+          </tr>
+          <tr>
+            <th>算法</th>
+            <td>{{ d.algorithm || '-' }}</td>
+            <th>密钥长度</th>
+            <td>{{ d.keySize || '-' }}</td>
+          </tr>
+          <tr>
+            <th>序列号</th>
+            <td colspan="3">
+              <code>{{ d.serial || '-' }}</code>
+            </td>
+          </tr>
+          <tr>
+            <th>指纹</th>
+            <td colspan="3">
+              <code>{{ d.fingerprint || '-' }}</code>
+            </td>
+          </tr>
+          <tr>
+            <th>实例ID</th>
+            <td>{{ d.instanceId || '-' }}</td>
+            <th>全局标识</th>
+            <td>{{ d.certIdentifier || '-' }}</td>
+          </tr>
+          <tr>
+            <th>证书链</th>
+            <td colspan="3">共 {{ d.chain.length }} 张</td>
+          </tr>
+        </tbody>
+      </table>
+    </nz-card>
+
+    <nz-card nzTitle="证书内容" nzSize="small">
+      <div class="pem-actions">
+        <button nz-button type="button" [nzLoading]="pemLoading()" (click)="loadPem()">
+          加载证书内容
+        </button>
+        <button nz-button type="button" (click)="toggleKey()">
+          {{ showKey() ? '隐藏私钥' : '显示私钥' }}
+        </button>
+      </div>
+      @if (pem(); as p) {
+        <nz-tabs nzSize="small">
+          <nz-tab nzTitle="证书（PEM）">
+            <textarea nz-input rows="10" readonly [value]="p.cert"></textarea>
+          </nz-tab>
+          <nz-tab nzTitle="私钥（PEM）">
+            @if (showKey()) {
+              <textarea nz-input rows="10" readonly [value]="p.key"></textarea>
+            } @else {
+              <nz-alert
+                nzType="warning"
+                nzShowIcon
+                nzMessage="私钥默认隐藏"
+                nzDescription="点上方「显示私钥」查看。私钥等同于证书的控制权，请避免投屏或截图。"
+              />
+            }
+          </nz-tab>
+        </nz-tabs>
+      }
+    </nz-card>
+  }
+</nz-spin>
+<div class="modal-footer">
+  <button nz-button type="button" (click)="close()">关闭</button>
+</div>

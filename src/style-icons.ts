@@ -35,6 +35,7 @@ import {
   EditOutline,
   EllipsisOutline,
   ExclamationCircleOutline,
+  EyeOutline,
   FileProtectOutline,
   FileTextOutline,
   HomeOutline,
@@ -55,6 +56,7 @@ import {
   RightOutline,
   SafetyCertificateOutline,
   SearchOutline,
+  StarOutline,
   StopOutline,
   SyncOutline,
   TeamOutline,
@@ -115,6 +117,10 @@ export const ICONS = [
   StopOutline,
   EditOutline,
   DeleteOutline,
+  // 阿里云：证书页「详情」（eye）、联系人页「设为默认」（star）
+  EyeOutline,
+  StarOutline,
+
   // ---- ng-zorro 组件**内部**渲染的图标（用户代码里没有字面量，肉眼与脚本都查不到）----
   // nz-select：下拉箭头、已选项对勾、多选标签的关闭、clear 图标（见 `NzSelectArrowComponent`）
   DownOutline,

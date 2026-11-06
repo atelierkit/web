@@ -1,0 +1,25 @@
+<page-header title="订单" [action]="actionTpl" [autoBreadcrumb]="false" />
+<ng-template #actionTpl>
+  <nz-select class="status-select" [ngModel]="status()" (ngModelChange)="changeStatus($event)">
+    @for (item of statusOptions; track item.value) {
+      <nz-option [nzValue]="item.value" [nzLabel]="item.label" />
+    }
+  </nz-select>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+</ng-template>
+<nz-alert
+  nzType="info"
+  nzShowIcon
+  nzMessage="订单是证书额度"
+  nzDescription="「待申请」表示额度还没用掉，点「申请证书」按域名签发；每张订单只能用一次，提交后状态会离开待申请。"
+/>
+<st
+  [data]="data()"
+  [columns]="columns"
+  [ps]="ps()"
+  [pi]="pi()"
+  [total]="total()"
+  [page]="page"
+  [loading]="loading()"
+  (change)="change($event)"
+/>

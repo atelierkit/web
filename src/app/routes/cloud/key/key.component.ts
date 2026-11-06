@@ -65,9 +65,12 @@ export class CloudKeyComponent implements OnInit {
         {
           text: '管理',
           type: 'link',
-          // 注：目前只有腾讯云有专属管理页（证书 / 域名 / 轻量服务器），其它服务商没有入口
-          iif: (record: STData) => record['provider'] === 'tencent',
-          click: (record: STData) => void this.router.navigate(['/tencent', record['id']]),
+          // 注：腾讯云（证书 / 域名 / 轻量服务器）与阿里云（证书 / 订单 / 联系人）有专属管理页，
+          // 其它服务商没有入口，故不给死链
+          iif: (record: STData) =>
+            record['provider'] === 'tencent' || record['provider'] === 'aliyun',
+          click: (record: STData) =>
+            void this.router.navigate([`/${record['provider']}`, record['id']]),
         },
         {
           text: '编辑',

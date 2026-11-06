@@ -1,0 +1,12 @@
+<page-header title="联系人" [action]="actionTpl" [autoBreadcrumb]="false" />
+<ng-template #actionTpl>
+  <button nz-button type="button" (click)="fresh()">刷新</button>
+  <button nz-button type="button" nzType="primary" (click)="open()">新增联系人</button>
+</ng-template>
+<nz-alert
+  nzType="info"
+  nzShowIcon
+  nzMessage="联系人用于证书申请"
+  nzDescription="申请证书时可以从这里选，选中后自动回填姓名、手机、邮箱与省市。默认项会预选；停用的不会出现在下拉里。"
+/>
+<st [data]="data()" [columns]="columns" [loading]="loading()" />
