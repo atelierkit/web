@@ -2,10 +2,18 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { apiErrorMessage } from '@core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalRef } from 'ng-zorro-antd/modal';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 
 import { dateOf } from '../../aliyun.format';
 import { type SslCertDetail, type SslCertPem, AliyunService } from '../../aliyun.service';
+
+/** 详情弹窗入参 */
+export interface SslDetailData {
+  /** 密钥ID */
+  keyId: number;
+  /** 证书ID */
+  certId: number;
+}
 
 /**
  * 阿里云证书详情
@@ -59,10 +67,19 @@ export class AliyunSslDetailComponent implements OnInit {
   private readonly msgSrv = inject(NzMessageService);
   private readonly modalRef = inject(NzModalRef);
 
+  /** 弹窗入参，注：`NzModalService.create` 传的 `nzData` 只能通过 `NZ_MODAL_DATA` 取到，
+   * 写成普通字段会一直是 `undefined`，请求会打到 `show/undefined` 上 */
+  private readonly data = inject<SslDetailData>(NZ_MODAL_DATA);
+
   /** 密钥ID */
-  keyId!: number;
+  private get keyId(): number {
+    return this.data.keyId;
+  }
+
   /** 证书ID */
-  certId!: number;
+  private get certId(): number {
+    return this.data.certId;
+  }
 
   /** 日期格式化，注：共享模块里没有 `date` 管道，统一走纯函数 */
   readonly dateOf = dateOf;
